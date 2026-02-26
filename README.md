@@ -3,3 +3,4 @@ Mobile app for CSUCI students that centralizes scheduling, campus navigation, ev
 
 - Emma Schwartz
 - Sergio Macias
+- Emma Schwartz
