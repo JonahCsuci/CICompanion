@@ -3,5 +3,6 @@ Mobile app for CSUCI students that centralizes scheduling, campus navigation, ev
 
 - Emma Schwartz
 - Sergio Macias
+- Tyler Stoaks
 - Jared Sagmaquen
 - Jonah Norton
