@@ -1,0 +1,57 @@
+[
+  {
+    "id": 1,
+    "courseName": "Calculus I",
+    "courseCode": "CALC101",
+    "instructor": "Dr. Smith",
+    "location": "Room 204",
+    "startTime": "9:00 AM",
+    "endTime": "10:15 AM",
+    "days": ["Monday", "Wednesday"],
+    "isAsynchronous": false
+  },
+  {
+    "id": 2,
+    "courseName": "Physics I",
+    "courseCode": "PHYS101",
+    "instructor": "Dr. Lee",
+    "location": "Room 101",
+    "startTime": "11:00 AM",
+    "endTime": "12:15 PM",
+    "days": ["Tuesday", "Thursday"],
+    "isAsynchronous": false
+  },
+  {
+    "id": 3,
+    "courseName": "Computer Science Fundamentals",
+    "courseCode": "CS101",
+    "instructor": "Prof. Nguyen",
+    "location": "Online",
+    "startTime": "N/A",
+    "endTime": "N/A",
+    "days": ["Monday", "Wednesday"],
+    "isAsynchronous": true
+  },
+  {
+    "id": 4,
+    "courseName": "Chemistry I",
+    "courseCode": "CHEM101",
+    "instructor": "Dr. Patel",
+    "location": "Science Hall 210",
+    "startTime": "1:30 PM",
+    "endTime": "2:45 PM",
+    "days": ["Tuesday", "Thursday"],
+    "isAsynchronous": false
+  },
+  {
+    "id": 5,
+    "courseName": "Introduction to Psychology",
+    "courseCode": "PSY101",
+    "instructor": "Dr. Martinez",
+    "location": "Online",
+    "startTime": "N/A",
+    "endTime": "N/A",
+    "days": ["Tuesday", "Thursday"],
+    "isAsynchronous": true
+  }
+]

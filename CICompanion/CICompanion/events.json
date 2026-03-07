@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "eventDay": "Monday",
+    "eventDate": "October 14, 2026",
+    "eventTime": "10:00 AM",
+    "eventDescription": "Career Center Resume Workshop"
+  },
+  {
+    "id": 2,
+    "eventDay": "Tuesday",
+    "eventDate": "October 15, 2026",
+    "eventTime": "12:30 PM",
+    "eventDescription": "CS Club Meeting"
+  },
+  {
+    "id": 3,
+    "eventDay": "Wednesday",
+    "eventDate": "October 16, 2026",
+    "eventTime": "5:00 PM",
+    "eventDescription": "Campus Movie Night"
+  },
+  {
+    "id": 4,
+    "eventDay": "Thursday",
+    "eventDate": "October 17, 2026",
+    "eventTime": "3:00 PM",
+    "eventDescription": "Guest Speaker: AI in Industry"
+  },
+  {
+    "id": 5,
+    "eventDay": "Friday",
+    "eventDate": "October 18, 2026",
+    "eventTime": "7:00 PM",
+    "eventDescription": "Homecoming Pep Rally"
+  }
+]
