@@ -12,9 +12,9 @@ class EventsViewModel: ObservableObject {
 
     @Published var events: [Event] = []
 
-    let repository: EventsRepository
+    let repository: EventsRepositoryProtocol
 
-    init(repository: EventsRepository) {
+    init(repository: EventsRepositoryProtocol) {
         self.repository = repository
     }
 

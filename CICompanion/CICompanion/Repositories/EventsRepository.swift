@@ -7,7 +7,11 @@
 
 import Foundation
 
-class EventsRepository {
+protocol EventsRepositoryProtocol {
+    func loadEvents() throws -> [Event]
+}
+
+class EventsRepository: EventsRepositoryProtocol {
 
     func loadEvents() throws -> [Event] {
 

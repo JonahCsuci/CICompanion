@@ -7,15 +7,16 @@
 
 import Foundation
 
+protocol CourseRepositoryProtocol {
+    func loadAllCourses() throws -> [Course]
+    func loadStudent() throws -> Student
+    func loadStudentCourses() throws -> [Course]
+}
+
 // Repository = data layer.
 // Its job is to load data.
 // For now it reads local JSON files.
-// Later this can be changed to API/database code.
-class CourseRepository {
-    
-    // During this sprint I will change these to fetch from database
-    // You can mess with these if you want to fetch the data from
-    // the JSON files differently at the moment
+class CourseRepository: CourseRepositoryProtocol {
     
     // Load all courses from courses.json
     func loadAllCourses() throws -> [Course] {

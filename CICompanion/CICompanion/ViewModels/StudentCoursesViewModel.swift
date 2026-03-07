@@ -15,11 +15,11 @@ class StudentCoursesViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
     
-    let repository: CourseRepository
+    let repository: CourseRepositoryProtocol
     
     // Dependency injection:
     // the repository is passed in from outside.
-    init(repository: CourseRepository) {
+    init(repository: CourseRepositoryProtocol) {
         self.repository = repository
     }
     
