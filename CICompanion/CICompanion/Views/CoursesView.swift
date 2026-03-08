@@ -12,19 +12,42 @@ struct CoursesView: View {
     
     @StateObject var viewModel: CourseViewModel
     
+    
     init(viewModel: CourseViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
     
     var body: some View {
-        List(viewModel.courses) { course in
-            VStack(alignment: .leading) {
-                Text(course.courseName)
-                Text(course.courseCode)
+        VStack(spacing:0) {
+            HStack {
+            
+                TextField("Search Courses", text: $viewModel.searchQuery)
+                    .textFieldStyle(.plain)
+                    .onChange(of: viewModel.searchQuery) {
+                        viewModel.search()
+                    }
             }
-        }
-        .onAppear {
-            viewModel.loadCourses()
+            .padding(12)
+            .background(.thinMaterial)
+            .clipShape(Capsule())
+            .padding(.horizontal)
+            .padding(.top, 16)
+            NavigationStack {
+                List(viewModel.shownCourses) { course in
+                    Button(role: .none, action: {
+                        
+                    }) {
+                        VStack(alignment: .leading) {
+                            Text(course.courseName)
+                            Text(course.courseCode)
+                        }
+                    }
+                }
+                .onAppear {
+                    viewModel.loadCourses()
+                }
+                .navigationTitle("Course List")
+            }
         }
     }
 }

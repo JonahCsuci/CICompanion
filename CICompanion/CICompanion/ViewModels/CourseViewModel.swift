@@ -14,6 +14,8 @@ import SwiftUI
 class CourseViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
+    @Published var shownCourses: [Course] = [];
+    @Published var searchQuery : String = ""
     
     let repository: CourseRepositoryProtocol
     
@@ -27,8 +29,20 @@ class CourseViewModel: ObservableObject {
     func loadCourses() {
         do {
             courses = try repository.loadAllCourses()
+            shownCourses = courses
         } catch {
             print("Error loading all courses:", error)
         }
+    }
+    
+    func search() {
+        var searched : [Course] = []
+        for course in courses {
+            if course.courseName.lowercased().contains(searchQuery.lowercased()) || course.courseCode.lowercased().contains(searchQuery.lowercased()) || course.instructor.lowercased().contains(searchQuery.lowercased()) {
+                searched.append(course)
+            }
+        }
+        
+        shownCourses = searched
     }
 }
