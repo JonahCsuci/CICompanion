@@ -20,6 +20,11 @@ class AppContainer {
     lazy var eventsRepository: EventsRepositoryProtocol =
         EventsRepository(studentRepository: studentRepository)
     
+    lazy var courseViewModel = CourseViewModel(
+        courseRepository: courseRepository,
+        studentRepository: studentRepository
+    )
+    
     lazy var studentCoursesViewModel = StudentCoursesViewModel(
         courseRepository: courseRepository,
         studentRepository: studentRepository
