@@ -12,25 +12,12 @@ import Foundation
 class AppContainer {
     
     // Shared repository object
-    let courseRepository = CourseRepository()
-    let eventsRepository = EventsRepository()
+    let studentRepository = StudentRepository()
+    lazy var courseRepository: CourseRepositoryProtocol = CourseRepository(studentRepository: studentRepository)
+    
+    lazy var eventRepository: EventsRepositoryProtocol = EventsRepository(studentRepository: studentRepository)
     
     // ViewModels that receive the repository object
-    
-    //lazy means the variable will not be created until it is first used
-    // Basically are created when something accesses them for the first time
-    lazy var coursesViewModel = CourseViewModel(repository: courseRepository)
     lazy var studentCoursesViewModel = StudentCoursesViewModel(repository: courseRepository)
-    lazy var eventsViewModel = EventsViewModel(repository: eventsRepository)
-    
-    // Explaining coursesViewModel (studentCoursesViewModel behaves the same way)
-    // coursesViewModel is an object of the CourseViewModel class
-    // When it is created, we pass in the CourseRepository object that was created at the top of AppContainer
-    // Because CourseViewModel accepts a CourseRepository object in its initializer,
-    // the ViewModel can use that repository object to load course data.
-    
-    // This is dependency injection, instead of a class creating the objects it needs,
-    // those objects are created elsewhere (like in this class) and passed in
-    // This keeps code easier to organize, reuse, and change later to my understanding
-    
+    lazy var eventsCourseViewModel = EventsViewModel(repository: eventRepository)
 }

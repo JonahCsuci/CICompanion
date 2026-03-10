@@ -24,11 +24,13 @@ class StudentCoursesViewModel: ObservableObject {
     }
     
     // Load only this student's classes
-    func loadCourses() {
-        do {
-            courses = try repository.loadStudentCourses()
-        } catch {
-            print("Error loading student courses:", error)
+    func loadAllCourses() {
+        Task {
+            do {
+                courses = try await repository.loadStudentCourses()
+            } catch {
+                print("Error loading student courses:", error)
+            }
         }
     }
 }
