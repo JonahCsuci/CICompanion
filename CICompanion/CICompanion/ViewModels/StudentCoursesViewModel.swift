@@ -24,7 +24,7 @@ class StudentCoursesViewModel: ObservableObject {
     }
     
     // Load only this student's classes
-    func loadAllCourses() {
+    func loadStudentCourses() {
         Task {
             do {
                 courses = try await repository.loadStudentCourses()

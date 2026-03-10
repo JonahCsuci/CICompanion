@@ -18,7 +18,7 @@ class EventsViewModel: ObservableObject {
         self.repository = repository
     }
 
-    func loadEvents() {
+    func loadAllEvents() {
         Task {
             do {
                 events = try await repository.loadAllEvents()

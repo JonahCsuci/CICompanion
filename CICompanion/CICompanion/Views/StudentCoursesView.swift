@@ -24,7 +24,7 @@ struct StudentCoursesView: View {
             }
         }
         .onAppear {
-            viewModel.loadAllCourses()
+            viewModel.loadStudentCourses()
         }
     }
 }
