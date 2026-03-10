@@ -19,12 +19,12 @@ class EventsViewModel: ObservableObject {
     }
 
     func loadEvents() {
-
-        do {
-            events = try repository.loadEvents()
-        } catch {
-            print("Error loading events:", error)
+        Task {
+            do {
+                events = try await repository.loadAllEvents()
+            } catch {
+                print("Error loading events:", error)
+            }
         }
-
     }
 }

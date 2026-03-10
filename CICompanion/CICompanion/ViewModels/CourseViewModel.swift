@@ -24,11 +24,13 @@ class CourseViewModel: ObservableObject {
     }
     
     // Load all classes into the courses array
-    func loadCourses() {
-        do {
-            courses = try repository.loadAllCourses()
-        } catch {
-            print("Error loading all courses:", error)
+    func loadAllCourses() {
+        Task {
+            do {
+                courses = try await repository.loadAllCourses()
+            } catch {
+                print("Error loading all courses:", error)
+            }
         }
     }
 }

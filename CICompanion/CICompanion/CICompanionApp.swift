@@ -7,9 +7,6 @@
 
 import SwiftUI
 
-// App entry point.
-// This is where the AppContainer is created,
-// and the first view is given its ViewModel.
 @main
 struct CICompanionApp: App {
     
@@ -23,11 +20,6 @@ struct CICompanionApp: App {
     // that will be the first view the user will see when opening the app
     var body: some Scene {
         WindowGroup {
-            
-            // Pass the studentCoursesViewModel object from AppContainer into StudentCoursesView
-            // studentCoursesViewModel is an instance of StudentCoursesViewModel,
-            // and it already contains the ClassRepository object used to load the student’s courses.
-            // sorry if i didnt explain that well :(
             StudentCoursesView(viewModel: container.studentCoursesViewModel)
         }
     }

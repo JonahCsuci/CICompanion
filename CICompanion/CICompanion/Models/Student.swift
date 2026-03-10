@@ -13,5 +13,6 @@ struct Student: Codable, Identifiable {
     let id: Int
     let name: String
     let email: String
-    let courses: [Int]
+    var courses: [Int]
+    var events: [Int]
 }
