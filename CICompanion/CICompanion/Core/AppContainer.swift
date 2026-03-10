@@ -11,13 +11,22 @@ import Foundation
 // It creates shared objects once and passes them where needed.
 class AppContainer {
     
-    // Shared repository object
-    let studentRepository = StudentRepository()
-    lazy var courseRepository: CourseRepositoryProtocol = CourseRepository(studentRepository: studentRepository)
+    // Shared student repository object, used by course and events repositories
+    let studentRepository: StudentRepositoryProtocol = StudentRepository()
     
-    lazy var eventRepository: EventsRepositoryProtocol = EventsRepository(studentRepository: studentRepository)
+    lazy var courseRepository: CourseRepositoryProtocol =
+        CourseRepository(studentRepository: studentRepository)
     
-    // ViewModels that receive the repository object
-    lazy var studentCoursesViewModel = StudentCoursesViewModel(repository: courseRepository)
-    lazy var eventsCourseViewModel = EventsViewModel(repository: eventRepository)
+    lazy var eventsRepository: EventsRepositoryProtocol =
+        EventsRepository(studentRepository: studentRepository)
+    
+    lazy var studentCoursesViewModel = StudentCoursesViewModel(
+        courseRepository: courseRepository,
+        studentRepository: studentRepository
+    )
+    
+    lazy var eventsViewModel = EventsViewModel(
+        eventsRepository: eventsRepository,
+        studentRepository: studentRepository
+    )
 }

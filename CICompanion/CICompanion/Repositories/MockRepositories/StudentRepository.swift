@@ -15,7 +15,7 @@ class StudentRepository: StudentRepositoryProtocol {
     // Load student from JSON the first time
     func loadStudent() async throws -> Student {
         
-        // If already loaded, return the cached one
+        // If student has previously been loaded in, return it back
         if let student {
             return student
         }
@@ -28,7 +28,7 @@ class StudentRepository: StudentRepositoryProtocol {
         return decodedStudent
     }
     
-    // Add a course to the student's course list
+    // Add a course to the student's courses array
     func addStudentCourse(courseId: Int) async throws {
         
         if var student = student {
@@ -39,7 +39,7 @@ class StudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    // Remove a course from the student's course list
+    // Remove a course from the student's courses array
     func deleteStudentCourse(courseId: Int) async throws {
         
         if var student = student {
