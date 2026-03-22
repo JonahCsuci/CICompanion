@@ -15,20 +15,31 @@ class StudentCoursesViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
     
-    let repository: CourseRepositoryProtocol
+    // courseRepository methods fetch all courses or student enrolled courses
+    let courseRepository: CourseRepositoryProtocol
     
-    // Dependency injection:
-    // the repository is passed in from outside.
-    init(repository: CourseRepositoryProtocol) {
-        self.repository = repository
+    // studentRepository methods let you update student enrolled courses
+    let studentRepository: StudentRepositoryProtocol
+    
+    // NOTE: if you update a student's courses, call a load method after
+    // to receive the newly updated student data
+        
+    init(
+        courseRepository: CourseRepositoryProtocol,
+        studentRepository: StudentRepositoryProtocol
+    ) {
+        self.courseRepository = courseRepository
+        self.studentRepository = studentRepository
     }
     
-    // Load only this student's classes
-    func loadCourses() {
-        do {
-            courses = try repository.loadStudentCourses()
-        } catch {
-            print("Error loading student courses:", error)
+    // Load student enrolled courses
+    func loadStudentCourses() {
+        Task {
+            do {
+                courses = try await courseRepository.loadStudentCourses()
+            } catch {
+                print("Error loading student courses:", error)
+            }
         }
     }
 }

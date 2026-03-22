@@ -49,9 +49,17 @@ struct CoursesView: View {
                 .navigationTitle("Course List")
             }
         }
+        .onAppear {
+            viewModel.loadAllCourses()
+        }
     }
 }
 
 #Preview {
-    CoursesView(viewModel: CourseViewModel(repository: CourseRepository()))
+    StudentCoursesView(
+        viewModel: StudentCoursesViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        )
+    )
 }

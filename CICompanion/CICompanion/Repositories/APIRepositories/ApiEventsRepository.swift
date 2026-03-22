@@ -7,9 +7,9 @@
 
 import Foundation
 
-class APIEventsRepository: EventsRepositoryProtocol {
-    func loadEvents() throws -> [Event] {
+//class APIEventsRepository: EventsRepositoryProtocol {
+  //  func loadEvents() throws -> [Event] {
         // fetch from backend later
-        return []
-    }
-}
+    //    return []
+    //}
+//}

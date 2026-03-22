@@ -17,21 +17,31 @@ class CourseViewModel: ObservableObject {
     @Published var shownCourses: [Course] = [];
     @Published var searchQuery : String = ""
     
-    let repository: CourseRepositoryProtocol
+    // courseRepository methods fetch all courses or student courses
+    let courseRepository: CourseRepositoryProtocol
     
-    // Dependency injection:
-    // the repository is passed in from outside instead of being created here.
-    init(repository: CourseRepositoryProtocol) {
-        self.repository = repository
+    // studentRepository methods let you update student enrolled courses
+    let studentRepository: StudentRepositoryProtocol
+    
+    // NOTE: if you update a student's courses, call a load method after
+    // to receive the newly updated student data
+        
+    init(
+        courseRepository: CourseRepositoryProtocol,
+        studentRepository: StudentRepositoryProtocol
+    ) {
+        self.courseRepository = courseRepository
+        self.studentRepository = studentRepository
     }
     
-    // Load all classes into the courses array
-    func loadCourses() {
-        do {
-            courses = try repository.loadAllCourses()
-            shownCourses = courses
-        } catch {
-            print("Error loading all courses:", error)
+    // Load all classes
+    func loadAllCourses() {
+        Task {
+            do {
+                courses = try await courseRepository.loadAllCourses()
+            } catch {
+                print("Error loading all courses:", error)
+            }
         }
     }
     

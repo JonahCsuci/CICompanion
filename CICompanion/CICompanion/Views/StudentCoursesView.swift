@@ -24,11 +24,16 @@ struct StudentCoursesView: View {
             }
         }
         .onAppear {
-            viewModel.loadCourses()
+            viewModel.loadStudentCourses()
         }
     }
 }
 
 #Preview {
-    StudentCoursesView(viewModel: StudentCoursesViewModel(repository: CourseRepository()))
+    StudentCoursesView(
+        viewModel: StudentCoursesViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        )
+    )
 }
