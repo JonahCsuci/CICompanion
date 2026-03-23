@@ -48,6 +48,14 @@ class StudentRepository: StudentRepositoryProtocol {
         }
     }
     
+    func hasStudentCourse(courseId: Int) async throws -> Bool {
+        if let student = student {
+            return student.courses.contains(courseId)
+        } else {
+            return false
+        }
+    }
+    
     // Add event to the student's event array
     func addStudentEvent(eventId: Int) async throws {
         

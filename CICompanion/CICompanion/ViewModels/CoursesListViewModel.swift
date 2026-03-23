@@ -11,7 +11,7 @@ import SwiftUI
 
 // ViewModel for the "all classes" screen.
 // It stores the array of all courses for the view.
-class CourseViewModel: ObservableObject {
+class CoursesListViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
     @Published var shownCourses: [Course] = [];
@@ -36,9 +36,12 @@ class CourseViewModel: ObservableObject {
     
     // Load all classes
     func loadAllCourses() {
+        print("Loading courses...")
         Task {
             do {
                 courses = try await courseRepository.loadAllCourses()
+                shownCourses = courses
+                print(courses)
             } catch {
                 print("Error loading all courses:", error)
             }
@@ -54,5 +57,24 @@ class CourseViewModel: ObservableObject {
         }
         
         shownCourses = searched
+    }
+    
+    
+    func addClass(course: Course) {
+        // TODO
+    }
+    
+    func hasCourse(course: Course) -> Bool {
+        Task {
+            do {
+                return try await studentRepository.hasStudentCourse(courseId: course.id)
+            }
+            catch {
+                print("Error checking if student has course")
+                return false;
+            }
+        }
+        
+        return false;
     }
 }
