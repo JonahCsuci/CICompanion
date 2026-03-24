@@ -11,11 +11,13 @@ import SwiftUI
 
 // ViewModel for the "all classes" screen.
 // It stores the array of all courses for the view.
+@MainActor
 class CoursesListViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
     @Published var shownCourses: [Course] = [];
     @Published var searchQuery : String = ""
+    @Published var hasCourses: [Int: Bool] = [:]
     
     // courseRepository methods fetch all courses or student courses
     let courseRepository: CourseRepositoryProtocol
@@ -34,14 +36,21 @@ class CoursesListViewModel: ObservableObject {
         self.studentRepository = studentRepository
     }
     
+    func checkHasAllCourses() {
+        for course in shownCourses {
+            checkHasCourse(course: course)
+        }
+    }
+    
     // Load all classes
     func loadAllCourses() {
-        print("Loading courses...")
         Task {
             do {
                 courses = try await courseRepository.loadAllCourses()
+                try await studentRepository.loadStudent()
                 shownCourses = courses
-                print(courses)
+                
+                checkHasAllCourses()
             } catch {
                 print("Error loading all courses:", error)
             }
@@ -60,21 +69,38 @@ class CoursesListViewModel: ObservableObject {
     }
     
     
-    func addClass(course: Course) {
-        // TODO
-    }
-    
-    func hasCourse(course: Course) -> Bool {
+    func addCourse(course: Course) {
         Task {
             do {
-                return try await studentRepository.hasStudentCourse(courseId: course.id)
-            }
-            catch {
-                print("Error checking if student has course")
-                return false;
+                try await studentRepository.addStudentCourse(courseId: course.id)
+                checkHasAllCourses()
+            } catch {
+                print("Error adding class: ", error)
             }
         }
-        
-        return false;
+    }
+    
+    func removeCourse(course: Course) {
+        Task {
+            do {
+                try await studentRepository.deleteStudentCourse(courseId: course.id)
+                checkHasAllCourses()
+            } catch {
+                print("Error removing class: ", error)
+            }
+        }
+    }
+    
+    func checkHasCourse(course: Course) {
+        Task {
+            do {
+                let result = try await studentRepository.hasStudentCourse(courseId: course.id)
+                hasCourses[course.id] = result
+            }
+            catch {
+                print("Error checking if student has course: ", error)
+                hasCourses[course.id] = false
+            }
+        }
     }
 }

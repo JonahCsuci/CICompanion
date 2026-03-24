@@ -33,29 +33,39 @@ struct CoursesListView: View {
                 .padding(.top, 16)
             NavigationStack {
                 List(viewModel.shownCourses) { course in
-                    Button(role: .confirm, action: {
-                        
-                    }) {
-                        HStack() {
-                            VStack(alignment: .leading) {
-                                Text(course.courseName)
-                                Text(course.courseCode)
-                            }
-                            if (viewModel.hasCourse(course: course)) {
-                                Spacer()
-                                
-                                Image(systemName: "checkmark")
+                    NavigationLink(destination: CourseView(course: course)) {
+                        Button(role: .confirm, action: {
+                            
+                        }) {
+                            HStack() {
+                                VStack(alignment: .leading) {
+                                    Text(course.courseName)
+                                    Text(course.courseCode)
+                                }
+                                if (viewModel.hasCourses[course.id] ?? false) {
+                                    Spacer()
+                                    
+                                    Image(systemName: "checkmark")
+                                }
                             }
                         }
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .confirm) {
-                            viewModel.addClass(course: course)
-                        } label: {
-                            Label("Add to Schedule", systemImage: "plus")
+                        .swipeActions(edge: .trailing) {
+                            if (viewModel.hasCourses[course.id] ?? false) {
+                                Button(role: .close) {
+                                    viewModel.removeCourse(course: course)
+                                } label: {
+                                    Label("Remove from Schedule", systemImage: "trash")
+                                }
+                                .tint(.red)
+                            } else {
+                                Button(role: .confirm) {
+                                    viewModel.addCourse(course: course)
+                                } label: {
+                                    Label("Add to Schedule", systemImage: "plus")
+                                }
+                                .tint(.blue)
+                            }
                         }
-                        .tint(.blue)
-                                                    
                     }
                 }
                 .onAppear {
