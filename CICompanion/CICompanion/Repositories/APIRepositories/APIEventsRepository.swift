@@ -15,33 +15,34 @@ class APIEventsRepository: EventsRepositoryProtocol {
         self.studentRepository = studentRepository
     }
     
+    let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
+    
     private var cachedEvents: [Event]?
     
     func loadAllEvents() async throws -> [Event] {
         
-        // If events were previously loaded, return
+        // Return cached events if already loaded
         if let cachedEvents {
             return cachedEvents
         }
         
-        let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
-        // Create URL
+        // Build API endpoint for fetching all events
         guard let url = URL(string: "\(baseURL)/events") else {
             throw URLError(.badURL)
         }
             
-        // Create request
         var request = URLRequest(url: url)
+        
+        // Use GET to retrieve events from backend
         request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Call API Gateway
-        let (data, response) = try await URLSession.shared.data(for: request) 
+        // Send requesto to backend (API Gateway -> Lambda -> database)
+        let (data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
         
-        // Decode JSON into Events structs
+        // Decode JSON into Events struct array
         let events = try JSONDecoder().decode([Event].self, from: data)
             
         return events
