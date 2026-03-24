@@ -14,10 +14,7 @@ struct CICompanionApp: App {
     
     var body: some Scene {
         WindowGroup {
-            StudentCoursesView(
-                viewModel: container.studentCoursesViewModel,
-                addClassViewModel: container.addClassViewModel
-            )
+            MainTabView(container: container)
         }
     }
 }
