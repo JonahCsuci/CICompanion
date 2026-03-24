@@ -11,20 +11,35 @@ import SwiftUI
 struct StudentCoursesView: View {
     
     @StateObject var viewModel: StudentCoursesViewModel
+    let addClassViewModel: AddClassViewModel
     
-    init(viewModel: StudentCoursesViewModel) {
+    init(
+        viewModel: StudentCoursesViewModel,
+        addClassViewModel: AddClassViewModel
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.addClassViewModel = addClassViewModel
     }
     
     var body: some View {
-        List(viewModel.courses) { course in
-            VStack(alignment: .leading) {
-                Text(course.courseName)
-                Text(course.courseCode)
+        NavigationStack {
+            List(viewModel.courses) { course in
+                VStack(alignment: .leading) {
+                    Text(course.courseName)
+                    Text(course.courseCode)
+                }
             }
-        }
-        .onAppear {
-            viewModel.loadStudentCourses()
+            .navigationTitle("My Schedule")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink("Add Class") {
+                        AddClassView(viewModel: addClassViewModel)
+                    }
+                }
+            }
+            .onAppear {
+                viewModel.loadStudentCourses()
+            }
         }
     }
 }
@@ -32,6 +47,10 @@ struct StudentCoursesView: View {
 #Preview {
     StudentCoursesView(
         viewModel: StudentCoursesViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        ),
+        addClassViewModel: AddClassViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )
