@@ -30,8 +30,8 @@ struct CoursesView: View {
 }
 
 #Preview {
-    StudentCoursesView(
-        viewModel: StudentCoursesViewModel(
+    CoursesView(
+        viewModel: CourseViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )

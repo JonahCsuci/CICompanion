@@ -36,6 +36,11 @@ class AppContainer {
         studentRepository: studentRepository
     )
     
+    lazy var addClassViewModel = AddClassViewModel(
+        courseRepository: courseRepository,
+        studentRepository: studentRepository
+    )
+    
     lazy var eventsViewModel = EventsViewModel(
         eventsRepository: eventsRepository,
         studentRepository: studentRepository
