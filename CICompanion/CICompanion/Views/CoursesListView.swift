@@ -12,7 +12,6 @@ struct CoursesListView: View {
     
     @StateObject var viewModel: CoursesListViewModel
     
-    
     init(viewModel: CoursesListViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
@@ -33,7 +32,7 @@ struct CoursesListView: View {
                 .padding(.top, 16)
             NavigationStack {
                 List(viewModel.shownCourses) { course in
-                    NavigationLink(destination: CourseView(course: course)) {
+                    NavigationLink(destination: CourseView(course: course, courseViewModel: CourseViewModel(course: course))) {
                         Button(role: .confirm, action: {
                             
                         }) {
@@ -42,7 +41,8 @@ struct CoursesListView: View {
                                     Text(course.courseName)
                                     Text(course.courseCode)
                                 }
-                                if (viewModel.hasCourses[course.id] ?? false) {
+                                
+                                if (viewModel.studentCourses.contains(where: { $0.id == course.id })) {
                                     Spacer()
                                     
                                     Image(systemName: "checkmark")
@@ -50,7 +50,7 @@ struct CoursesListView: View {
                             }
                         }
                         .swipeActions(edge: .trailing) {
-                            if (viewModel.hasCourses[course.id] ?? false) {
+                            if (viewModel.studentCourses.contains(where: { $0.id == course.id })) {
                                 Button(role: .close) {
                                     viewModel.removeCourse(course: course)
                                 } label: {

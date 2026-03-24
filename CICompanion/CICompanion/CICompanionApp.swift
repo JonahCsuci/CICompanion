@@ -22,7 +22,7 @@ struct CICompanionApp: App {
         WindowGroup {
             StudentCoursesView(
                 viewModel: container.studentCoursesViewModel,
-                addClassViewModel: container.addClassViewModel
+                coursesListViewModel: container.coursesListViewModel
             )
         }
     }

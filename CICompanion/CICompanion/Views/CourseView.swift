@@ -8,20 +8,20 @@
 import SwiftUI
 
 struct CourseView: View {
-    @StateObject var viewModel : CourseViewModel
+    @StateObject var courseViewModel : CourseViewModel
     
-    init(course: Course) {
-        _viewModel = StateObject(wrappedValue: CourseViewModel(course: course))
+    init(course: Course, courseViewModel: CourseViewModel) {
+        _courseViewModel = StateObject(wrappedValue: courseViewModel)
     }
     
     var body: some View {
-            Text(viewModel.course.courseName)
-            Text(viewModel.course.courseCode)
-            Text(viewModel.course.instructor)
-            Text(viewModel.course.location)
-            Text(viewModel.course.startTime + " to " + viewModel.course.endTime)
-            Text(viewModel.getDatesDisplay(course: viewModel.course))
-            Text(viewModel.course.isAsynchronous ? "Asynchronous" : "Synchronous")
+            Text(courseViewModel.course.courseName)
+            Text(courseViewModel.course.courseCode)
+            Text(courseViewModel.course.instructor)
+            Text(courseViewModel.course.location)
+            Text(courseViewModel.course.startTime + " to " + courseViewModel.course.endTime)
+            Text(courseViewModel.getDatesDisplay(course: courseViewModel.course))
+            Text(courseViewModel.course.isAsynchronous ? "Asynchronous" : "Synchronous")
 
     }
 }

@@ -9,7 +9,6 @@ import Foundation
 
 
 class APIStudentRepository: StudentRepositoryProtocol {
-    
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
     // Load student from JSON the first time
@@ -60,7 +59,6 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     // Remove a course from the student's courses array
     func deleteStudentCourse(courseId: Int) async throws {
-        
         let studentId = 1
         
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
@@ -75,6 +73,11 @@ class APIStudentRepository: StudentRepositoryProtocol {
         
         // Calls API response checking
         try handleErrorResponse(data: data, response: response)
+    }
+    
+    // Checks if student has course
+    func hasStudentCourse(courseId: Int) async throws -> Bool {
+        return true
     }
     
     // Add event to the student's event array

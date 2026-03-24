@@ -18,6 +18,7 @@ class CoursesListViewModel: ObservableObject {
     @Published var shownCourses: [Course] = [];
     @Published var searchQuery : String = ""
     @Published var hasCourses: [Int: Bool] = [:]
+    @Published var studentCourses: [Course] = [];
     
     // courseRepository methods fetch all courses or student courses
     let courseRepository: CourseRepositoryProtocol
@@ -36,21 +37,14 @@ class CoursesListViewModel: ObservableObject {
         self.studentRepository = studentRepository
     }
     
-    func checkHasAllCourses() {
-        for course in shownCourses {
-            checkHasCourse(course: course)
-        }
-    }
-    
     // Load all classes
     func loadAllCourses() {
         Task {
             do {
                 courses = try await courseRepository.loadAllCourses()
                 try await studentRepository.loadStudent()
+                studentCourses = try await courseRepository.loadStudentCourses()
                 shownCourses = courses
-                
-                checkHasAllCourses()
             } catch {
                 print("Error loading all courses:", error)
             }
@@ -73,7 +67,7 @@ class CoursesListViewModel: ObservableObject {
         Task {
             do {
                 try await studentRepository.addStudentCourse(courseId: course.id)
-                checkHasAllCourses()
+                studentCourses.append(course)
             } catch {
                 print("Error adding class: ", error)
             }
@@ -84,22 +78,9 @@ class CoursesListViewModel: ObservableObject {
         Task {
             do {
                 try await studentRepository.deleteStudentCourse(courseId: course.id)
-                checkHasAllCourses()
+                studentCourses = studentCourses.filter{ $0.id != course.id }
             } catch {
                 print("Error removing class: ", error)
-            }
-        }
-    }
-    
-    func checkHasCourse(course: Course) {
-        Task {
-            do {
-                let result = try await studentRepository.hasStudentCourse(courseId: course.id)
-                hasCourses[course.id] = result
-            }
-            catch {
-                print("Error checking if student has course: ", error)
-                hasCourses[course.id] = false
             }
         }
     }
