@@ -9,25 +9,24 @@ import Foundation
 
 func handleErrorResponse(data: Data, response: URLResponse) throws {
     
-    // Checks if response received is valid
+    // Ensures the response is a valid HTTP response
     guard let httpResponse = response as? HTTPURLResponse else {
         throw URLError(.badServerResponse)
     }
     
-    // Checks if response code was successful or an error was returned
+    // Checks if the status code indicates a failure
     if httpResponse.statusCode != 200 {
         
-        // Stores error in APIErrorResponse struct
+        // Attempts to decode error message returned from API
         let apiError = try? JSONDecoder().decode(APIErrorResponse.self, from: data)
         
-        // Details for error response to be displayed to user
+        // Throw an error with status code and message for UI/display
         throw NSError(
             domain: "APIError",
             code: httpResponse.statusCode,
             userInfo: [
                 
-                // If apiError is nil (no valid JSON was decoded),
-                // give defaulted 'Unkown error' to display
+                // Use API error message if available, otherwise fallback on Unknown error
                 NSLocalizedDescriptionKey: apiError?.error ?? "Unknown error"
             ]
         )

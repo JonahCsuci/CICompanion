@@ -12,106 +12,119 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
-    // Load student from JSON the first time
     func loadStudent() async throws -> Student {
         
+        // Temporary hardcoded student ID (will be dynamic later)
         let studentId = 1
         
-        // Create URL
+        // Build API endpoint for fetching all of current student's info
         guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
             throw URLError(.badURL)
         }
             
-        // Create request
         var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        // Call API Gateway
+        // Use GET to retrieve student info from backend
+        request.httpMethod = "GET"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
 
-        // Decode JSON into Student structs
+        // Decode JSON into Student struct
         let student = try JSONDecoder().decode(Student.self, from: data)
             
         return student
     }
     
-    // Add a course to the student's courses array
     func addStudentCourse(courseId: Int) async throws {
 
+        // Temporary hardcoded student ID (will be dynamic later)
         let studentId = 1
 
+        // Build API endpoint to add a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
             throw URLError(.badURL)
         }
 
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Use POST to add a course to the student's enrolled courses
+        request.httpMethod = "POST"
+       
+        // Send request to backend (API Gateway -> Lambda -> database)
         let (data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
     }
     
-    // Remove a course from the student's courses array
     func deleteStudentCourse(courseId: Int) async throws {
         
+        // Temporary hardcoded student ID (will be dynamic later)
         let studentId = 1
         
+        // Build API endpoint to delete a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
             throw URLError(.badURL)
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Use DELETE to remove a course from the student's enrolled courses
+        request.httpMethod = "DELETE"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
         let(data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
     }
     
     // Add event to the student's event array
     func addStudentEvent(eventId: Int) async throws {
         
+        // Temporary hardcoded student ID (will be dynamic later)
         let studentId = 1
         
+        // Build API endpoint to add an event for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
             throw URLError(.badURL)
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Use POST to add an event to the student's enrolled events
+        request.httpMethod = "POST"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
         let(data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
     }
 
-    // Remove event from the student's event array
     func deleteStudentEvent(eventId: Int) async throws {
         
+        // Temporary hardcoded student ID (will be dynamic later)
         let studentId = 1
         
+        // Build API endpoint to delete an event for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
             throw URLError(.badURL)
         }
         
         var request = URLRequest(url: url)
-        request.httpMethod = "DELETE"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
+        // Use DELETE to remove an event from the student's enrolled events
+        request.httpMethod = "DELETE"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
         let(data, response) = try await URLSession.shared.data(for: request)
         
-        // Calls API response checking
+        // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
     }
 }
