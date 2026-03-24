@@ -8,7 +8,8 @@
     "startTime": "9:00 AM",
     "endTime": "10:15 AM",
     "days": ["Monday", "Wednesday"],
-    "isAsynchronous": false
+    "isAsynchronous": false,
+    "courseDescription": "An introduction to differential and integral calculus. Students will learn limits, derivatives, and basic integration techniques, along with their applications in science and engineering. The course emphasizes problem solving, mathematical reasoning, and real-world applications."
   },
   {
     "id": 2,
@@ -19,7 +20,8 @@
     "startTime": "11:00 AM",
     "endTime": "12:15 PM",
     "days": ["Tuesday", "Thursday"],
-    "isAsynchronous": false
+    "isAsynchronous": false,
+    "courseDescription": "This course introduces the fundamental principles of classical mechanics. Topics include motion, forces, energy, momentum, and rotational dynamics. Students will develop problem-solving skills while applying physics concepts to real-world situations."
   },
   {
     "id": 3,
@@ -30,7 +32,8 @@
     "startTime": "N/A",
     "endTime": "N/A",
     "days": ["Monday", "Wednesday"],
-    "isAsynchronous": true
+    "isAsynchronous": true,
+    "courseDescription": "An introductory course covering the core concepts of computer science. Students will learn basic programming logic, algorithms, problem solving, and an introduction to software development. The course also introduces foundational ideas such as data structures and computational thinking."
   },
   {
     "id": 4,
@@ -41,7 +44,8 @@
     "startTime": "1:30 PM",
     "endTime": "2:45 PM",
     "days": ["Tuesday", "Thursday"],
-    "isAsynchronous": false
+    "isAsynchronous": false,
+    "courseDescription": "A foundational chemistry course exploring atomic structure, chemical bonding, reactions, and thermodynamics. Students will gain an understanding of how chemical principles explain the behavior of matter and reactions in everyday life and laboratory settings."
   },
   {
     "id": 5,
@@ -52,6 +56,7 @@
     "startTime": "N/A",
     "endTime": "N/A",
     "days": ["Tuesday", "Thursday"],
-    "isAsynchronous": true
+    "isAsynchronous": true,
+    "courseDescription": "An overview of the scientific study of behavior and mental processes. Topics include cognition, memory, emotion, personality, and social behavior. Students will explore how psychological research explains human behavior and everyday experiences."
   }
 ]
