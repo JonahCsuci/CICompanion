@@ -32,7 +32,7 @@ struct CoursesListView: View {
                 .padding(.top, 16)
             NavigationStack {
                 List(viewModel.shownCourses) { course in
-                    NavigationLink(destination: CourseView(course: course, courseViewModel: CourseViewModel(course: course))) {
+                    NavigationLink(destination: CourseView( courseViewModel: CourseViewModel(course: course), coursesListViewModel: viewModel)) {
                         Button(role: .confirm, action: {
                             
                         }) {
