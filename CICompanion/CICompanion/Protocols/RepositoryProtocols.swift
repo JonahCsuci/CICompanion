@@ -7,14 +7,14 @@
 
 import Foundation
 
-protocol EventsRepositoryProtocol {
-    func loadAllEvents() async throws -> [Event]
-    func loadStudentEvents() async throws -> [Event]
-}
-
 protocol CourseRepositoryProtocol {
     func loadAllCourses() async throws -> [Course]
     func loadStudentCourses() async throws -> [Course]
+}
+
+protocol EventsRepositoryProtocol {
+    func loadAllEvents() async throws -> [Event]
+    func loadStudentEvents() async throws -> [Event]
 }
 
 protocol StudentRepositoryProtocol {

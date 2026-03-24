@@ -20,7 +20,10 @@ struct CICompanionApp: App {
     // that will be the first view the user will see when opening the app
     var body: some Scene {
         WindowGroup {
-            StudentCoursesView(viewModel: container.studentCoursesViewModel)
+            StudentCoursesView(
+                viewModel: container.studentCoursesViewModel,
+                addClassViewModel: container.addClassViewModel
+            )
         }
     }
 }
