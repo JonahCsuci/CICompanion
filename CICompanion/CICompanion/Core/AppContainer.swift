@@ -26,12 +26,12 @@ class AppContainer {
         studentRepository: studentRepository
     )
     
-    lazy var courseViewModel = CourseViewModel(
+    lazy var studentCoursesViewModel = StudentCoursesViewModel(
         courseRepository: courseRepository,
         studentRepository: studentRepository
     )
     
-    lazy var studentCoursesViewModel = StudentCoursesViewModel(
+    lazy var coursesListViewModel = CoursesListViewModel(
         courseRepository: courseRepository,
         studentRepository: studentRepository
     )

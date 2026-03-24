@@ -9,7 +9,6 @@ import Foundation
 
 
 class APIStudentRepository: StudentRepositoryProtocol {
-    
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
     func loadStudent() async throws -> Student {
@@ -81,6 +80,11 @@ class APIStudentRepository: StudentRepositoryProtocol {
         
         // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
+    }
+    
+    // Checks if student has course
+    func hasStudentCourse(courseId: Int) async throws -> Bool {
+        return true
     }
     
     // Add event to the student's event array

@@ -11,14 +11,14 @@ import SwiftUI
 struct StudentCoursesView: View {
     
     @StateObject var viewModel: StudentCoursesViewModel
-    let addClassViewModel: AddClassViewModel
+    let coursesListViewModel: CoursesListViewModel
     
     init(
         viewModel: StudentCoursesViewModel,
-        addClassViewModel: AddClassViewModel
+        coursesListViewModel: CoursesListViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.addClassViewModel = addClassViewModel
+        self.coursesListViewModel = coursesListViewModel
     }
     
     var body: some View {
@@ -32,8 +32,8 @@ struct StudentCoursesView: View {
             .navigationTitle("My Schedule")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink("Add Class") {
-                        AddClassView(viewModel: addClassViewModel)
+                    NavigationLink("Manage Courses") {
+                        CoursesListView(viewModel: coursesListViewModel)
                     }
                 }
             }
@@ -50,7 +50,7 @@ struct StudentCoursesView: View {
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         ),
-        addClassViewModel: AddClassViewModel(
+        coursesListViewModel: CoursesListViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )
