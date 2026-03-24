@@ -19,4 +19,5 @@ struct Course: Codable, Identifiable {
     let endTime: String
     let days: [String]
     let isAsynchronous: Bool
+    let courseDescription: String
 }
