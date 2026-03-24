@@ -7,11 +7,24 @@
 
 import Foundation
 
+// Eventually will be handled by APIService
 class APICourseRepository: CourseRepositoryProtocol {
     
-    // NEED TO ADD TO SERVICES
+    let studentRepository: StudentRepositoryProtocol
+    
+    init(studentRepository: StudentRepositoryProtocol) {
+        self.studentRepository = studentRepository
+    }
+    
+    private var cachedCourses: [Course]?
+    
     func loadAllCourses() async throws -> [Course] {
-            
+        
+        // If classes were previously loaded, return
+        if let cachedCourses {
+            return cachedCourses
+        }
+        
         let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
         // Create URL
         guard let url = URL(string: "\(baseURL)/courses") else {
@@ -24,7 +37,10 @@ class APICourseRepository: CourseRepositoryProtocol {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Call API Gateway
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // Calls API response checking
+        try handleErrorResponse(data: data, response: response)
         
         // Decode JSON into Course structs
         let courses = try JSONDecoder().decode([Course].self, from: data)
@@ -33,8 +49,11 @@ class APICourseRepository: CourseRepositoryProtocol {
     }
     
     func loadStudentCourses() async throws -> [Course] {
-        // Call API to fetch student courses
-        // CALL WILL BE HANDLED IN SERVICES
-        return []
+        let courses = try await loadAllCourses()
+        let student = try await studentRepository.loadStudent()
+        
+        return courses.filter {
+            student.courses.contains($0.id)
+        }
     }
 }

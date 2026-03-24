@@ -12,5 +12,6 @@ struct Event: Codable, Identifiable {
     let eventDay: String
     let eventDate: String
     let eventTime: String
+    let eventTitle: String
     let eventDescription: String
 }
