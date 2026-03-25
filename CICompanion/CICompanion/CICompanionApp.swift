@@ -18,9 +18,13 @@ struct CICompanionApp: App {
     
     // Calls on the StudentCoursesView from entry point because
     // that will be the first view the user will see when opening the app
+    // Wraps the root view in a NavigationStack so that
+    // child views (like Notification Settings) can be pushed onto the stack.
     var body: some Scene {
         WindowGroup {
-            StudentCoursesView(viewModel: container.studentCoursesViewModel)
+            NavigationStack {
+                StudentCoursesView(viewModel: container.studentCoursesViewModel)
+            }
         }
     }
 }
