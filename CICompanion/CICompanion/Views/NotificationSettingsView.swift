@@ -57,7 +57,7 @@ struct NotificationSettingsView: View {
     // Cancel and re-create all notifications with current settings
     private func reschedule() {
         Task {
-            await NotificationScheduler.shared.rescheduleNotifications(for: courses)
+            await NotificationSchedulerService.shared.rescheduleNotifications(for: courses)
         }
     }
 }
