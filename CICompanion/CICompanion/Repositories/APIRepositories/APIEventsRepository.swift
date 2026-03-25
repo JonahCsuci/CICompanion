@@ -17,13 +17,13 @@ class APIEventsRepository: EventsRepositoryProtocol {
     
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
-    private var cachedEvents: [Event]?
+    private var events: [Event]?
     
     func loadAllEvents() async throws -> [Event] {
         
         // Return cached events if already loaded
-        if let cachedEvents {
-            return cachedEvents
+        if let events {
+            return events
         }
         
         // Build API endpoint for fetching all events
@@ -45,6 +45,8 @@ class APIEventsRepository: EventsRepositoryProtocol {
         // Decode JSON into Events struct array
         let events = try JSONDecoder().decode([Event].self, from: data)
             
+        self.events = events
+        
         return events
     }
     

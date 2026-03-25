@@ -15,11 +15,16 @@ struct MainTabView: View {
         self.container = container
     }
     
+    // Displays selected View (Defaults to Student Courses View)
     var body: some View {
         TabView {
-            StudentCoursesView(viewModel: container.studentCoursesViewModel, addClassViewModel: container.addClassViewModel)
+            StudentCoursesView(viewModel: container.studentCoursesViewModel, coursesListViewModel: container.coursesListViewModel)
                 .tabItem {
                     Label("My Courses", systemImage: "book")
+                }
+            APITestView(viewModel: container.apiTestViewModel)
+                .tabItem {
+                    Label("Dummy tab", systemImage: "list.bullet")
                 }
             
         }
