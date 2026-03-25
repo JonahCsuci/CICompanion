@@ -51,6 +51,15 @@ struct StudentCoursesView: View {
                         CoursesListView(viewModel: coursesListViewModel)
                     }
                 }
+                // Gear icon opens Notification Settings.
+                // Passes the current course list so the settings page
+                // can reschedule notifications when preferences change.
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: NotificationSettingsView(courses: viewModel.courses)) {
+                        Label("Notification Settings", systemImage: "gearshape")
+                            .labelStyle(.iconOnly)
+                    }
+                }
             }
             .onAppear {
                 viewModel.loadStudentCourses()
@@ -59,18 +68,7 @@ struct StudentCoursesView: View {
                 AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
             }
         }
-        .navigationTitle("My Courses")
-        .toolbar {
-            // Gear icon in the top-right corner opens Notification Settings
-            ToolbarItem(placement: .topBarTrailing) {
-                // Pass the current course list so the settings page
-                // can reschedule notifications when preferences change
-                NavigationLink(destination: NotificationSettingsView(courses: viewModel.courses)) {
-                    Label("Notification Settings", systemImage: "gearshape")
-                        .labelStyle(.iconOnly)
-                }
-            }
-        }
+
     }
 }
 
