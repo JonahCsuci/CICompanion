@@ -11,23 +11,38 @@ import SwiftUI
 struct StudentCoursesView: View {
     
     @StateObject var viewModel: StudentCoursesViewModel
+    @State private var isShowingCalendar = false
+    
     let coursesListViewModel: CoursesListViewModel
+    let myAcademicCalendarViewModel: MyAcademicCalendarViewModel
     
     init(
         viewModel: StudentCoursesViewModel,
-        coursesListViewModel: CoursesListViewModel
+        coursesListViewModel: CoursesListViewModel,
+        myAcademicCalendarViewModel: MyAcademicCalendarViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.coursesListViewModel = coursesListViewModel
+        self.myAcademicCalendarViewModel = myAcademicCalendarViewModel
     }
     
     var body: some View {
         NavigationStack {
-            List(viewModel.courses) { course in
-                VStack(alignment: .leading) {
-                    Text(course.courseName)
-                    Text(course.courseCode)
+            VStack(spacing: 0) {
+                List(viewModel.courses) { course in
+                    VStack(alignment: .leading) {
+                        Text(course.courseName)
+                        Text(course.courseCode)
+                    }
                 }
+                
+                ScheduleBottomBannerView(
+                    isShowingCalendar: false,
+                    onScheduleTapped: {},
+                    onCalendarTapped: {
+                        isShowingCalendar = true
+                    }
+                )
             }
             .navigationTitle("My Schedule")
             .toolbar {
@@ -40,6 +55,9 @@ struct StudentCoursesView: View {
             .onAppear {
                 viewModel.loadStudentCourses()
             }
+            .navigationDestination(isPresented: $isShowingCalendar) {
+                MyAcademicCalendarView(viewModel: myAcademicCalendarViewModel)
+            }
         }
     }
 }
@@ -51,6 +69,10 @@ struct StudentCoursesView: View {
             studentRepository: StudentRepository()
         ),
         coursesListViewModel: CoursesListViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        ),
+        myAcademicCalendarViewModel: MyAcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )
