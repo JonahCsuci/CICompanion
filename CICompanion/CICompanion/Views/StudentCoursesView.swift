@@ -11,20 +11,53 @@ import SwiftUI
 struct StudentCoursesView: View {
     
     @StateObject var viewModel: StudentCoursesViewModel
+    @State private var isShowingCalendar = false
     
-    init(viewModel: StudentCoursesViewModel) {
+    let coursesListViewModel: CoursesListViewModel
+    let myAcademicCalendarViewModel: AcademicCalendarViewModel
+    
+    init(
+        viewModel: StudentCoursesViewModel,
+        coursesListViewModel: CoursesListViewModel,
+        myAcademicCalendarViewModel: AcademicCalendarViewModel
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.coursesListViewModel = coursesListViewModel
+        self.myAcademicCalendarViewModel = myAcademicCalendarViewModel
     }
     
     var body: some View {
-        List(viewModel.courses) { course in
-            VStack(alignment: .leading) {
-                Text(course.courseName)
-                Text(course.courseCode)
+        NavigationStack {
+            VStack(spacing: 0) {
+                List(viewModel.courses) { course in
+                    VStack(alignment: .leading) {
+                        Text(course.courseName)
+                        Text(course.courseCode)
+                    }
+                }
+                
+                ScheduleBottomBannerView(
+                    isShowingCalendar: false,
+                    onScheduleTapped: {},
+                    onCalendarTapped: {
+                        isShowingCalendar = true
+                    }
+                )
             }
-        }
-        .onAppear {
-            viewModel.loadStudentCourses()
+            .navigationTitle("My Schedule")
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink("Manage Courses") {
+                        CoursesListView(viewModel: coursesListViewModel)
+                    }
+                }
+            }
+            .onAppear {
+                viewModel.loadStudentCourses()
+            }
+            .navigationDestination(isPresented: $isShowingCalendar) {
+                AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
+            }
         }
         .navigationTitle("My Courses")
         .toolbar {
@@ -44,6 +77,14 @@ struct StudentCoursesView: View {
 #Preview {
     StudentCoursesView(
         viewModel: StudentCoursesViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        ),
+        coursesListViewModel: CoursesListViewModel(
+            courseRepository: CourseRepository(studentRepository: StudentRepository()),
+            studentRepository: StudentRepository()
+        ),
+        myAcademicCalendarViewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )

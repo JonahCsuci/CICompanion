@@ -30,12 +30,13 @@ class StudentRepository: StudentRepositoryProtocol {
     
     // Add a course to the student's courses array
     func addStudentCourse(courseId: Int) async throws {
-        
         if var student = student {
             if !student.courses.contains(courseId) {
                 student.courses.append(courseId)
             }
             self.student = student
+        } else {
+            print("Adding course unable to complete, student is nil")
         }
     }
     
@@ -46,6 +47,15 @@ class StudentRepository: StudentRepositoryProtocol {
             student.courses.removeAll { $0 == courseId }
             self.student = student
         }
+    }
+    
+    func hasStudentCourse(courseId: Int) async throws -> Bool {
+        if student == nil {
+            print("Student is nil for some reason")
+            _ = try await loadStudent()
+        }
+        guard let student else { return false }
+        return student.courses.contains(courseId)
     }
     
     // Add event to the student's event array

@@ -10,21 +10,15 @@ import SwiftUI
 @main
 struct CICompanionApp: App {
     
-    // AppContainer creates and stores shared objects that other parts of the app need.
-    // Instead of each ViewModel creating its own objects (like repositories or services),
-    // they receive them from here. This keeps object creation in one place and makes the
-    // code easier to organize, reuse, and update later.
     let container = AppContainer()
     
-    // Calls on the StudentCoursesView from entry point because
-    // that will be the first view the user will see when opening the app
-    // Wraps the root view in a NavigationStack so that
-    // child views (like Notification Settings) can be pushed onto the stack.
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                StudentCoursesView(viewModel: container.studentCoursesViewModel)
-            }
+            StudentCoursesView(
+                viewModel: container.studentCoursesViewModel,
+                coursesListViewModel: container.coursesListViewModel,
+                myAcademicCalendarViewModel: container.myAcademicCalendarViewModel
+            )
         }
     }
 }
