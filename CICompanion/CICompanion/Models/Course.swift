@@ -7,9 +7,7 @@
 
 import Foundation
 
-// Represents one course.
-// This matches the JSON / backend data format for a single class.
-struct Course: Codable, Identifiable {
+struct Course: Codable, Identifiable, Equatable {
     let id: Int
     let courseName: String
     let courseCode: String

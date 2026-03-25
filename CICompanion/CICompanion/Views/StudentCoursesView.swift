@@ -51,14 +51,26 @@ struct StudentCoursesView: View {
                         CoursesListView(viewModel: coursesListViewModel)
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink(destination: NotificationSettingsView(courses: viewModel.courses)) {
+                        Label("Notification Settings", systemImage: "gearshape")
+                            .labelStyle(.iconOnly)
+                    }
+                }
             }
             .onAppear {
                 viewModel.loadStudentCourses()
+            }
+            .onChange(of: viewModel.courses) {
+                Task {
+                    await NotificationScheduler.shared.rescheduleNotifications(for: viewModel.courses)
+                }
             }
             .navigationDestination(isPresented: $isShowingCalendar) {
                 AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
             }
         }
+
     }
 }
 
