@@ -16,7 +16,8 @@ struct CICompanionApp: App {
         WindowGroup {
             StudentCoursesView(
                 viewModel: container.studentCoursesViewModel,
-                coursesListViewModel: container.coursesListViewModel
+                coursesListViewModel: container.coursesListViewModel,
+                myAcademicCalendarViewModel: container.myAcademicCalendarViewModel
             )
         }
     }
