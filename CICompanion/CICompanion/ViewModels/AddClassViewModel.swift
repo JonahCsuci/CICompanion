@@ -2,7 +2,6 @@
 //  AddClassViewModel.swift
 //  CICompanion
 //
-//  Created by Codex on 3/23/26.
 //
 
 import Foundation

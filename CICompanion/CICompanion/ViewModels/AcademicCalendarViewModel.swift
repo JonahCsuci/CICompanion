@@ -2,7 +2,6 @@
 //  AcademicCalendarViewModel.swift
 //  CICompanion
 //
-//  Created by Codex on 3/24/26.
 //
 
 import Foundation
