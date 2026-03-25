@@ -18,13 +18,13 @@ class APICourseRepository: CourseRepositoryProtocol {
     
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
-    private var cachedCourses: [Course]?
+    private var courses: [Course]?
     
     func loadAllCourses() async throws -> [Course] {
         
         // Return cached courses if already loaded
-        if let cachedCourses {
-            return cachedCourses
+        if let courses {
+            return courses
         }
         
         // Build API endpoint for fetching all courses
@@ -45,6 +45,8 @@ class APICourseRepository: CourseRepositoryProtocol {
         
         // Decode JSON into Course struct array
         let courses = try JSONDecoder().decode([Course].self, from: data)
+        
+        self.courses = courses
             
         return courses
     }

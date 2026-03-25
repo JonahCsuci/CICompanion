@@ -12,13 +12,13 @@ import Foundation
 class AppContainer {
     
     // Shared student repository object, used by course and events repositories
-    let studentRepository: StudentRepositoryProtocol = StudentRepository()
+    let studentRepository: StudentRepositoryProtocol = APIStudentRepository()
     
     lazy var courseRepository: CourseRepositoryProtocol =
-        CourseRepository(studentRepository: studentRepository)
+        APICourseRepository(studentRepository: studentRepository)
     
     lazy var eventsRepository: EventsRepositoryProtocol =
-        EventsRepository(studentRepository: studentRepository)
+        APIEventsRepository(studentRepository: studentRepository)
     
     lazy var apiTestViewModel = APITestViewModel(
         courseRepository: courseRepository,
