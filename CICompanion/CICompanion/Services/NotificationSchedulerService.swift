@@ -7,11 +7,11 @@
 
 import Foundation
 
-class NotificationScheduler {
+class NotificationSchedulerService {
     
-    static let shared = NotificationScheduler()
+    static let shared = NotificationSchedulerService()
     
-    private let notificationManager = NotificationManager.shared
+    private let notificationManager = NotificationManagerService.shared
     
     private init() {}
     

@@ -29,6 +29,24 @@ struct StudentCoursesView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                NavigationLink {
+                    CoursesListView(viewModel: coursesListViewModel)
+                } label: {
+                    HStack {
+                        Text("Manage Courses")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 14)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                
+                Divider()
+                
                 List(viewModel.courses) { course in
                     VStack(alignment: .leading) {
                         Text(course.courseName)
@@ -47,11 +65,6 @@ struct StudentCoursesView: View {
             .navigationTitle("My Schedule")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink("Manage Courses") {
-                        CoursesListView(viewModel: coursesListViewModel)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     NavigationLink(destination: NotificationSettingsView(courses: viewModel.courses)) {
                         Label("Notification Settings", systemImage: "gearshape")
                             .labelStyle(.iconOnly)
@@ -63,7 +76,7 @@ struct StudentCoursesView: View {
             }
             .onChange(of: viewModel.courses) {
                 Task {
-                    await NotificationScheduler.shared.rescheduleNotifications(for: viewModel.courses)
+                    await NotificationSchedulerService.shared.rescheduleNotifications(for: viewModel.courses)
                 }
             }
             .navigationDestination(isPresented: $isShowingCalendar) {
