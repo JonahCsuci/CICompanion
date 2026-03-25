@@ -41,7 +41,7 @@ class AppContainer {
         studentRepository: studentRepository
     )
     
-    lazy var myAcademicCalendarViewModel = MyAcademicCalendarViewModel(
+    lazy var myAcademicCalendarViewModel = AcademicCalendarViewModel(
         courseRepository: courseRepository,
         studentRepository: studentRepository
     )

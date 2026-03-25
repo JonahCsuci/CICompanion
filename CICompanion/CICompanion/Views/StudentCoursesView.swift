@@ -14,12 +14,12 @@ struct StudentCoursesView: View {
     @State private var isShowingCalendar = false
     
     let coursesListViewModel: CoursesListViewModel
-    let myAcademicCalendarViewModel: MyAcademicCalendarViewModel
+    let myAcademicCalendarViewModel: AcademicCalendarViewModel
     
     init(
         viewModel: StudentCoursesViewModel,
         coursesListViewModel: CoursesListViewModel,
-        myAcademicCalendarViewModel: MyAcademicCalendarViewModel
+        myAcademicCalendarViewModel: AcademicCalendarViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.coursesListViewModel = coursesListViewModel
@@ -56,7 +56,7 @@ struct StudentCoursesView: View {
                 viewModel.loadStudentCourses()
             }
             .navigationDestination(isPresented: $isShowingCalendar) {
-                MyAcademicCalendarView(viewModel: myAcademicCalendarViewModel)
+                AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
             }
         }
     }
@@ -72,7 +72,7 @@ struct StudentCoursesView: View {
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         ),
-        myAcademicCalendarViewModel: MyAcademicCalendarViewModel(
+        myAcademicCalendarViewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
         )

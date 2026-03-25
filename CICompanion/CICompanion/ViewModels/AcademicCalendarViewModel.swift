@@ -1,5 +1,5 @@
 //
-//  MyAcademicCalendarViewModel.swift
+//  AcademicCalendarViewModel.swift
 //  CICompanion
 //
 //  Created by Codex on 3/24/26.
@@ -40,7 +40,7 @@ struct AsyncCourseItem: Identifiable {
 }
 
 @MainActor
-class MyAcademicCalendarViewModel: ObservableObject {
+class AcademicCalendarViewModel: ObservableObject {
     
     @Published var scheduleBlocks: [CalendarScheduleBlock] = []
     @Published var legendItems: [CalendarLegendItem] = []
