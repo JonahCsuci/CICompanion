@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "eventDay": "Monday",
+    "eventDate": "October 14, 2026",
+    "eventTime": "10:00 AM",
+    "eventTitle": "Career Center Resume Workshop",
+    "eventDescription": "Join the Career Center for a hands-on workshop focused on building and improving your resume. Advisors will walk students through formatting tips, how to highlight internships and projects, and how to tailor resumes for specific industries. Students are encouraged to bring a laptop and an existing resume draft."
+  },
+  {
+    "id": 2,
+    "eventDay": "Tuesday",
+    "eventDate": "October 15, 2026",
+    "eventTime": "12:30 PM",
+    "eventTitle": "CS Club Meeting",
+    "eventDescription": "The Computer Science Club will host its weekly meeting to discuss upcoming hackathons, open-source projects, and internship opportunities. New members are welcome. The meeting will include a short presentation on building portfolio projects and networking with other developers."
+  },
+  {
+    "id": 3,
+    "eventDay": "Wednesday",
+    "eventDate": "October 16, 2026",
+    "eventTime": "5:00 PM",
+    "eventTitle": "Campus Movie Night",
+    "eventDescription": "Students are invited to relax and enjoy a free movie screening hosted by the Student Activities Board. Snacks and drinks will be provided. This week’s movie will be voted on earlier in the day through the campus events app."
+  },
+  {
+    "id": 4,
+    "eventDay": "Thursday",
+    "eventDate": "October 17, 2026",
+    "eventTime": "3:00 PM",
+    "eventTitle": "Guest Speaker: AI in Industry",
+    "eventDescription": "A guest speaker from a leading technology company will discuss how artificial intelligence is currently being used in industry. The talk will cover machine learning applications, real-world product development, and career paths for students interested in AI and data science."
+  },
+  {
+    "id": 5,
+    "eventDay": "Friday",
+    "eventDate": "October 18, 2026",
+    "eventTime": "7:00 PM",
+    "eventTitle": "Homecoming Pep Rally",
+    "eventDescription": "Kick off homecoming weekend with the annual campus pep rally. The event will feature performances by the marching band, cheer team demonstrations, and appearances from the football team. Students are encouraged to wear school colors and join in the celebration."
+  }
+]
