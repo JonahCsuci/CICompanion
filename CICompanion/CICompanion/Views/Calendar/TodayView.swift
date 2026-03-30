@@ -10,7 +10,6 @@ import SwiftUI
 
 /// Displays today's schedule with expandable course cards and an assignment checklist.
 struct TodayView: View {
-    
     // MARK: - Properties
     
     /// The ViewModel that fetches and holds the student's schedule data.
@@ -47,54 +46,32 @@ struct TodayView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            bgColor.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                
-                // Header (date + week selector)
-                VStack(alignment: .leading, spacing: 16) {
-                    Text(formattedDate())
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    // Interactive week-day selector (Mon-Fri buttons)
-                    weekSelector()
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 16)
-                
-                ScrollView {
-                    VStack(spacing: 12) {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                                .padding(.top, 40)
-                        } else if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .padding(.top, 40)
-                        } else {
-                            let todayBlocks = blocksForSelectedDate()
-                            if todayBlocks.isEmpty {
-                                Text("No classes today")
-                                    .foregroundColor(.gray)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.top, 40)
-                            } else {
-                                ForEach(todayBlocks) { block in
-                                    courseCard(for: block)
-                                }
-                            }
+        CIView (heading: {
+            CIHeader() {
+                CIPageTitle(formattedDate())
+                weekSelector()
+            }
+        }, content: {
+            CIScrollView {
+                if viewModel.isLoading {
+                    CILoadingPage()
+                } else if let errorMessage = viewModel.errorMessage {
+                    CIErrorMessage(errorMessage: errorMessage)
+                } else {
+                    let todayBlocks = blocksForSelectedDate()
+                    if todayBlocks.isEmpty {
+                        Text("No classes today")
+                            .foregroundColor(.gray)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 40)
+                    } else {
+                        ForEach(todayBlocks) { block in
+                            courseCard(for: block)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
                 }
             }
-        }
+        })
         .sheet(item: $selectedCourse) { course in
             NewAssignmentView(
                 course: course,

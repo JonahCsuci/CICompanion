@@ -35,10 +35,8 @@ struct NewAssignmentView: View {
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            bgColor.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
+        CIView() {
+            CIHeader() {
                 HStack {
                     Button(action: { dismiss() }) {
                         Text("Cancel")
@@ -57,116 +55,101 @@ struct NewAssignmentView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+            }
+            CIScrollView() {
+                
+                CIPageTitle("New assignment")
+                CIItem(name: "Title", content: {
+                    TextField("Eg. Read Book", text: $title)
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+                        .padding(14)
+                        .background(fieldBgColor)
+                        .cornerRadius(10)
+                })
+                
+                CIItem(name: "Class name", content: {
+                    HStack {
+                        Text("\(course.courseCode) - \(course.courseName)")
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
                         
-                        // Page title
-                        Text("New assignment")
-                            .font(.system(size: 26, weight: .bold))
+                        Spacer()
+                        
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.gray)
+                    }
+                    .padding(14)
+                    .background(fieldBgColor)
+                    .cornerRadius(10)
+                })
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Details")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.gray)
+                    
+                    TextField("Eg. Read from page 100 to 150", text: $details, axis: .vertical)
+                        .font(.system(size: 15))
+                        .foregroundColor(.white)
+                        .lineLimit(3...6)
+                        .padding(14)
+                        .background(fieldBgColor)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: { isPriority.toggle() }) {
+                    HStack(spacing: 10) {
+                        Image(systemName: isPriority ? "checkmark.square.fill" : "square")
+                            .font(.system(size: 20))
+                            .foregroundColor(isPriority ? accentBlue : .gray)
+                        
+                        Text("Set as priority")
+                            .font(.system(size: 15))
+                            .foregroundColor(.white)
+                    }
+                }
+                .buttonStyle(.plain)
+                
+                Divider()
+                    .background(Color(white: 0.25))
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("All day")
+                            .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(.white)
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Title")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
-                            
-                            TextField("Eg. Read Book", text: $title)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .padding(14)
-                                .background(fieldBgColor)
-                                .cornerRadius(10)
-                        }
+                        Spacer()
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Class name")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
-                            
-                            HStack {
-                                Text("\(course.courseCode) - \(course.courseName)")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.down")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(14)
-                            .background(fieldBgColor)
-                            .cornerRadius(10)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Details")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.gray)
-                            
-                            TextField("Eg. Read from page 100 to 150", text: $details, axis: .vertical)
-                                .font(.system(size: 15))
-                                .foregroundColor(.white)
-                                .lineLimit(3...6)
-                                .padding(14)
-                                .background(fieldBgColor)
-                                .cornerRadius(10)
-                        }
-                        
-                        Button(action: { isPriority.toggle() }) {
-                            HStack(spacing: 10) {
-                                Image(systemName: isPriority ? "checkmark.square.fill" : "square")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(isPriority ? accentBlue : .gray)
-                                
-                                Text("Set as priority")
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                        
-                        Divider()
-                            .background(Color(white: 0.25))
-                        
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text("All day")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                                
-                                Toggle("", isOn: $isAllDay)
-                                    .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
-                            }
-                            
-                            Text(formattedSelectedDate())
-                                .font(.system(size: 15, weight: .medium))
-                                .foregroundColor(accentBlue)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack {
-                                Text("Alert")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
-                                
-                                Spacer()
-                                
-                                Toggle("", isOn: $alertEnabled)
-                                    .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
-                            }
-                            
-                            if alertEnabled {
-                                Text(alertTime)
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(accentBlue)
-                            }
-                        }
+                        Toggle("", isOn: $isAllDay)
+                            .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
                     }
-                    .padding(16)
+                    
+                    Text(formattedSelectedDate())
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(accentBlue)
+                }
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text("Alert")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $alertEnabled)
+                            .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
+                    }
+                    
+                    if alertEnabled {
+                        Text(alertTime)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(accentBlue)
+                    }
                 }
             }
         }
