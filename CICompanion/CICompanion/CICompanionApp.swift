@@ -5,6 +5,13 @@
 //  Created by Wummiez on 3/6/26.
 //
 
+//
+//  CICompanionApp.swift
+//  CICompanion
+//
+//  Created by Wummiez on 3/6/26.
+//
+
 import SwiftUI
 
 /// The root of the CICompanion application.

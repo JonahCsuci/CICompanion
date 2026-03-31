@@ -12,8 +12,13 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     // Stored student in memory
     private var student: Student?
+    //private let sessionManager: SessionManager
     
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
+    
+    //init(sessionManager: SessionManager) {
+    //    self.sessionManager = sessionManager
+    //}
     
     func loadStudent() async throws -> Student {
         
@@ -22,7 +27,10 @@ class APIStudentRepository: StudentRepositoryProtocol {
             return student
         }
         
-        // Temporary hardcoded student ID (will be dynamic later)
+        //guard let studentId = sessionManager.userId else {
+        //    throw URLError(.userAuthenticationRequired)
+        //}
+        
         let studentId = 1
         
         // Build API endpoint for fetching all of current student's info
@@ -108,9 +116,9 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
     
     // Checks if student has course
-    func hasStudentCourse(courseId: Int) async throws -> Bool {
-        return true
-    }
+    //func hasStudentCourse(courseId: Int) async throws -> Bool {
+      //  return true
+   // }
     
     // Add event to the student's event array
     func addStudentEvent(eventId: Int) async throws {

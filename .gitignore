@@ -65,3 +65,9 @@ build/
 DerivedData/
 *.xcuserdata
 *.xcuserstate
+
+# amplify
+node_modules
+.amplify
+amplify_outputs*
+amplifyconfiguration*
