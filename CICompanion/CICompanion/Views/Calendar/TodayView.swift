@@ -60,8 +60,7 @@ struct TodayView: View {
                 } else {
                     let todayBlocks = blocksForSelectedDate()
                     if todayBlocks.isEmpty {
-                        Text("No classes today")
-                            .foregroundColor(.gray)
+                        CIText("No classes today", .gray)
                             .frame(maxWidth: .infinity)
                             .padding(.top, 40)
                     } else {

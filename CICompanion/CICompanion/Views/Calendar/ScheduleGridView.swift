@@ -14,8 +14,8 @@ struct ScheduleGridView: View {
     @StateObject var viewModel: AcademicCalendarViewModel
     
     // Grid configuration
-    private let startHour = 9
-    private let endHour = 15
+    private let startHour = 8
+    private let endHour = 20
     private let hourHeight: CGFloat = 80
     private let timeColumnWidth: CGFloat = 40
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)

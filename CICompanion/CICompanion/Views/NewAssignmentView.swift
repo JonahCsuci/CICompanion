@@ -11,7 +11,7 @@ struct NewAssignmentView: View {
     
     // MARK: - Input Properties
     
-    let course: CalendarScheduleBlock
+    var course: CalendarScheduleBlock
     @Binding var isPresented: Bool
     @Binding var assignments: [String: [Assignment]]
     @Environment(\.dismiss) private var dismiss
@@ -25,6 +25,7 @@ struct NewAssignmentView: View {
     @State private var alertEnabled: Bool = true
     @State private var alertTime: String = "1 day before class"
     @State private var selectedDate: Date = Date()
+    @State private var selectedClassIndex: Int = 0
     
     // MARK: - Theme Colors
     
@@ -38,116 +39,63 @@ struct NewAssignmentView: View {
         CIView() {
             CIHeader() {
                 HStack {
-                    Button(action: { dismiss() }) {
-                        Text("Cancel")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(accentBlue)
-                    }
+                    CITextButton(text: "Cancel", action: { dismiss() })
                     
                     Spacer()
                     
-                    Button(action: saveAssignment) {
-                        Text("Save")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(accentBlue)
-                    }
+                    CITextButton(text: "Save", action: { saveAssignment() })
+                    
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                
+                .padding(ViewHelper.padding)
             }
             CIScrollView() {
                 
                 CIPageTitle("New assignment")
                 CIItem(name: "Title", content: {
-                    TextField("Eg. Read Book", text: $title)
-                        .font(.system(size: 15))
-                        .foregroundColor(.white)
-                        .padding(14)
-                        .background(fieldBgColor)
-                        .cornerRadius(10)
+                    CITextField(placeholder: "Eg. Read Book", text: $title, lines: 1)
                 })
                 
                 CIItem(name: "Class name", content: {
-                    HStack {
-                        Text("\(course.courseCode) - \(course.courseName)")
-                            .font(.system(size: 15))
-                            .foregroundColor(.white)
-                            .lineLimit(1)
-                        
-                        Spacer()
-                        
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.gray)
-                    }
-                    .padding(14)
-                    .background(fieldBgColor)
-                    .cornerRadius(10)
+                    CIDropDown(
+                        options: ["500", "Class2"],
+                        action: { selected in print("Hi" + String(selected))
+                        },
+                        selected: 0
+                    )
                 })
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Details")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.gray)
-                    
-                    TextField("Eg. Read from page 100 to 150", text: $details, axis: .vertical)
-                        .font(.system(size: 15))
-                        .foregroundColor(.white)
-                        .lineLimit(3...6)
-                        .padding(14)
-                        .background(fieldBgColor)
-                        .cornerRadius(10)
-                }
+                CIItem(name: "Details", content: {
+                    CITextField(placeholder: "Eg. Read from page 100 to 150", text: $details, lines: 3...6)
+                })
                 
-                Button(action: { isPriority.toggle() }) {
-                    HStack(spacing: 10) {
-                        Image(systemName: isPriority ? "checkmark.square.fill" : "square")
-                            .font(.system(size: 20))
-                            .foregroundColor(isPriority ? accentBlue : .gray)
-                        
-                        Text("Set as priority")
-                            .font(.system(size: 15))
-                            .foregroundColor(.white)
-                    }
-                }
-                .buttonStyle(.plain)
+                CICheckBoxToggle(label: "Set as priority", toggleBool: isPriority, toggleAction: {isPriority.toggle()})
                 
                 Divider()
-                    .background(Color(white: 0.25))
+                    .background(Color(white: 0.5))
                 
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("All day")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.white)
-                        
-                        Spacer()
-                        
-                        Toggle("", isOn: $isAllDay)
-                            .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
-                    }
+                    CISliderToggle(label: "All day", toggleBool: $isAllDay, toggleAction: {print("Augh")})
                     
                     Text(formattedSelectedDate())
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(accentBlue)
                 }
                 
-                VStack(alignment: .leading, spacing: 10) {
+                VStack(alignment: .leading, spacing: ViewHelper.spacing) {
                     HStack {
                         Text("Alert")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.white)
                         
                         Spacer()
                         
                         Toggle("", isOn: $alertEnabled)
-                            .tint(Color(red: 0.2, green: 0.85, blue: 0.8))
+                            .tint(ViewHelper.accentGreen)
                     }
                     
                     if alertEnabled {
                         Text(alertTime)
-                            .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: ViewHelper.textSize, weight: .medium))
                             .foregroundColor(accentBlue)
                     }
                 }
@@ -180,7 +128,7 @@ struct NewAssignmentView: View {
     
     private func formattedSelectedDate() -> String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE, d"
+        formatter.dateFormat = "EEEE"
         let base = formatter.string(from: selectedDate)
         
         let day = Calendar.current.component(.day, from: selectedDate)
@@ -196,7 +144,7 @@ struct NewAssignmentView: View {
         monthFormatter.dateFormat = "MMM"
         let month = monthFormatter.string(from: selectedDate)
         
-        return "\(base)\(suffix) \(month)"
+        return "\(base), \(month) \(day)\(suffix)"
     }
 }
 
@@ -219,3 +167,4 @@ struct NewAssignmentView: View {
         assignments: .constant([:])
     )
 }
+

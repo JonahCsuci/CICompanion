@@ -11,6 +11,7 @@ import Combine
 
 // ViewModel for the student's homepage / student schedule screen.
 // It stores only the courses that belong to the student.
+@MainActor
 class StudentCoursesViewModel: ObservableObject {
     
     @Published var courses: [Course] = []

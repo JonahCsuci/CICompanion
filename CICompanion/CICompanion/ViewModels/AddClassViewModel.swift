@@ -9,6 +9,7 @@ import Combine
 
 // ViewModel for the add-class screen.
 // It loads the course catalog and adds a selected course to the student's schedule.
+@MainActor
 class AddClassViewModel: ObservableObject {
     
     @Published var courses: [Course] = []
