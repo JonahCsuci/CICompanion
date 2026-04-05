@@ -70,7 +70,6 @@ struct CIHeader<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             content
-            Spacer()
         }
     }
 }

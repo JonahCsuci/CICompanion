@@ -8,40 +8,19 @@
 
 import SwiftUI
 
-/// Displays today's schedule with expandable course cards and an assignment checklist.
 struct TodayView: View {
     // MARK: - Properties
-    
-    /// The ViewModel that fetches and holds the student's schedule data.
-    /// `@StateObject` means THIS view creates and owns the ViewModel.
-    /// Use `@StateObject` when a view is the *source of truth* for an object.
-    /// Use `@ObservedObject` when a view *receives* an already-created object from a parent.
     @StateObject var viewModel: AcademicCalendarViewModel
     
-    /// Tracks which course card is currently expanded (by its unique ID).
-    /// `nil` means no card is expanded. Only one card can be expanded at a time.
     @State private var expandedCardId: String?
     
-    /// Controls whether the "New Assignment" sheet is presented.
     @State private var showNewAssignment = false
-    
-    /// The course the user tapped the gear icon on — triggers the assignment sheet.
-    /// `sheet(item:)` watches this: when it becomes non-nil, the sheet appears.
-    /// When the sheet is dismissed, SwiftUI automatically sets this back to nil.
+
     @State private var selectedCourse: CalendarScheduleBlock?
-    
-    /// In-memory storage for assignments, keyed by course block ID (e.g., "1-Monday").
-    /// Each key maps to an array of Assignment objects for that course.
+
     @State private var assignments: [String: [Assignment]] = [:]
     
-    /// The currently selected date in the week selector. Defaults to today.
     @State private var selectedDate: Date = Date()
-    
-    /// App-wide dark background color, used consistently across all views.
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    
-    /// Slightly lighter background for card surfaces (creates depth/contrast).
-    private let cardBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     
     // MARK: - Body
     
@@ -234,7 +213,7 @@ struct TodayView: View {
                 expandedContent(for: block, color: color)
             }
         }
-        .background(cardBgColor)
+        .background(ViewHelper.fieldBgColor)
         .cornerRadius(12)
     }
     

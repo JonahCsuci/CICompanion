@@ -18,32 +18,18 @@ struct ScheduleGridView: View {
     private let endHour = 20
     private let hourHeight: CGFloat = 80
     private let timeColumnWidth: CGFloat = 40
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     
     // MARK: - Body
     
     var body: some View {
-        ZStack {
-            bgColor.ignoresSafeArea()
-            
-            VStack(spacing: 0) {
-                Text("Schedule")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 12)
-                
+        CIView() {
+            CIHeader {
+                CIPageTitle("Schedule")
                 dayHeaders()
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 6)
-                
-                ScrollView(.vertical, showsIndicators: false) {
-                    gridContent()
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, 20)
-                }
+            }
+            
+            ScrollView(.vertical, showsIndicators: false) {
+                gridContent()
             }
         }
         .onAppear {
