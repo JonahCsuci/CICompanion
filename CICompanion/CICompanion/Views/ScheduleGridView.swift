@@ -20,7 +20,12 @@ struct ScheduleGridView: View {
 
     // MARK: - Dependencies
 
-    @StateObject var viewModel: AcademicCalendarViewModel
+    /// The ViewModel that owns the student's schedule data.
+    @ObservedObject var viewModel: AcademicCalendarViewModel
+
+    /// When `true`, hides the standalone title and background so the grid
+    /// can be embedded inside a parent screen (e.g. TodayView's week mode).
+    var isEmbedded: Bool = false
 
     // MARK: - Grid Configuration
 
@@ -34,22 +39,38 @@ struct ScheduleGridView: View {
     // MARK: - Body
 
     var body: some View {
+        if isEmbedded {
+            scheduleLayout
+        } else {
+            standaloneLayout
+        }
+    }
+}
+
+private extension ScheduleGridView {
+
+    /// Full standalone layout: title, dark background, and data-loading trigger.
+    var standaloneLayout: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 screenTitle
-                dayHeaderRow
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 6)
-                scrollableGrid
+                scheduleLayout
             }
         }
         .onAppear { viewModel.loadSchedule() }
     }
-}
 
-private extension ScheduleGridView {
+    /// Day headers + scrollable timetable — shared by standalone and embedded modes.
+    var scheduleLayout: some View {
+        VStack(spacing: 0) {
+            dayHeaderRow
+                .padding(.horizontal, AppTheme.Spacing.gridHeaderPadding)
+                .padding(.bottom, AppTheme.Spacing.gridHeaderBottomPadding)
+            scrollableGrid
+        }
+    }
 
     /// "Schedule" title at the top of the screen.
     var screenTitle: some View {

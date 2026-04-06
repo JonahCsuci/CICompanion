@@ -19,7 +19,7 @@ import SwiftUI
 enum AppTheme {
 
     // ╔══════════════════════════════════════════════════════════════════╗
-    // ║  Colors                                                        ║
+    // ║  Colors                                                          ║
     // ╚══════════════════════════════════════════════════════════════════╝
 
     enum Colors {
@@ -67,7 +67,7 @@ enum AppTheme {
     }
 
     // ╔══════════════════════════════════════════════════════════════════╗
-    // ║  Fonts                                                         ║
+    // ║  Fonts                                                           ║
     // ╚══════════════════════════════════════════════════════════════════╝
 
     enum Fonts {
@@ -107,7 +107,7 @@ enum AppTheme {
     }
 
     // ╔══════════════════════════════════════════════════════════════════╗
-    // ║  Spacing & Sizing                                              ║
+    // ║  Spacing & Sizing                                                ║
     // ╚══════════════════════════════════════════════════════════════════╝
 
     enum Spacing {
@@ -123,7 +123,14 @@ enum AppTheme {
         static let swipeDeleteThreshold: CGFloat = -60
         static let courseBarWidth: CGFloat        = 3
         static let courseTimeColumnWidth: CGFloat = 72
-        static let gridBlockCornerRadius: CGFloat = 6
+        static let gridBlockCornerRadius: CGFloat  = 6
+        static let gridHeaderPadding: CGFloat      = 8
+        static let gridHeaderBottomPadding: CGFloat = 6
+
+        /// Inter-section vertical gap (used in month-placeholder, etc.).
+        static let sectionGap: CGFloat             = 12
+        /// Horizontal space between Mon–Fri day-selector buttons.
+        static let daySelectorSpacing: CGFloat      = 8
 
         /// Calendar-specific sizing (wider columns for the full-week view).
         static let calendarHourRowHeight: CGFloat  = 72
@@ -132,7 +139,7 @@ enum AppTheme {
     }
 
     // ╔══════════════════════════════════════════════════════════════════╗
-    // ║  Animation                                                     ║
+    // ║  Animation                                                       ║
     // ╚══════════════════════════════════════════════════════════════════╝
 
     static let defaultAnimationDuration: Double = 0.2

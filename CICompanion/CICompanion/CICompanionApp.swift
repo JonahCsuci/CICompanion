@@ -23,8 +23,7 @@ struct CICompanionApp: App {
     var body: some Scene {
         WindowGroup {
             TabView {
-                todayTab
-                scheduleTab
+                calendarTab
 
                 // Uncomment to enable the Map feature:
                 // mapTab
@@ -38,27 +37,13 @@ struct CICompanionApp: App {
 
 private extension CICompanionApp {
 
-    /// Calendar / Today tab.
-    var todayTab: some View {
+    /// Calendar tab — Day / Week / Month views, switchable via a filter menu.
+    var calendarTab: some View {
         TodayView(viewModel: container.myAcademicCalendarViewModel)
             .tabItem {
                 Image(systemName: "calendar")
-                Text("Today")
+                Text("Calendar")
             }
-    }
-
-    /// Weekly schedule grid tab.
-    var scheduleTab: some View {
-        ScheduleGridView(
-            viewModel: AcademicCalendarViewModel(
-                courseRepository: container.courseRepository,
-                studentRepository: container.studentRepository
-            )
-        )
-        .tabItem {
-            Image(systemName: "square.grid.3x3.fill")
-            Text("Schedule")
-        }
     }
 
     /// Campus map tab (currently hidden behind a feature flag).

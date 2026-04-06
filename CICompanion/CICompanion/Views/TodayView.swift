@@ -2,19 +2,38 @@
 //  TodayView.swift
 //  CICompanion
 //
-//  The main "Today" tab — shows the current date, a week-day selector,
+//  The main "Calendar" tab — shows the current date, a week-day selector,
 //  expandable course cards, and assignment checklists with swipe-to-delete.
+//  A menu in the top-right lets the user switch between Day / Week / Month views.
 //
 
 import SwiftUI
+
+// MARK: - CalendarDisplayMode
+
+/// The three calendar layout modes selectable from the top-right menu.
+enum CalendarDisplayMode: String, CaseIterable {
+    case day   = "Day"
+    case week  = "Week"
+    case month = "Month"
+
+    /// SF Symbol shown next to each option in the menu.
+    var iconName: String {
+        switch self {
+        case .day:   return "square.grid.2x2"
+        case .week:  return "square.grid.3x3"
+        case .month: return "calendar"
+        }
+    }
+}
 
 // MARK: - TodayView
 
 /// Displays today's schedule with expandable course cards and an assignment checklist.
 ///
 /// **Layout (top → bottom):**
-/// 1. Formatted date header
-/// 2. Horizontal Mon–Fri day selector with badge counts
+/// 1. Formatted date header with a view-mode menu (Day / Week / Month)
+/// 2. Horizontal Mon–Fri day selector with badge counts (Day mode only)
 /// 3. Scrollable list of `CourseCardView` items for the selected day
 ///
 /// Tapping a card expands it to reveal its assignment list and a gear button
@@ -27,6 +46,9 @@ struct TodayView: View {
     @StateObject var viewModel: AcademicCalendarViewModel
 
     // MARK: - Local State
+
+    /// The active calendar layout (Day / Week / Month).
+    @State private var displayMode: CalendarDisplayMode = .day
 
     /// The ID of the currently expanded course card (`nil` = all collapsed).
     @State private var expandedCardId: String?
@@ -51,9 +73,15 @@ struct TodayView: View {
 
             VStack(spacing: 0) {
                 dateHeader
-                weekSelector
 
-                courseList
+                switch displayMode {
+                case .day:
+                    dayContent
+                case .week:
+                    weekContent
+                case .month:
+                    monthContent
+                }
             }
         }
         .sheet(item: $selectedCourse) { course in
@@ -69,22 +97,74 @@ struct TodayView: View {
 
 private extension TodayView {
 
-    /// The formatted date title at the top of the screen.
+    /// The formatted date title with a view-mode menu icon on the right.
     var dateHeader: some View {
-        Text(selectedDate.formattedWithOrdinal)
-            .font(AppTheme.Fonts.title)
-            .foregroundColor(AppTheme.Colors.textPrimary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, AppTheme.Spacing.screen)
-            .padding(.top, 12)
-            .padding(.bottom, AppTheme.Spacing.screen)
+        HStack {
+            Text(selectedDate.formattedWithOrdinal)
+                .font(AppTheme.Fonts.title)
+                .foregroundColor(AppTheme.Colors.textPrimary)
+
+            Spacer()
+
+            viewModeMenu
+        }
+        .padding(.horizontal, AppTheme.Spacing.screen)
+        .padding(.top, 12)
+        .padding(.bottom, AppTheme.Spacing.screen)
+    }
+
+    /// Top-right filter icon that opens a Day / Week / Month picker.
+    var viewModeMenu: some View {
+        Menu {
+            ForEach(CalendarDisplayMode.allCases, id: \.self) { mode in
+                Button {
+                    withAnimation(.easeInOut(duration: AppTheme.defaultAnimationDuration)) {
+                        displayMode = mode
+                    }
+                } label: {
+                    Label(mode.rawValue, systemImage: mode.iconName)
+                }
+            }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease")
+                .font(AppTheme.Fonts.sectionHeader)
+                .foregroundColor(AppTheme.Colors.actionPrimary)
+        }
+    }
+
+    /// Day-mode content: week selector + course card list.
+    var dayContent: some View {
+        VStack(spacing: 0) {
+            weekSelector
+            courseList
+        }
+    }
+
+    /// Week-mode content: embeds the weekly schedule grid without its own title / background.
+    var weekContent: some View {
+        ScheduleGridView(viewModel: viewModel, isEmbedded: true)
+    }
+
+    /// Month-mode placeholder (not yet designed).
+    var monthContent: some View {
+        VStack(spacing: AppTheme.Spacing.sectionGap) {
+            Spacer()
+            Image(systemName: "calendar")
+                .font(AppTheme.Fonts.iconHero)
+                .foregroundColor(AppTheme.Colors.actionPrimary)
+            Text("Month View Coming Soon")
+                .font(AppTheme.Fonts.toolbarActionBold)
+                .foregroundColor(AppTheme.Colors.textPrimary)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
     }
 
     /// Horizontal row of tappable Mon–Fri day buttons with assignment badges.
     var weekSelector: some View {
         let weekDates = selectedDate.weekdayDates()
 
-        return HStack(spacing: 8) {
+        return HStack(spacing: AppTheme.Spacing.daySelectorSpacing) {
             ForEach(weekDates, id: \.self) { date in
                 DaySelectorButton(
                     date: date,
