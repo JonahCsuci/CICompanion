@@ -94,7 +94,7 @@ private extension AcademicCalendarView {
         .clipShape(RoundedRectangle(cornerRadius: 18))
     }
 
-    func legendRow(for item: LegendItem) -> some View {
+    func legendRow(for item: CalendarLegendItem) -> some View {
         HStack(alignment: .top, spacing: 10) {
             RoundedRectangle(cornerRadius: 4)
                 .fill(AppTheme.Colors.courseColor(for: item.colorIndex))
@@ -128,7 +128,7 @@ private extension AcademicCalendarView {
         }
     }
 
-    func asyncCourseRow(for course: Course) -> some View {
+    func asyncCourseRow(for course: AsyncCourseItem) -> some View {
         HStack(alignment: .top, spacing: 10) {
             RoundedRectangle(cornerRadius: 4)
                 .fill(AppTheme.Colors.courseColor(for: course.id % AppTheme.Colors.coursePalette.count))

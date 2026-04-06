@@ -42,7 +42,7 @@ class CoursesListViewModel: ObservableObject {
         Task {
             do {
                 courses = try await courseRepository.loadAllCourses()
-                try await studentRepository.loadStudent()
+                _ = try await studentRepository.loadStudent()
                 studentCourses = try await courseRepository.loadStudentCourses()
                 shownCourses = courses
             } catch {
