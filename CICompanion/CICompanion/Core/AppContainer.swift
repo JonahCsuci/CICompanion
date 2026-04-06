@@ -12,11 +12,11 @@ import Foundation
 class AppContainer {
     
     // Shared auth/session state
-    //let sessionManager = SessionManager()
+    let sessionManager = SessionManager()
     
     // Shared student repository object, used by course and events repositories
     lazy var studentRepository: StudentRepositoryProtocol =
-        APIStudentRepository()
+    APIStudentRepository(sessionManager: sessionManager)
     
     lazy var courseRepository: CourseRepositoryProtocol =
         APICourseRepository(studentRepository: studentRepository)

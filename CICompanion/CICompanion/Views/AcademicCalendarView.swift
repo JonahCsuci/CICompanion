@@ -9,6 +9,7 @@ import SwiftUI
 struct AcademicCalendarView: View {
     
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var sessionManager: SessionManager
     @Environment(\.dismiss) private var dismiss
     
     private let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -18,8 +19,9 @@ struct AcademicCalendarView: View {
     private let timeColumnWidth: CGFloat = 74
     private let courseColors: [Color] = [.blue, .green, .orange, .pink, .teal, .indigo]
     
-    init(viewModel: AcademicCalendarViewModel) {
+    init(viewModel: AcademicCalendarViewModel, sessionManager: SessionManager) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
     }
     
     var body: some View {
@@ -243,6 +245,6 @@ struct AcademicCalendarView: View {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ), sessionManager: SessionManager()
     )
 }

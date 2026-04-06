@@ -1,30 +1,31 @@
 import SwiftUI
 import Amplify
 
-/*
 struct ConfirmSignUpView: View {
     @Environment(\.dismiss) private var dismiss
-
+    
     let email: String
-
+    let name: String
+    let sessionManager: SessionManager
+    
     @State private var code = ""
     @State private var message = ""
-
+    
     var body: some View {
         VStack(spacing: 16) {
-            
             Text("Verify Email")
                 .font(.title)
                 .bold()
-
+            
             Text("Enter the code sent to:")
+            
             Text(email)
                 .fontWeight(.semibold)
-
+            
             TextField("Verification Code", text: $code)
                 .textFieldStyle(.roundedBorder)
                 .keyboardType(.numberPad)
-
+            
             if !message.isEmpty {
                 Text(message)
                     .foregroundColor(.blue)
@@ -37,9 +38,16 @@ struct ConfirmSignUpView: View {
                             for: email,
                             confirmationCode: code
                         )
-
+                        
                         if result.isSignUpComplete {
                             message = "Account verified!"
+                            // Ensure student exists in SQL backend
+                            do {
+                                let repo = APIStudentRepository(sessionManager: sessionManager)
+                                _ = try await repo.ensureStudentExists()
+                            } catch {
+                                print("ensureStudentExists failed:", error)
+                            }
                             dismiss()
                         }
                     } catch {
@@ -49,7 +57,7 @@ struct ConfirmSignUpView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
-
+            
             Button("Resend Code") {
                 Task {
                     do {
@@ -62,14 +70,13 @@ struct ConfirmSignUpView: View {
                 }
             }
             .buttonStyle(.bordered)
-
+            
             Button("Close") {
                 dismiss()
             }
-
+            
             Spacer()
         }
         .padding()
     }
 }
-*/

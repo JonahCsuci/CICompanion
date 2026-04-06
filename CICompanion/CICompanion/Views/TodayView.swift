@@ -18,7 +18,20 @@ struct TodayView: View {
     /// Use `@StateObject` when a view is the *source of truth* for an object.
     /// Use `@ObservedObject` when a view *receives* an already-created object from a parent.
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var sessionManager: SessionManager
+    @State private var showSignIn = false
     
+    let studentRepository: StudentRepositoryProtocol
+    
+    init (
+        viewModel: AcademicCalendarViewModel,
+        studentRepository: StudentRepositoryProtocol,
+        sessionManager: SessionManager
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
+        self.studentRepository = studentRepository
+    }
     /// Tracks which course card is currently expanded (by its unique ID).
     /// `nil` means no card is expanded. Only one card can be expanded at a time.
     @State private var expandedCardId: String?
@@ -44,6 +57,7 @@ struct TodayView: View {
     /// Slightly lighter background for card surfaces (creates depth/contrast).
     private let cardBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     
+    
     // MARK: - Body
     
     var body: some View {
@@ -52,60 +66,92 @@ struct TodayView: View {
             
             VStack(spacing: 0) {
                 
-                // Header (date + week selector)
                 VStack(alignment: .leading, spacing: 16) {
                     Text(formattedDate())
                         .font(.system(size: 26, weight: .bold))
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    // Interactive week-day selector (Mon-Fri buttons)
                     weekSelector()
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
                 .padding(.bottom, 16)
                 
-                ScrollView {
-                    VStack(spacing: 12) {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .tint(.white)
-                                .padding(.top, 40)
-                        } else if let errorMessage = viewModel.errorMessage {
-                            Text(errorMessage)
-                                .foregroundColor(.red)
-                                .padding(.top, 40)
-                        } else {
-                            let todayBlocks = blocksForSelectedDate()
-                            if todayBlocks.isEmpty {
-                                Text("No classes today")
-                                    .foregroundColor(.gray)
-                                    .frame(maxWidth: .infinity)
+                // If session manager object doesn't contain a user,
+                // Display to log in
+                if !sessionManager.isSignedIn {
+                    VStack {
+                        
+                        Spacer()
+                            .frame(height:50)
+                        
+                        Text("Sign in to view your schedule")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 30)
+                        
+                        Button {
+                            showSignIn = true
+                        } label: {
+                            Text("Sign In")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 200, height: 50)
+                                .background(Color(red: 0.36, green: 0.55, blue: 0.90))
+                                .cornerRadius(12)
+                        }
+                        Spacer()
+                    }
+                    
+                } else {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            if viewModel.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                                    .padding(.top, 40)
+                            } else if let errorMessage = viewModel.errorMessage {
+                                Text(errorMessage)
+                                    .foregroundColor(.red)
                                     .padding(.top, 40)
                             } else {
-                                ForEach(todayBlocks) { block in
-                                    courseCard(for: block)
+                                let todayBlocks = blocksForSelectedDate()
+                                if todayBlocks.isEmpty {
+                                    Text("No classes today")
+                                        .foregroundColor(.gray)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.top, 40)
+                                } else {
+                                    ForEach(todayBlocks) { block in
+                                        courseCard(for: block)
+                                    }
                                 }
                             }
                         }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 20)
                 }
             }
         }
-        .sheet(item: $selectedCourse) { course in
-            NewAssignmentView(
-                course: course,
-                isPresented: $showNewAssignment,
-                assignments: $assignments
-            )
+        .task(id: sessionManager.isSignedIn) {
+            if sessionManager.isSignedIn {
+                _ = try? await studentRepository.ensureStudentExists()
+                viewModel.loadSchedule()
+            } else {
+                viewModel.scheduleBlocks = []
+                viewModel.legendItems = []
+                viewModel.asyncCourses = []
+                viewModel.errorMessage = nil
+            }
         }
-        .onAppear {
-            viewModel.loadSchedule()
+        .sheet(isPresented: $showSignIn) {
+            SignInView(sessionManager: sessionManager)
         }
     }
+        
     
     // MARK: - Week Selector
     
@@ -551,6 +597,7 @@ private struct SwipeToDeleteRow<Content: View>: View {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ), studentRepository: StudentRepository(), sessionManager: SessionManager()
     )
 }
+
