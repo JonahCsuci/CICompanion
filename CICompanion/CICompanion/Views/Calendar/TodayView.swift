@@ -11,7 +11,22 @@ import SwiftUI
 struct TodayView: View {
     // MARK: - Properties
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var sessionManager: SessionManager
+    @State private var showSignIn = false
     
+    let studentRepository: StudentRepositoryProtocol
+    
+    init (
+        viewModel: AcademicCalendarViewModel,
+        studentRepository: StudentRepositoryProtocol,
+        sessionManager: SessionManager
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
+        self.studentRepository = studentRepository
+    }
+    /// Tracks which course card is currently expanded (by its unique ID).
+    /// `nil` means no card is expanded. Only one card can be expanded at a time.
     @State private var expandedCardId: String?
     
     @State private var showNewAssignment = false
@@ -31,20 +46,49 @@ struct TodayView: View {
                 weekSelector()
             }
         }, content: {
-            CIScrollView {
-                if viewModel.isLoading {
-                    CILoadingPage()
-                } else if let errorMessage = viewModel.errorMessage {
-                    CIErrorMessage(errorMessage: errorMessage)
-                } else {
-                    let todayBlocks = blocksForSelectedDate()
-                    if todayBlocks.isEmpty {
-                        CIText("No classes today", .gray)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, 40)
+            if !sessionManager.isSignedIn {
+                VStack {
+                    
+                    Spacer()
+                        .frame(height:50)
+                    
+                    Text("Sign in to view your schedule")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
+                    
+                    Button {
+                        showSignIn = true
+                    } label: {
+                        Text("Sign In")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 50)
+                            .background(Color(red: 0.36, green: 0.55, blue: 0.90))
+                            .cornerRadius(12)
+                    }
+                    Spacer()
+                }
+                
+            } else {
+                CIScrollView {
+                    if viewModel.isLoading {
+                        CILoadingPage()
+                    } else if let errorMessage = viewModel.errorMessage {
+                        CIErrorMessage(errorMessage: errorMessage)
                     } else {
-                        ForEach(todayBlocks) { block in
-                            courseCard(for: block)
+                        let todayBlocks = blocksForSelectedDate()
+                        if todayBlocks.isEmpty {
+                            CIText("No classes today", .gray)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 40)
+                        } else {
+                            ForEach(todayBlocks) { block in
+                                courseCard(for: block)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 20)
                         }
                     }
                 }
@@ -57,10 +101,22 @@ struct TodayView: View {
                 assignments: $assignments
             )
         }
-        .onAppear {
-            viewModel.loadSchedule()
+        .task(id: sessionManager.isSignedIn) {
+            if sessionManager.isSignedIn {
+                _ = try? await studentRepository.ensureStudentExists()
+                viewModel.loadSchedule()
+            } else {
+                viewModel.scheduleBlocks = []
+                viewModel.legendItems = []
+                viewModel.asyncCourses = []
+                viewModel.errorMessage = nil
+            }
+        }
+        .sheet(isPresented: $showSignIn) {
+            SignInView(sessionManager: sessionManager)
         }
     }
+        
     
     // MARK: - Week Selector
     
@@ -506,6 +562,7 @@ private struct SwipeToDeleteRow<Content: View>: View {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ), studentRepository: StudentRepository(), sessionManager: SessionManager()
     )
 }
+

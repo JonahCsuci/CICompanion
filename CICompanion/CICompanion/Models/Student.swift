@@ -8,7 +8,7 @@
 import Foundation
 
 struct Student: Codable, Identifiable {
-    let id: Int
+    let id: String
     let name: String
     let email: String
     var courses: [Int]

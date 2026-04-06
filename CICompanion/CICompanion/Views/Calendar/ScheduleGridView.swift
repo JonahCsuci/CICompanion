@@ -1,10 +1,3 @@
-//
-//  ScheduleGridView.swift
-//  CICompanion
-//
-//  Displays a weekly schedule grid (Monday–Friday, 9 AM–3 PM) with colored course blocks.
-//
-
 import SwiftUI
 
 struct ScheduleGridView: View {
@@ -12,6 +5,8 @@ struct ScheduleGridView: View {
     // MARK: - Properties
     
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var sessionManager: SessionManager
+    @State private var showSignIn = false
     
     // Grid configuration
     private let startHour = 8
@@ -28,18 +23,53 @@ struct ScheduleGridView: View {
                 dayHeaders()
             }
             
-            ScrollView(.vertical, showsIndicators: false) {
-                gridContent()
+            if !sessionManager.isSignedIn {
+                VStack {
+                    Spacer()
+                        .frame(height: 50)
+                    
+                    Text("Sign in to view your schedule")
+                        .font(.system(size: 28, weight: .semibold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
+                    
+                    Button {
+                        showSignIn = true
+                    } label: {
+                        Text("Sign In")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 200, height: 50)
+                            .background(Color(red: 0.36, green: 0.55, blue: 0.90))
+                            .cornerRadius(12)
+                    }
+                    
+                    Spacer()
+                }
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    gridContent()
+                }
             }
         }
-        .onAppear {
-            viewModel.loadSchedule()
+        .task(id: sessionManager.isSignedIn) {
+            if sessionManager.isSignedIn {
+                viewModel.loadSchedule()
+            } else {
+                viewModel.scheduleBlocks = []
+                viewModel.legendItems = []
+                viewModel.asyncCourses = []
+                viewModel.errorMessage = nil
+            }
+        }
+        .sheet(isPresented: $showSignIn) {
+            SignInView(sessionManager: sessionManager)
         }
     }
     
     // MARK: - Day Headers
     
-    /// Day headers row (Mon–Fri) with today highlighted.
     private func dayHeaders() -> some View {
         let weekDates = currentWeekDates()
         
@@ -76,7 +106,6 @@ struct ScheduleGridView: View {
     
     // MARK: - Grid Content
     
-    /// Builds the main grid area with time labels, grid lines, and course blocks.
     private func gridContent() -> some View {
         let totalHours = endHour - startHour
         let gridHeight = CGFloat(totalHours) * hourHeight
@@ -87,7 +116,6 @@ struct ScheduleGridView: View {
             
             ZStack(alignment: .topLeading) {
                 
-                // Horizontal grid lines + time labels
                 ForEach(0...totalHours, id: \.self) { i in
                     let y = CGFloat(i) * hourHeight
                     
@@ -111,7 +139,6 @@ struct ScheduleGridView: View {
                     }
                 }
                 
-                // Vertical grid lines
                 ForEach(0...5, id: \.self) { i in
                     let x = timeColumnWidth + CGFloat(i) * colWidth
                     Path { path in
@@ -121,7 +148,6 @@ struct ScheduleGridView: View {
                     .stroke(Color(white: 0.18), lineWidth: 0.5)
                 }
                 
-                // Course blocks
                 let weekDates = currentWeekDates()
                 ForEach(viewModel.scheduleBlocks) { block in
                     if let col = dayIndex(for: block.day, in: weekDates) {
@@ -189,7 +215,6 @@ struct ScheduleGridView: View {
         return String(format: "%02d", h)
     }
     
-    /// Shortens long course names to fit inside grid blocks.
     private func displayName(_ name: String) -> String {
         if name.count <= 14 { return name }
         
@@ -216,13 +241,12 @@ struct ScheduleGridView: View {
     }
 }
 
-// MARK: - Preview
-
 #Preview {
     ScheduleGridView(
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ),
+        sessionManager: SessionManager()
     )
 }
