@@ -104,6 +104,11 @@ enum AppTheme {
         static let iconCheckboxSmall = Font.system(size: 18)
         static let iconAction        = Font.system(size: 14)
         static let iconChevron       = Font.system(size: 12, weight: .semibold)
+
+        // Month calendar
+        static let monthDay          = Font.system(size: 15, weight: .medium)
+        static let monthWeekdayLabel = Font.system(size: 13, weight: .semibold)
+        static let monthNavArrow     = Font.system(size: 16, weight: .semibold)
     }
 
     // ╔══════════════════════════════════════════════════════════════════╗
@@ -136,6 +141,13 @@ enum AppTheme {
         static let calendarHourRowHeight: CGFloat  = 72
         static let calendarTimeColumnWidth: CGFloat = 74
         static let calendarDayColumnWidth: CGFloat  = 150
+
+        // Month-calendar grid
+        static let monthCellSize: CGFloat          = 36
+        static let monthDotSize: CGFloat           = 6
+        static let monthDotSpacing: CGFloat        = 2
+        static let monthHeaderSpacing: CGFloat     = 20
+        static let monthGridRowSpacing: CGFloat    = 8
     }
 
     // ╔══════════════════════════════════════════════════════════════════╗

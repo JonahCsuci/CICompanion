@@ -13,8 +13,11 @@ struct Assignment: Identifiable, Codable {
     var isCompleted: Bool
     var isPriority: Bool
     var alertTime: String
+
+    /// The calendar date when this assignment is due (`nil` for legacy items).
+    var dueDate: Date?
     
-    init(id: String = UUID().uuidString, courseId: String, title: String, details: String = "", isCompleted: Bool = false, isPriority: Bool = false, alertTime: String = "1 day before class") {
+    init(id: String = UUID().uuidString, courseId: String, title: String, details: String = "", isCompleted: Bool = false, isPriority: Bool = false, alertTime: String = "1 day before class", dueDate: Date? = nil) {
         self.id = id
         self.courseId = courseId
         self.title = title
@@ -22,5 +25,6 @@ struct Assignment: Identifiable, Codable {
         self.isCompleted = isCompleted
         self.isPriority = isPriority
         self.alertTime = alertTime
+        self.dueDate = dueDate
     }
 }

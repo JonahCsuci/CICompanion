@@ -65,6 +65,12 @@ struct TodayView: View {
     /// The currently selected date in the week selector (defaults to today).
     @State private var selectedDate = Date()
 
+    /// The month currently displayed in the month calendar grid.
+    @State private var displayedMonth = Date()
+
+    /// Controls whether the month-view "add assignment" sheet is shown.
+    @State private var showMonthAssignmentSheet = false
+
     // MARK: - Body
 
     var body: some View {
@@ -88,6 +94,13 @@ struct TodayView: View {
             NewAssignmentView(
                 course: course,
                 isPresented: $showNewAssignment,
+                assignments: $assignments
+            )
+        }
+        .sheet(isPresented: $showMonthAssignmentSheet) {
+            MonthAssignmentSheet(
+                date: selectedDate,
+                scheduleBlocks: viewModel.scheduleBlocks,
                 assignments: $assignments
             )
         }
@@ -145,19 +158,21 @@ private extension TodayView {
         ScheduleGridView(viewModel: viewModel, isEmbedded: true)
     }
 
-    /// Month-mode placeholder (not yet designed).
+    /// Month-mode content: calendar grid + assignment list for the selected date.
     var monthContent: some View {
-        VStack(spacing: AppTheme.Spacing.sectionGap) {
-            Spacer()
-            Image(systemName: "calendar")
-                .font(AppTheme.Fonts.iconHero)
-                .foregroundColor(AppTheme.Colors.actionPrimary)
-            Text("Month View Coming Soon")
-                .font(AppTheme.Fonts.toolbarActionBold)
-                .foregroundColor(AppTheme.Colors.textPrimary)
-            Spacer()
+        ScrollView {
+            VStack(spacing: AppTheme.Spacing.monthHeaderSpacing) {
+                MonthCalendarView(
+                    displayedMonth: $displayedMonth,
+                    selectedDate: $selectedDate,
+                    assignments: assignments,
+                    scheduleBlocks: viewModel.scheduleBlocks
+                )
+
+                monthAssignmentSection
+            }
+            .padding(.bottom, AppTheme.Spacing.screen)
         }
-        .frame(maxWidth: .infinity)
     }
 
     /// Horizontal row of tappable Mon–Fri day buttons with assignment badges.
@@ -180,6 +195,105 @@ private extension TodayView {
         }
         .padding(.horizontal, AppTheme.Spacing.screen)
         .padding(.bottom, AppTheme.Spacing.screen)
+    }
+
+    // MARK: - Month Assignment List
+
+    /// Section below the month calendar: header with "+" button and assignment rows.
+    var monthAssignmentSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sectionGap) {
+            monthSectionHeader
+            monthAssignmentList
+        }
+        .padding(.horizontal, AppTheme.Spacing.screen)
+    }
+
+    /// "Assignments for <date>" label with an add button on the right.
+    var monthSectionHeader: some View {
+        HStack {
+            Text("Assignments for \(selectedDate.formattedWithOrdinal)")
+                .font(AppTheme.Fonts.subheadline)
+                .foregroundColor(AppTheme.Colors.textSecondary)
+
+            Spacer()
+
+            Button { showMonthAssignmentSheet = true } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(AppTheme.Fonts.sectionHeader)
+                    .foregroundColor(AppTheme.Colors.actionPrimary)
+            }
+        }
+    }
+
+    /// Filtered list of assignments whose `dueDate` matches the selected date.
+    @ViewBuilder
+    var monthAssignmentList: some View {
+        let items = assignmentsForSelectedDate()
+
+        if items.isEmpty {
+            Text("No assignments due")
+                .font(AppTheme.Fonts.body)
+                .foregroundColor(AppTheme.Colors.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, AppTheme.Spacing.screen)
+        } else {
+            ForEach(items) { item in
+                monthAssignmentRow(item)
+            }
+        }
+    }
+
+    /// A single assignment row: checkbox, title, course code, and delete button.
+    func monthAssignmentRow(_ assignment: Assignment) -> some View {
+        let courseName = viewModel.scheduleBlocks
+            .first { "\($0.courseId)" == assignment.courseId }
+            .map { $0.courseCode } ?? "—"
+
+        return HStack(spacing: AppTheme.Spacing.sectionGap) {
+            Button {
+                toggleMonthAssignment(assignment)
+            } label: {
+                Image(systemName: assignment.isCompleted ? "checkmark.circle.fill" : "circle")
+                    .font(AppTheme.Fonts.iconCheckbox)
+                    .foregroundColor(
+                        assignment.isCompleted
+                            ? AppTheme.Colors.success
+                            : AppTheme.Colors.textSecondary
+                    )
+            }
+            .buttonStyle(.plain)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(assignment.title)
+                    .font(AppTheme.Fonts.body)
+                    .foregroundColor(AppTheme.Colors.textPrimary)
+                    .strikethrough(assignment.isCompleted)
+
+                Text(courseName)
+                    .font(AppTheme.Fonts.caption)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
+
+            if assignment.isPriority {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(AppTheme.Fonts.iconAction)
+                    .foregroundColor(AppTheme.Colors.warning)
+            }
+
+            Button {
+                deleteMonthAssignment(assignment)
+            } label: {
+                Image(systemName: "trash")
+                    .font(AppTheme.Fonts.iconAction)
+                    .foregroundColor(AppTheme.Colors.error)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(AppTheme.Spacing.cardInternal)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.Spacing.cardCornerRadius)
     }
 }
 
@@ -319,6 +433,42 @@ private extension TodayView {
         let hours   = Int(secondsUntil / secondsPerHour)
         let minutes = Int(secondsUntil.truncatingRemainder(dividingBy: secondsPerHour) / 60)
         return minutes > 0 ? "in \(hours)h \(minutes)m" : "in \(hours)h"
+    }
+}
+
+// MARK: - Month-View Helpers
+
+private extension TodayView {
+
+    /// All assignments whose `dueDate` matches the currently selected date.
+    func assignmentsForSelectedDate() -> [Assignment] {
+        let calendar = Calendar.current
+        return assignments.values
+            .flatMap { $0 }
+            .filter { assignment in
+                guard let due = assignment.dueDate else { return false }
+                return calendar.isDate(due, inSameDayAs: selectedDate)
+            }
+            .sorted { ($0.isCompleted ? 1 : 0) < ($1.isCompleted ? 1 : 0) }
+    }
+
+    /// Toggles completion for a month-view assignment across all storage keys.
+    func toggleMonthAssignment(_ assignment: Assignment) {
+        for key in assignments.keys {
+            guard var list = assignments[key],
+                  let index = list.firstIndex(where: { $0.id == assignment.id })
+            else { continue }
+            list[index].isCompleted.toggle()
+            assignments[key] = list
+            return
+        }
+    }
+
+    /// Deletes a month-view assignment from whichever storage key holds it.
+    func deleteMonthAssignment(_ assignment: Assignment) {
+        for key in assignments.keys {
+            assignments[key]?.removeAll { $0.id == assignment.id }
+        }
     }
 }
 
