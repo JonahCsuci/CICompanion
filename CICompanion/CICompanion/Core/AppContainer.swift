@@ -9,16 +9,21 @@ import Foundation
 
 // AppContainer = central place for dependency injection.
 // It creates shared objects once and passes them where needed.
+//
+// Swap the repository lines below to switch between local demo data
+// and the live API backend:
+//   • Mock  → StudentRepository()  / CourseRepository(…)  / EventsRepository(…)
+//   • Live  → APIStudentRepository() / APICourseRepository(…) / APIEventsRepository(…)
 class AppContainer {
     
     // Shared student repository object, used by course and events repositories
-    let studentRepository: StudentRepositoryProtocol = APIStudentRepository()
+    let studentRepository: StudentRepositoryProtocol = StudentRepository()
     
     lazy var courseRepository: CourseRepositoryProtocol =
-        APICourseRepository(studentRepository: studentRepository)
+        CourseRepository(studentRepository: studentRepository)
     
     lazy var eventsRepository: EventsRepositoryProtocol =
-        APIEventsRepository(studentRepository: studentRepository)
+        EventsRepository(studentRepository: studentRepository)
     
     lazy var apiTestViewModel = APITestViewModel(
         courseRepository: courseRepository,
