@@ -7,64 +7,32 @@
 
 import SwiftUI
 
+// MARK: - SettingsView
+
+/// Root settings screen with sections for class management, preferences, and about.
 struct SettingsView: View {
-    
+
     // MARK: - Dependencies
-    
+
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
-    
+
     // MARK: - Local State
-    
-    @State private var showAddClass = false
+
+    @State private var showAddClass    = false
     @State private var showRemoveClass = false
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    
+
     // MARK: - Body
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                bgColor.ignoresSafeArea()
-                
+                AppTheme.Colors.background.ignoresSafeArea()
+
                 List {
-                    Section {
-                        Button {
-                            showAddClass = true
-                        } label: {
-                            Label("Add Class", systemImage: "plus.circle.fill")
-                        }
-                        
-                        Button {
-                            showRemoveClass = true
-                        } label: {
-                            Label("Remove Class", systemImage: "minus.circle.fill")
-                                .foregroundColor(.red)
-                        }
-                    } header: {
-                        Text("My Classes")
-                    }
-                    
-                    Section {
-                        NavigationLink {
-                            NotificationSettingsView(courses: [])
-                        } label: {
-                            Label("Notifications", systemImage: "bell.fill")
-                        }
-                    } header: {
-                        Text("Preferences")
-                    }
-                    
-                    Section {
-                        HStack {
-                            Text("Version")
-                            Spacer()
-                            Text("1.0.0")
-                                .foregroundColor(.gray)
-                        }
-                    } header: {
-                        Text("About")
-                    }
+                    classesSection
+                    preferencesSection
+                    aboutSection
                 }
                 .scrollContentBackground(.hidden)
             }
@@ -86,153 +54,230 @@ struct SettingsView: View {
     }
 }
 
+private extension SettingsView {
+
+    /// Add / Remove class buttons.
+    var classesSection: some View {
+        Section {
+            Button { showAddClass = true } label: {
+                Label("Add Class", systemImage: "plus.circle.fill")
+            }
+
+            Button { showRemoveClass = true } label: {
+                Label("Remove Class", systemImage: "minus.circle.fill")
+                    .foregroundColor(AppTheme.Colors.error)
+            }
+        } header: {
+            Text("My Classes")
+        }
+    }
+
+    /// Navigation to notification preferences.
+    var preferencesSection: some View {
+        Section {
+            NavigationLink {
+                NotificationSettingsView(courses: [])
+            } label: {
+                Label("Notifications", systemImage: "bell.fill")
+            }
+        } header: {
+            Text("Preferences")
+        }
+    }
+
+    /// Static version info.
+    var aboutSection: some View {
+        Section {
+            HStack {
+                Text("Version")
+                Spacer()
+                Text("1.0.0")
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+        } header: {
+            Text("About")
+        }
+    }
+}
+
 // MARK: - Add Class Sheet
 
-/// Lists available courses the student can add.
+/// Modal that lists available courses the student can enroll in.
 private struct AddClassSheet: View {
+
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var availableCourses: [Course] = []
     @State private var isLoading = true
-    
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                bgColor.ignoresSafeArea()
-                
+                AppTheme.Colors.background.ignoresSafeArea()
+
                 if isLoading {
-                    ProgressView()
-                        .tint(.white)
+                    ProgressView().tint(.white)
                 } else if availableCourses.isEmpty {
                     Text("All courses already added")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 } else {
-                    List(availableCourses) { course in
-                        Button {
-                            Task {
-                                try? await studentRepository.addStudentCourse(courseId: course.id)
-                                dismiss()
-                            }
-                        } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("\(course.courseCode) - \(course.courseName)")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundColor(.white)
-                                HStack(spacing: 8) {
-                                    Text(course.instructor)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                    Text("•")
-                                        .foregroundColor(.gray)
-                                    Text(course.location)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .listRowBackground(Color(red: 0.12, green: 0.14, blue: 0.20))
-                    }
-                    .scrollContentBackground(.hidden)
+                    courseList
                 }
             }
             .navigationTitle("Add Class")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
+            .toolbar { cancelButton }
         }
         .preferredColorScheme(.dark)
-        .task {
-            do {
-                let all = try await courseRepository.loadAllCourses()
-                let student = try await studentRepository.loadStudent()
-                availableCourses = all.filter { !student.courses.contains($0.id) }
-            } catch {
-                availableCourses = []
+        .task { await loadAvailableCourses() }
+    }
+
+    // MARK: Subviews
+
+    private var courseList: some View {
+        List(availableCourses) { course in
+            Button {
+                Task {
+                    try? await studentRepository.addStudentCourse(courseId: course.id)
+                    dismiss()
+                }
+            } label: {
+                courseRow(course)
             }
-            isLoading = false
+            .listRowBackground(AppTheme.Colors.cardBackground)
         }
+        .scrollContentBackground(.hidden)
+    }
+
+    private func courseRow(_ course: Course) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("\(course.courseCode) - \(course.courseName)")
+                .font(AppTheme.Fonts.bodySemibold)
+                .foregroundColor(AppTheme.Colors.textPrimary)
+
+            HStack(spacing: 8) {
+                Text(course.instructor)
+                Text("•")
+                Text(course.location)
+            }
+            .font(AppTheme.Fonts.smallCaption)
+            .foregroundColor(AppTheme.Colors.textSecondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var cancelButton: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") { dismiss() }
+        }
+    }
+
+    // MARK: Data
+
+    private func loadAvailableCourses() async {
+        do {
+            let all     = try await courseRepository.loadAllCourses()
+            let student = try await studentRepository.loadStudent()
+            availableCourses = all.filter { !student.courses.contains($0.id) }
+        } catch {
+            availableCourses = []
+        }
+        isLoading = false
     }
 }
 
 // MARK: - Remove Class Sheet
 
-/// Lists the student's current courses for removal.
+/// Modal that lists the student's enrolled courses for removal.
 private struct RemoveClassSheet: View {
+
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
     @Environment(\.dismiss) private var dismiss
-    
+
     @State private var studentCourses: [Course] = []
     @State private var isLoading = true
-    
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                bgColor.ignoresSafeArea()
-                
+                AppTheme.Colors.background.ignoresSafeArea()
+
                 if isLoading {
-                    ProgressView()
-                        .tint(.white)
+                    ProgressView().tint(.white)
                 } else if studentCourses.isEmpty {
                     Text("No classes to remove")
-                        .foregroundColor(.gray)
+                        .foregroundColor(AppTheme.Colors.textSecondary)
                 } else {
-                    List(studentCourses) { course in
-                        Button {
-                            Task {
-                                try? await studentRepository.deleteStudentCourse(courseId: course.id)
-                                dismiss()
-                            }
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("\(course.courseCode) - \(course.courseName)")
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundColor(.white)
-                                    Text(course.location)
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.gray)
-                                }
-                                Spacer()
-                                Image(systemName: "trash")
-                                    .foregroundColor(.red)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                        .listRowBackground(Color(red: 0.12, green: 0.14, blue: 0.20))
-                    }
-                    .scrollContentBackground(.hidden)
+                    courseList
                 }
             }
             .navigationTitle("Remove Class")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-            }
+            .toolbar { cancelButton }
         }
         .preferredColorScheme(.dark)
-        .task {
-            do {
-                studentCourses = try await courseRepository.loadStudentCourses()
-            } catch {
-                studentCourses = []
+        .task { await loadStudentCourses() }
+    }
+
+    // MARK: Subviews
+
+    private var courseList: some View {
+        List(studentCourses) { course in
+            Button {
+                Task {
+                    try? await studentRepository.deleteStudentCourse(courseId: course.id)
+                    dismiss()
+                }
+            } label: {
+                courseRow(course)
             }
-            isLoading = false
+            .listRowBackground(AppTheme.Colors.cardBackground)
+        }
+        .scrollContentBackground(.hidden)
+    }
+
+    private func courseRow(_ course: Course) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(course.courseCode) - \(course.courseName)")
+                    .font(AppTheme.Fonts.bodySemibold)
+                    .foregroundColor(AppTheme.Colors.textPrimary)
+
+                Text(course.location)
+                    .font(AppTheme.Fonts.smallCaption)
+                    .foregroundColor(AppTheme.Colors.textSecondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "trash")
+                .foregroundColor(AppTheme.Colors.error)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var cancelButton: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") { dismiss() }
         }
     }
+
+    // MARK: Data
+
+    private func loadStudentCourses() async {
+        do {
+            studentCourses = try await courseRepository.loadStudentCourses()
+        } catch {
+            studentCourses = []
+        }
+        isLoading = false
+    }
 }
+
+// MARK: - Preview
 
 #Preview {
     SettingsView(

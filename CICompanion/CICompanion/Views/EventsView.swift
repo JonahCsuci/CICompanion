@@ -2,16 +2,29 @@
 //  EventsView.swift
 //  CICompanion
 //
-//  Created by Wummiez on 3/6/26.
+//  Placeholder view for the campus Events feature.
+//  Replace with a real events list once the API is integrated.
 //
 
 import SwiftUI
 
+// MARK: - EventsView
+
+/// Placeholder screen for the future campus Events list.
 struct EventsView: View {
+
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        ZStack {
+            AppTheme.Colors.background.ignoresSafeArea()
+
+            Text("Events coming soon")
+                .font(AppTheme.Fonts.body)
+                .foregroundColor(AppTheme.Colors.textSecondary)
+        }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     EventsView()
