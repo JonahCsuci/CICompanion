@@ -79,7 +79,9 @@ class StudentRepository: StudentRepositoryProtocol {
     }
     
     func ensureStudentExists() async throws -> Student {
-        //
-        return student!
+        if let student {
+            return student
+        }
+        return try await loadStudent()
     }
 }
