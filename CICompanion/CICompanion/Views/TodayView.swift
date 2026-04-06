@@ -45,10 +45,19 @@ struct TodayView: View {
     /// The ViewModel that owns the student's schedule data.
     @StateObject var viewModel: AcademicCalendarViewModel
 
+    /// Session state used for sign-in gating.
+    @ObservedObject var sessionManager: SessionManager
+
+    /// Repository used to ensure the student record exists after sign-in.
+    let studentRepository: StudentRepositoryProtocol
+
     // MARK: - Local State
 
     /// The active calendar layout (Day / Week / Month).
     @State private var displayMode: CalendarDisplayMode = .day
+
+    /// Controls whether the sign-in sheet is presented.
+    @State private var showSignIn = false
 
     /// The ID of the currently expanded course card (`nil` = all collapsed).
     @State private var expandedCardId: String?
@@ -71,6 +80,18 @@ struct TodayView: View {
     /// Controls whether the month-view "add assignment" sheet is shown.
     @State private var showMonthAssignmentSheet = false
 
+    // MARK: - Initializer
+
+    init(
+        viewModel: AcademicCalendarViewModel,
+        studentRepository: StudentRepositoryProtocol,
+        sessionManager: SessionManager
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.studentRepository = studentRepository
+        self.sessionManager = sessionManager
+    }
+
     // MARK: - Body
 
     var body: some View {
@@ -80,22 +101,33 @@ struct TodayView: View {
             VStack(spacing: 0) {
                 dateHeader
 
-                switch displayMode {
-                case .day:
-                    dayContent
-                case .week:
-                    weekContent
-                case .month:
-                    monthContent
+                if !sessionManager.isSignedIn {
+                    signInPrompt
+                } else {
+                    switch displayMode {
+                    case .day:
+                        dayContent
+                    case .week:
+                        weekContent
+                    case .month:
+                        monthContent
+                    }
                 }
             }
         }
-        .sheet(item: $selectedCourse) { course in
-            NewAssignmentView(
-                course: course,
-                isPresented: $showNewAssignment,
-                assignments: $assignments
-            )
+        .task(id: sessionManager.isSignedIn) {
+            if sessionManager.isSignedIn {
+                _ = try? await studentRepository.ensureStudentExists()
+                viewModel.loadSchedule()
+            } else {
+                viewModel.scheduleBlocks = []
+                viewModel.legendItems = []
+                viewModel.asyncCourses = []
+                viewModel.errorMessage = nil
+            }
+        }
+        .sheet(isPresented: $showSignIn) {
+            SignInView(sessionManager: sessionManager)
         }
         .sheet(isPresented: $showMonthAssignmentSheet) {
             MonthAssignmentSheet(
@@ -104,9 +136,20 @@ struct TodayView: View {
                 assignments: $assignments
             )
         }
-        .onAppear { viewModel.loadSchedule() }
+        .sheet(item: $selectedCourse) { course in
+            NewAssignmentView(
+                course: course,
+                isPresented: Binding(
+                    get: { selectedCourse != nil },
+                    set: { if !$0 { selectedCourse = nil } }
+                ),
+                assignments: $assignments
+            )
+        }
     }
 }
+
+// MARK: - Header & Mode Switcher
 
 private extension TodayView {
 
@@ -145,6 +188,37 @@ private extension TodayView {
         }
     }
 
+    /// Prompt shown when the user is not signed in.
+    var signInPrompt: some View {
+        VStack {
+            Spacer().frame(height: 50)
+
+            Text("Sign in to view your schedule")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundColor(AppTheme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+
+            Button {
+                showSignIn = true
+            } label: {
+                Text("Sign In")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 200, height: 50)
+                    .background(AppTheme.Colors.actionPrimary)
+                    .cornerRadius(12)
+            }
+
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Day / Week / Month Content
+
+private extension TodayView {
+
     /// Day-mode content: week selector + course card list.
     var dayContent: some View {
         VStack(spacing: 0) {
@@ -155,7 +229,11 @@ private extension TodayView {
 
     /// Week-mode content: embeds the weekly schedule grid without its own title / background.
     var weekContent: some View {
-        ScheduleGridView(viewModel: viewModel, isEmbedded: true)
+        ScheduleGridView(
+            viewModel: viewModel,
+            sessionManager: sessionManager,
+            isEmbedded: true
+        )
     }
 
     /// Month-mode content: calendar grid + assignment list for the selected date.
@@ -196,8 +274,11 @@ private extension TodayView {
         .padding(.horizontal, AppTheme.Spacing.screen)
         .padding(.bottom, AppTheme.Spacing.screen)
     }
+}
 
-    // MARK: - Month Assignment List
+// MARK: - Month Assignment List
+
+private extension TodayView {
 
     /// Section below the month calendar: header with "+" button and assignment rows.
     var monthAssignmentSection: some View {
@@ -297,6 +378,8 @@ private extension TodayView {
     }
 }
 
+// MARK: - Course Card List
+
 private extension TodayView {
 
     /// The scrollable list of course cards (or a status message).
@@ -357,6 +440,8 @@ private extension TodayView {
     }
 }
 
+// MARK: - Card Interaction Helpers
+
 private extension TodayView {
 
     /// Expands or collapses a course card. Only one can be open at a time.
@@ -379,6 +464,8 @@ private extension TodayView {
         assignments[blockId]?.removeAll { $0.id == assignment.id }
     }
 }
+
+// MARK: - Schedule Helpers
 
 private extension TodayView {
 
@@ -479,6 +566,9 @@ private extension TodayView {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ),
+        studentRepository: StudentRepository(),
+        sessionManager: SessionManager()
     )
 }
+

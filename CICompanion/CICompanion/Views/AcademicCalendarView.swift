@@ -16,10 +16,12 @@ import SwiftUI
 struct AcademicCalendarView: View {
 
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var sessionManager: SessionManager
     @Environment(\.dismiss) private var dismiss
 
-    init(viewModel: AcademicCalendarViewModel) {
+    init(viewModel: AcademicCalendarViewModel, sessionManager: SessionManager) {
         _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
     }
 
     /// Weekday names displayed as column headers.
@@ -271,6 +273,6 @@ private extension AcademicCalendarView {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ), sessionManager: SessionManager()
     )
 }

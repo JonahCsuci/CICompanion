@@ -17,6 +17,9 @@ struct SettingsView: View {
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
 
+    /// Authentication state — used for the sign-out action.
+    @ObservedObject var sessionManager: SessionManager
+
     // MARK: - Local State
 
     @State private var showAddClass    = false
@@ -33,6 +36,7 @@ struct SettingsView: View {
                     classesSection
                     preferencesSection
                     aboutSection
+                    signOutSection
                 }
                 .scrollContentBackground(.hidden)
             }
@@ -96,6 +100,19 @@ private extension SettingsView {
             }
         } header: {
             Text("About")
+        }
+    }
+
+    /// Sign-out button — ends the Amplify auth session.
+    var signOutSection: some View {
+        Section {
+            Button {
+                Task { await sessionManager.signOut() }
+            } label: {
+                Label("Sign Out", systemImage: "rectangle.portrait.and.arrow.right")
+                    .foregroundColor(AppTheme.Colors.error)
+            }
+            .buttonStyle(.borderless)
         }
     }
 }
@@ -282,6 +299,7 @@ private struct RemoveClassSheet: View {
 #Preview {
     SettingsView(
         courseRepository: CourseRepository(studentRepository: StudentRepository()),
-        studentRepository: StudentRepository()
+        studentRepository: StudentRepository(),
+        sessionManager: SessionManager()
     )
 }

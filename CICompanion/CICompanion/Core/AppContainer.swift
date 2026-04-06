@@ -16,6 +16,9 @@ import Foundation
 //   • Live  → APIStudentRepository() / APICourseRepository(…) / APIEventsRepository(…)
 class AppContainer {
     
+    // Shared auth/session state
+    let sessionManager = SessionManager()
+    
     // Shared student repository object, used by course and events repositories
     let studentRepository: StudentRepositoryProtocol = StudentRepository()
     

@@ -4,6 +4,7 @@
 //
 //  Displays a weekly schedule grid (Monday–Friday, 9 AM–3 PM) with colored course blocks.
 //  Each block shows a shortened course name and room number.
+//  When not signed in, a sign-in prompt is shown instead of the grid.
 //
 
 import SwiftUI
@@ -16,6 +17,12 @@ import SwiftUI
 /// - A row of day headers (Mon–Fri) with today highlighted
 /// - A scrollable grid of hour rows × day columns
 /// - Course blocks positioned by their start time and duration
+///
+/// Supports two presentation modes:
+/// - **Standalone** (``isEmbedded == false``): full screen with title, background,
+///   sign-in gate, and data-loading trigger.
+/// - **Embedded** (``isEmbedded == true``): just the grid content, for use inside
+///   TodayView's week mode.
 struct ScheduleGridView: View {
 
     // MARK: - Dependencies
@@ -23,9 +30,17 @@ struct ScheduleGridView: View {
     /// The ViewModel that owns the student's schedule data.
     @ObservedObject var viewModel: AcademicCalendarViewModel
 
+    /// Authentication state used to gate content behind sign-in.
+    @ObservedObject var sessionManager: SessionManager
+
     /// When `true`, hides the standalone title and background so the grid
     /// can be embedded inside a parent screen (e.g. TodayView's week mode).
     var isEmbedded: Bool = false
+
+    // MARK: - Local State
+
+    /// Controls whether the sign-in sheet is presented.
+    @State private var showSignIn = false
 
     // MARK: - Grid Configuration
 
@@ -47,19 +62,38 @@ struct ScheduleGridView: View {
     }
 }
 
+// MARK: - Layouts
+
 private extension ScheduleGridView {
 
-    /// Full standalone layout: title, dark background, and data-loading trigger.
+    /// Full standalone layout: title, dark background, sign-in gate, and data-loading trigger.
     var standaloneLayout: some View {
         ZStack {
             AppTheme.Colors.background.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 screenTitle
-                scheduleLayout
+
+                if sessionManager.isSignedIn {
+                    scheduleLayout
+                } else {
+                    signInPrompt
+                }
             }
         }
-        .onAppear { viewModel.loadSchedule() }
+        .task(id: sessionManager.isSignedIn) {
+            if sessionManager.isSignedIn {
+                viewModel.loadSchedule()
+            } else {
+                viewModel.scheduleBlocks = []
+                viewModel.legendItems = []
+                viewModel.asyncCourses = []
+                viewModel.errorMessage = nil
+            }
+        }
+        .sheet(isPresented: $showSignIn) {
+            SignInView(sessionManager: sessionManager)
+        }
     }
 
     /// Day headers + scrollable timetable — shared by standalone and embedded modes.
@@ -69,6 +103,30 @@ private extension ScheduleGridView {
                 .padding(.horizontal, AppTheme.Spacing.gridHeaderPadding)
                 .padding(.bottom, AppTheme.Spacing.gridHeaderBottomPadding)
             scrollableGrid
+        }
+    }
+
+    /// Prompt shown when the user is not signed in.
+    var signInPrompt: some View {
+        VStack(spacing: AppTheme.Spacing.screen) {
+            Spacer().frame(height: 50)
+
+            Text("Sign in to view your schedule")
+                .font(AppTheme.Fonts.title)
+                .foregroundColor(AppTheme.Colors.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+
+            Button { showSignIn = true } label: {
+                Text("Sign In")
+                    .font(AppTheme.Fonts.subsectionHeader)
+                    .foregroundColor(AppTheme.Colors.textPrimary)
+                    .frame(width: 200, height: 50)
+                    .background(Color(red: 0.36, green: 0.55, blue: 0.90))
+                    .cornerRadius(AppTheme.Spacing.cardCornerRadius)
+            }
+
+            Spacer()
         }
     }
 
@@ -82,6 +140,11 @@ private extension ScheduleGridView {
             .padding(.top, 12)
             .padding(.bottom, 12)
     }
+}
+
+// MARK: - Day Headers & Grid
+
+private extension ScheduleGridView {
 
     /// Mon–Fri header row with today's date highlighted.
     var dayHeaderRow: some View {
@@ -143,6 +206,8 @@ private extension ScheduleGridView {
         .frame(height: gridHeight)
     }
 }
+
+// MARK: - Grid Drawing Helpers
 
 private extension ScheduleGridView {
 
@@ -233,6 +298,8 @@ private extension ScheduleGridView {
     }
 }
 
+// MARK: - Utility Helpers
+
 private extension ScheduleGridView {
 
     /// Finds which column (0-based) a day name belongs to.
@@ -272,6 +339,7 @@ private extension ScheduleGridView {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ),
+        sessionManager: SessionManager()
     )
 }

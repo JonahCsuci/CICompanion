@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Amplify
+import AWSCognitoAuthPlugin
 
 // MARK: - CICompanionApp
 
@@ -16,34 +18,65 @@ struct CICompanionApp: App {
     /// Shared dependency-injection container for repositories & view models.
     let container = AppContainer()
 
+    /// Controls whether the main UI is shown (false = splash screen).
+    @State private var appReady = false
+
     init() {
+        configureAmplify()
         configureTabBarAppearance()
     }
 
     var body: some Scene {
         WindowGroup {
-            TabView {
-                calendarTab
+            Group {
+                if appReady {
+                    TabView {
+                        calendarTab
 
-                // Uncomment to enable the Map feature:
-                // mapTab
+                        // Uncomment to enable the Map feature:
+                        // mapTab
 
-                settingsTab
+                        settingsTab
+                    }
+                    .tint(AppTheme.Colors.actionPrimary)
+                } else {
+                    LaunchLoadingView()
+                }
             }
-            .tint(AppTheme.Colors.actionPrimary)
+            .task {
+                await container.sessionManager.loadCurrentUser()
+
+                if container.sessionManager.isSignedIn {
+                    do {
+                        _ = try await container.studentRepository.loadStudent()
+                    } catch {
+                        print("Load student failed in main: ", error)
+                    }
+                }
+
+                // Brief delay so the launch screen is visible.
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                appReady = true
+            }
         }
     }
 }
+
+// MARK: - Tab Definitions
 
 private extension CICompanionApp {
 
     /// Calendar tab — Day / Week / Month views, switchable via a filter menu.
     var calendarTab: some View {
-        TodayView(viewModel: container.myAcademicCalendarViewModel)
-            .tabItem {
-                Image(systemName: "calendar")
-                Text("Calendar")
-            }
+        TodayView(
+            viewModel: container.myAcademicCalendarViewModel,
+            studentRepository: container.studentRepository,
+            sessionManager: container.sessionManager
+        )
+        .tabItem {
+            Image(systemName: "calendar")
+            Text("Calendar")
+        }
     }
 
     /// Campus map tab (currently hidden behind a feature flag).
@@ -59,7 +92,8 @@ private extension CICompanionApp {
     var settingsTab: some View {
         SettingsView(
             courseRepository: container.courseRepository,
-            studentRepository: container.studentRepository
+            studentRepository: container.studentRepository,
+            sessionManager: container.sessionManager
         )
         .tabItem {
             Image(systemName: "gearshape.fill")
@@ -68,7 +102,19 @@ private extension CICompanionApp {
     }
 }
 
+// MARK: - Configuration
+
 private extension CICompanionApp {
+
+    /// Initializes Amplify with the Cognito auth plugin.
+    func configureAmplify() {
+        do {
+            try Amplify.add(plugin: AWSCognitoAuthPlugin())
+            try Amplify.configure(with: .amplifyOutputs)
+        } catch {
+            print("Failed to configure Amplify: \(error)")
+        }
+    }
 
     /// Applies the dark-theme tab bar appearance using AppTheme tokens.
     func configureTabBarAppearance() {
@@ -91,3 +137,4 @@ private extension CICompanionApp {
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
+

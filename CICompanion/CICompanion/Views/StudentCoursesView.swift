@@ -17,6 +17,7 @@ struct StudentCoursesView: View {
     // MARK: - Dependencies
 
     @StateObject var viewModel: StudentCoursesViewModel
+    @ObservedObject var sessionManager: SessionManager
     @State private var isShowingCalendar = false
 
     let coursesListViewModel: CoursesListViewModel
@@ -25,11 +26,13 @@ struct StudentCoursesView: View {
     init(
         viewModel: StudentCoursesViewModel,
         coursesListViewModel: CoursesListViewModel,
-        myAcademicCalendarViewModel: AcademicCalendarViewModel
+        myAcademicCalendarViewModel: AcademicCalendarViewModel,
+        sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.coursesListViewModel = coursesListViewModel
         self.myAcademicCalendarViewModel = myAcademicCalendarViewModel
+        self.sessionManager = sessionManager
     }
 
     // MARK: - Body
@@ -47,7 +50,10 @@ struct StudentCoursesView: View {
             .onAppear { viewModel.loadStudentCourses() }
             .onChange(of: viewModel.courses) { rescheduleNotifications() }
             .navigationDestination(isPresented: $isShowingCalendar) {
-                AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
+                AcademicCalendarView(
+                    viewModel: myAcademicCalendarViewModel,
+                    sessionManager: sessionManager
+                )
             }
         }
     }
@@ -130,6 +136,7 @@ private extension StudentCoursesView {
         myAcademicCalendarViewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        )
+        ),
+        sessionManager: SessionManager()
     )
 }
