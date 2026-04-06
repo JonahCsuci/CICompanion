@@ -11,8 +11,12 @@ import Foundation
 // It creates shared objects once and passes them where needed.
 class AppContainer {
     
+    // Shared auth/session state
+    let sessionManager = SessionManager()
+    
     // Shared student repository object, used by course and events repositories
-    let studentRepository: StudentRepositoryProtocol = APIStudentRepository()
+    lazy var studentRepository: StudentRepositoryProtocol =
+    APIStudentRepository(sessionManager: sessionManager)
     
     lazy var courseRepository: CourseRepositoryProtocol =
         APICourseRepository(studentRepository: studentRepository)

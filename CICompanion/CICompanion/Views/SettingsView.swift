@@ -14,6 +14,8 @@ struct SettingsView: View {
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
     
+    @ObservedObject var sessionManager: SessionManager
+    
     // MARK: - Local State
     
     @State private var showAddClass = false
@@ -64,6 +66,18 @@ struct SettingsView: View {
                         }
                     } header: {
                         Text("About")
+                    }
+                    
+                    Section {
+                        Button {
+                            Task {
+                                await sessionManager.signOut()
+                            }
+                        } label: {
+                            Label("Sign Out", systemImage: "minus.circle.fill")
+                                .foregroundColor(.red)
+                        }
+                        .buttonStyle(.borderless)
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -237,6 +251,7 @@ private struct RemoveClassSheet: View {
 #Preview {
     SettingsView(
         courseRepository: CourseRepository(studentRepository: StudentRepository()),
-        studentRepository: StudentRepository()
+        studentRepository: StudentRepository(),
+        sessionManager: SessionManager()
     )
 }

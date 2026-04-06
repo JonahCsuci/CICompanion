@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-
+/*
 struct StudentCoursesView: View {
     
     @StateObject var viewModel: StudentCoursesViewModel
@@ -79,8 +79,8 @@ struct StudentCoursesView: View {
                     await NotificationSchedulerService.shared.rescheduleNotifications(for: viewModel.courses)
                 }
             }
-            .navigationDestination(isPresented: $isShowingCalendar) {
-                AcademicCalendarView(viewModel: myAcademicCalendarViewModel)
+            //.navigationDestination(isPresented: $isShowingCalendar) {
+            //    AcademicCalendarView(viewModel: myAcademicCalendarViewModel, sessionManager: sessionManager)
             }
         }
 
@@ -103,3 +103,4 @@ struct StudentCoursesView: View {
         )
     )
 }
+*/

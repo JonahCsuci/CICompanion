@@ -77,4 +77,9 @@ class StudentRepository: StudentRepositoryProtocol {
             self.student = student
         }
     }
+    
+    func ensureStudentExists() async throws -> Student {
+        //
+        return student!
+    }
 }
