@@ -58,9 +58,7 @@ struct NewAssignmentView: View {
                 CIItem(name: "Class name", content: {
                     CIDropDown(
                         options: ["500", "Class2"],
-                        action: { selected in print("Hi" + String(selected))
-                        },
-                        selected: 0
+                        selected: "500"
                     )
                 })
                 

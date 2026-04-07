@@ -70,6 +70,7 @@ struct CIHeader<Content: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             content
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }
@@ -127,7 +128,7 @@ struct CIScrollView<Content: View>: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: ViewHelper.spacing * 2) {
                 content
             }
             .padding(.horizontal, 16)
@@ -323,63 +324,119 @@ struct CIText: View {
     }
 }
 
-struct CIDropDown: View {
-    var options: [String]
-    var action: (Int) -> Void
-    @State private var selected: Int = 0
+struct CIDateField: View {
+    @Binding var date: Date
+    @State private var showPicker = false
+
+    private var formattedDate: String {
+        date.formatted(.dateTime.month(.abbreviated).day().year())
+    }
+
+    var body: some View {
+        Button {
+            showPicker.toggle()
+        } label: {
+            HStack {
+                CIText(formattedDate, .white)
+                    .font(Font.system(size: ViewHelper.smallTextSize))
+                Spacer()
+                Image(systemName: "chevron.down")
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(ViewHelper.fieldBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+        }
+        .sheet(isPresented: $showPicker) {
+            DatePicker(
+                "",
+                selection: $date,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.graphical)
+            .padding()
+            .preferredColorScheme(.dark)
+        }
+    }
+}
+
+struct CITimeField: View {
+    @Binding var time: Date
+    @State private var showPicker = false
     
-    @State private var enabled: Bool = false
-    
-    init(
-        options: [String],
-        action: @escaping (Int) -> Void,
-        selected: Int = 0
-    ) {
-        self.options = options
-        self.action = action
-        self.selected = selected
+    private var formattedDate: String {
+        time.formatted(.dateTime.hour().minute())
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: ViewHelper.spacing) {
-            Button(action: {
-                enabled.toggle()
-            }) {
-                HStack {
-                    CIText(options[selected], .white)
-
-                    Spacer()
-
-                    Image(systemName: "chevron.down")
-                        .font(.system(size: ViewHelper.iconSize, weight: .semibold))
-                        .foregroundColor(.gray)
-                }
-                .padding(ViewHelper.padding)
-                .background(ViewHelper.fieldBgColor)
-                .cornerRadius(ViewHelper.componentRounding)
+        Button {
+            showPicker.toggle()
+        } label: {
+            HStack {
+                CIText(formattedDate, .white)
+                    .font(Font.system(size: ViewHelper.smallTextSize))
+                Spacer()
+                Image(systemName: "chevron.down")
             }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(ViewHelper.fieldBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+        }
+        .sheet(isPresented: $showPicker) {
+            DatePicker(
+                "",
+                selection: $time,
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .padding()
+            .preferredColorScheme(.dark)
+        }
+    }
+}
 
-            if enabled {
-                ScrollView() {
-                    ForEach(Array(options.enumerated()).filter { $0.offset != selected },
-                            id: \.0) { index, value in
-                        Button(action: {
-                            action(index)
-                            enabled = false
-                            selected = index
-                        }) {
-                            HStack {
-                                CIText(value, .white)
-                                Spacer()
-                            }
-                            .padding(ViewHelper.padding)
-                            .background(ViewHelper.fieldBgColor)
-                            .cornerRadius(ViewHelper.componentRounding)
+struct CIDropDown: View {
+    var options: [String]
+    @State private var selectedItem: String
+
+    init(options: [String], selected: String) {
+        self.options = options
+        _selectedItem = State(initialValue: selected)
+    }
+
+    var body: some View {
+        Menu(content: {
+            ForEach(options, id: \.self) { option in
+                Button {
+                    selectedItem = option
+                } label: {
+                    HStack {
+                        Text(option)
+
+                        Spacer()
+
+                        if option == selectedItem {
+                            Image(systemName: "chevron.right")
                         }
                     }
                 }
             }
-        }
+        }, label: {
+            HStack {
+                CIText(selectedItem, .white)
+
+                Spacer()
+
+                Image(systemName: "chevron.down")
+                    .foregroundColor(.white)
+            }
+            .padding(ViewHelper.padding)
+            .frame(maxWidth: .infinity)
+            .background(ViewHelper.fieldBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+        })
+        .preferredColorScheme(.dark)
     }
 }
 
@@ -410,6 +467,8 @@ class ViewHelper {
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
+    public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
+    public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0
@@ -420,4 +479,6 @@ class ViewHelper {
     public static let textSize = 16.0
     public static let titleTextSize = 28.0
     public static let spacing = 8.0
+    public static let borderWidth = 1.5
+    public static let opacity = 0.22
 }
