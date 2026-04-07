@@ -26,7 +26,7 @@ class ConversationsViewModel: ObservableObject {
         Task {
             do {
                 let loaded = try await messagingRepository.loadConversations()
-                conversations = sortedByRecent(loaded)
+                conversations = sortedByRecent(loaded.filter { $0.lastMessageAt != nil })
                 isLoading = false
             } catch {
                 conversations = []

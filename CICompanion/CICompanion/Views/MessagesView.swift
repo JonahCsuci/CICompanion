@@ -90,12 +90,14 @@ struct MessagesView: View {
 
                 Spacer()
 
-                Button {
-                    showNewChat = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.white)
+                if sessionManager.isSignedIn {
+                    Button {
+                        showNewChat = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
                 }
             }
         }
