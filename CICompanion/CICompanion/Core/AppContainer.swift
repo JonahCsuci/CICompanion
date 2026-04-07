@@ -48,4 +48,11 @@ class AppContainer {
         eventsRepository: eventsRepository,
         studentRepository: studentRepository
     )
+
+    lazy var messagingRepository: MessagingRepositoryProtocol =
+        APIMessagingRepository(sessionManager: sessionManager)
+
+    lazy var conversationsViewModel = ConversationsViewModel(
+        messagingRepository: messagingRepository
+    )
 }

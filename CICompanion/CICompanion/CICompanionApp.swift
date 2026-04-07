@@ -50,6 +50,17 @@ struct CICompanionApp: App {
                                 Text("Schedule")
                             }
                         
+                        // Messages tab
+                        MessagesView(
+                            viewModel: container.conversationsViewModel,
+                            messagingRepository: container.messagingRepository,
+                            sessionManager: container.sessionManager
+                        )
+                            .tabItem {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                Text("Messages")
+                            }
+
                         // Remove the comments below to turn on the Map feature
 //                        MapView()
 //                            .tabItem {

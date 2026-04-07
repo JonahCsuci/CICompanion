@@ -20,6 +20,7 @@ struct SettingsView: View {
     
     @State private var showAddClass = false
     @State private var showRemoveClass = false
+    @State private var showSignOutToast = false
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     
     // MARK: - Body
@@ -68,19 +69,47 @@ struct SettingsView: View {
                         Text("About")
                     }
                     
-                    Section {
-                        Button {
-                            Task {
-                                await sessionManager.signOut()
+                    if sessionManager.isSignedIn {
+                        Section {
+                            Button {
+                                Task {
+                                    await sessionManager.signOut()
+                                    withAnimation {
+                                        showSignOutToast = true
+                                    }
+                                    try? await Task.sleep(for: .seconds(2))
+                                    withAnimation {
+                                        showSignOutToast = false
+                                    }
+                                }
+                            } label: {
+                                Label("Sign Out", systemImage: "minus.circle.fill")
+                                    .foregroundColor(.red)
                             }
-                        } label: {
-                            Label("Sign Out", systemImage: "minus.circle.fill")
-                                .foregroundColor(.red)
+                            .buttonStyle(.borderless)
                         }
-                        .buttonStyle(.borderless)
                     }
                 }
                 .scrollContentBackground(.hidden)
+            }
+            .overlay(alignment: .bottom) {
+                if showSignOutToast {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundColor(.green)
+                        Text("Signed out successfully")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Color(red: 0.12, green: 0.14, blue: 0.20))
+                    .cornerRadius(25)
+                    .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+                    .padding(.bottom, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showAddClass) {
