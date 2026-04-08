@@ -75,12 +75,12 @@ struct ChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
-            TextField("Message", text: $viewModel.messageText)
+            TextField("", text: $viewModel.messageText, prompt: Text("Message").foregroundColor(ViewHelper.text))
+                .foregroundColor(.white)
                 .font(.system(size: 16))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(inputBgColor)
-                .foregroundColor(.white)
                 .cornerRadius(20)
 
             Button {

@@ -13,57 +13,74 @@ struct ContactInformation: View {
     @State private var selectedStudentCourses: [Course] = []
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Student")
-                .font(.title2)
-                .bold()
-            
-            if let student = selectedStudent {
-                Text(student.name)
-                    .font(.headline)
-                
-                Text("ID: \(student.email)")
-                    .foregroundColor(.secondary)
-            } else {
-                Text("ID: \(participantId)")
-                    .foregroundColor(.secondary)
-            }
-            
-            if isLoading {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text("Loading...")
+        CIView {
+            CIScrollView {
+                if let student = selectedStudent {
+                    VStack(alignment: .leading, spacing: 4) {
+                        CIPageTitle(student.name)
+                        
+                        Text("Email: \(student.email)")
+                            .foregroundColor(ViewHelper.text)
+                            .font(.system(size: ViewHelper.textSize))
+                    }
                 }
-                .padding(.top, 8)
                 
-            } else if let error = loadError {
-                Text(error)
-                    .foregroundColor(.red)
-                    .padding(.top, 8)
-                
-            } else {
-                Text("Courses")
-                    .font(.headline)
-                    .padding(.top, 8)
-                
-                if selectedStudentCourses.isEmpty {
-                    Text("No courses found")
-                        .foregroundColor(.secondary)
+                if isLoading {
+                    CILoadingPage()
+                } else if let error = loadError {
+                    CIErrorMessage(
+                        errorMessage: error
+                    )
                 } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(selectedStudentCourses, id: \.id) { course in
-                                Text(course.courseName)
-                                    .foregroundColor(.primary)
-                            }
+                    Text("Courses")
+                        .foregroundColor(ViewHelper.textImportant)
+                        .font(.system(size: ViewHelper.smallTextSize * 1.5, weight: .semibold))
+                        
+                    
+                    if selectedStudentCourses.isEmpty {
+                        CIText("No courses found", ViewHelper.text)
+                    } else {
+                        ForEach(selectedStudentCourses, id: \.id) { course in
+                            CIDropDownCard(
+                                title: course.courseName,
+                                subtitle: course.location,
+                                before: {
+                                    if (course.startTime == "N/A") {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Async")
+                                                .font(.system(size: ViewHelper.smallTextSize, weight: .regular))
+                                        
+                                            Text("No times")
+                                                .font(.system(size: ViewHelper.smallTextSize, weight: .regular))
+                                        }
+                                        .foregroundColor(ViewHelper.text)
+                                        .frame(width: 60, alignment: .leading)
+                                    } else {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text(course.startTime)
+                                                .font(.system(size: ViewHelper.smallTextSize, weight: .regular))
+                                            Text(course.endTime)
+                                                .font(.system(size: ViewHelper.smallTextSize, weight: .regular))
+                                        }
+                                        .foregroundColor(ViewHelper.text)
+                                        .frame(width: 60, alignment: .leading)
+                                    }
+                                },
+                                expandedContent: {
+                                    Text(course.courseDescription)
+                                        .foregroundColor( ViewHelper.text)
+                                        .lineLimit(10)
+                                },
+                                color: ViewHelper.accentBlue
+                            )
                         }
                     }
                 }
+                    
             }
             
             Spacer()
         }
-        .padding()
         .task(id: participantId) {
             await loadContact()
         }

@@ -47,7 +47,7 @@ struct CIView<Heading: View, Content: View>: View {
     var body: some View {
         ZStack {
             ViewHelper.bgColor.ignoresSafeArea()
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 heading
                 content
                 Spacer()
@@ -457,6 +457,85 @@ struct CISwipeable<Content: View, SwipeOptions: View>: View {
             .swipeActions(edge: .trailing) {
                 swipeOptions
             }
+    }
+    
+}
+
+struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
+    let title: String
+    let subtitle: String
+    let before : Before
+    let expandedContent: ExpandedContent
+    
+    let color: Color
+    let onOpen: () -> Void
+    
+    let accentWidth: CGFloat = 3
+    
+    @State var isExpanded : Bool = false
+    
+    init(
+        title: String,
+        subtitle: String,
+        @ViewBuilder before: () -> Before = { EmptyView() },
+        @ViewBuilder expandedContent: () -> ExpandedContent = { EmptyView() },
+        color : Color = ViewHelper.fieldBgColor,
+        onOpen : @escaping () -> Void = {}
+        
+    ) {
+        self.title = title
+        self.subtitle = subtitle
+        self.before = before()
+        self.expandedContent = expandedContent()
+        self.color = color
+        self.onOpen = onOpen
+    }
+    
+    var body : some View {
+        VStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
+                Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
+                    .font(.system(size: ViewHelper.iconSize, weight: .semibold))
+                    .foregroundColor(.gray)
+                    .frame(width: 16)
+                    .padding(.top, 5)
+                    .padding(.trailing, 6)
+                
+                before
+                
+                RoundedRectangle(cornerRadius: ViewHelper.componentRounding / 4)
+                    .fill(color)
+                    .frame(width: accentWidth)
+                    .padding(.vertical, 2)
+                    .padding(.trailing, 10)
+                
+                VStack(alignment: .leading, spacing: ViewHelper.spacing / 2) {
+                    CIText(title, color)
+                        .font(.system(size: ViewHelper.textSize * 1.5, weight: .bold))
+                    
+                    HStack(spacing: ViewHelper.spacing) {
+                        CIText(subtitle, ViewHelper.text)
+                            .font(.system(size: ViewHelper.smallTextSize))
+                    }
+                }
+                
+                Spacer()
+            }
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    onOpen()
+                    isExpanded = !isExpanded
+                }
+            }
+            
+            if isExpanded {
+                Divider()
+                expandedContent
+            }
+        }
+        .padding(ViewHelper.smallPadding)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
