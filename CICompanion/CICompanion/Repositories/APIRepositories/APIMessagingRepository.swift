@@ -103,7 +103,7 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleErrorResponse(data: data, response: response)
-
+        
         return try JSONDecoder().decode(ConversationDetail.self, from: data)
     }
 
@@ -128,6 +128,38 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         return try JSONDecoder().decode(Message.self, from: data)
     }
 
+    func editMeetup(messageId: Int, body: String) async throws {
+        
+        guard let url = URL(string: "\(baseURL)/meeting/\(messageId)/conversations/\(body)") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "body": body
+        ])
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+    
+    func loadMeetup(messageId: Int) async throws -> Message {
+        
+        guard let url = URL(string: "\(baseURL)/meeting/\(messageId)") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+        
+        return try JSONDecoder().decode(Message.self, from: data)
+    }
+    
     private func authenticatedUserId() throws -> String {
         guard let userId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)

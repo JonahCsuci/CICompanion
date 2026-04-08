@@ -12,4 +12,6 @@ protocol MessagingRepositoryProtocol {
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation
     func loadMessages(conversationId: Int) async throws -> ConversationDetail
     func sendMessage(conversationId: Int, body: String) async throws -> Message
+    func editMeetup(messageId: Int, body: String) async throws
+    func loadMeetup(messageId: Int) async throws -> Message
 }
