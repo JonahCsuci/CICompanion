@@ -75,6 +75,12 @@ struct ChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
+            NavigationLink(destination: LaunchLoadingView()) {
+                Image(systemName: "plus")
+                    .font(.system(size: 32))
+                    .foregroundColor(ViewHelper.textImportant)
+            }
+            
             TextField("", text: $viewModel.messageText, prompt: Text("Message").foregroundColor(ViewHelper.text))
                 .foregroundColor(.white)
                 .font(.system(size: 16))
