@@ -54,7 +54,9 @@ struct CICompanionApp: App {
                         MessagesView(
                             viewModel: container.conversationsViewModel,
                             messagingRepository: container.messagingRepository,
-                            sessionManager: container.sessionManager
+                            sessionManager: container.sessionManager,
+                            studentRepository: container.studentRepository,
+                            courseRepository: container.courseRepository
                         )
                             .tabItem {
                                 Image(systemName: "bubble.left.and.bubble.right.fill")

@@ -30,6 +30,30 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         return try JSONDecoder().decode([Participant].self, from: data)
     }
 
+    func loadContact(studentId: String) async throws -> Student {
+        
+        // Build API endpoint for fetching all of current student's info
+        guard let url = URL(string: "\(baseURL)/contact/\(studentId)") else {
+            throw URLError(.badURL)
+        }
+            
+        var request = URLRequest(url: url)
+        
+        // Use GET to retrieve student info from backend
+        request.httpMethod = "GET"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // Validate HTTP response and throw error if request failed
+        try handleErrorResponse(data: data, response: response)
+
+        // Decode JSON into Student struct
+        let contact = try JSONDecoder().decode(Student.self, from: data)
+        
+        return contact
+    }
+    
     func loadConversations() async throws -> [Conversation] {
         let studentId = try authenticatedUserId()
 
