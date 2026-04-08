@@ -15,50 +15,39 @@ struct LaunchLoadingView: View {
     
     
     var body: some View {
-        ZStack {
-            Image("appbackground")
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-            
-            Color.black.opacity(0.25)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 0) {
+        CIView {
+            HStack {
                 Spacer()
-                    .frame(height: 150)
-                
-                HStack(spacing: 16) {
+                VStack(spacing: 0) {
+                    HStack(spacing: 16) {
+                        Image("dolphin")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 58, height: 58)
+                        
+                        Rectangle()
+                            .fill(Color.white.opacity(0.65))
+                            .frame(width: 1, height: 58)
+                        
+                        CIPageTitle("CI Companion App")
+                    }
                     
-                    Image("dolphin")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 58, height: 58)
+                    VStack {
+                        Spacer()
+                        VStack {
+                            CILoadingPage()
+                            CIText("Loading...", ViewHelper.text)
+                        }
+                        Spacer()
+                    }
                     
-                    Rectangle()
-                        .fill(Color.white.opacity(0.65))
-                        .frame(width: 1, height: 58)
-                    
-                    Text("Channel  Islands")
-                        .font(.system(size: 34, weight: .light))
-                        .foregroundStyle(
-                            LinearGradient (
-                                colors: [
-                                    Color(red: 0.6, green: 0.8, blue: 1.0),
-                                    Color.blue
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    
-                    Spacer()
                 }
-                .padding(.horizontal, 20)
-                
                 Spacer()
-                
             }
         }
     }
+}
+
+#Preview {
+    LaunchLoadingView()
 }

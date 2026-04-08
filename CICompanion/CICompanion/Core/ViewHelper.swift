@@ -208,7 +208,7 @@ struct CITextField: View {
     }
     
     var body: some View {
-        TextField(placeholder, text: text, axis: .vertical)
+        TextField("", text: text, prompt: Text(placeholder).foregroundColor(ViewHelper.text), axis: .vertical)
             .font(.system(size: ViewHelper.textSize))
             .foregroundColor(.white)
             .lineLimit(lines)
