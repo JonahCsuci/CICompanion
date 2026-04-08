@@ -1,3 +1,10 @@
+//
+//  CreateMeetingView.swift
+//  CICompanion
+//
+//  Created by Emma on 3/29/26.
+//
+
 import SwiftUI
 
 struct CreateMeetingView: View {
@@ -87,7 +94,24 @@ struct CreateMeetingView: View {
                     
                 })
                 
-                Divider()
+                Spacer()
+                
+                HStack {
+                    Spacer()
+                    VStack {
+                        NavigationLink {
+                            LaunchLoadingView()
+                        } label: {
+                            Text("Send the Meeting Scheduler")
+                                .font(.system(size: ViewHelper.textSize, weight: .bold))
+                                .foregroundColor(ViewHelper.textImportant)
+                                .padding(ViewHelper.padding * 1.5)
+                                .background(ViewHelper.accentBlue)
+                                .cornerRadius(ViewHelper.componentRounding * 1.5)
+                        }
+                    }
+                    Spacer()
+                }
             }
         }
     }

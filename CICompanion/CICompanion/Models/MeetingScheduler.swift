@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MeetingScheduler: Identifiable {
+struct MeetingScheduler: Identifiable, Codable {
     // stuff that needs to save and get loaded in database
     var availableTimeRanges : [TimeRange]
     var daysAllowed : [Date]
@@ -15,7 +15,7 @@ struct MeetingScheduler: Identifiable {
     var id = UUID()
     
     // other stuff, don't worry about this sergio
-    private var calendar = Calendar.current
+    private var calendar: Calendar { .current }
     
     func timeRangesForDay(date: Date) -> [TimeRange] {
         return availableTimeRanges.filter {

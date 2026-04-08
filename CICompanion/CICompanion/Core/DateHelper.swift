@@ -5,3 +5,24 @@
 //  Created by Emma on 3/30/26.
 //
 
+import SwiftUI
+
+class DateHelper {
+    public static func timeStringToMinutes(_ timeString: String) -> Int? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "h:mm a"
+        
+        guard let date = formatter.date(from: timeString) else {
+            return nil
+        }
+        
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour, .minute], from: date)
+        guard let hour = components.hour, let minute = components.minute else {
+            return nil
+        }
+        
+        return hour * 60 + minute
+    }
+}

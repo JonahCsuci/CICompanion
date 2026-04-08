@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TimeRange : Hashable, Identifiable {
+struct TimeRange : Hashable, Identifiable, Codable {
     /// In minutes since 00:00!!
     var startTime: Int
     /// In minutes since 00:00

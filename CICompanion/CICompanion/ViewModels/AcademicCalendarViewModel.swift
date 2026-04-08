@@ -116,8 +116,8 @@ class AcademicCalendarViewModel: ObservableObject {
             }
             
             guard
-                let startMinutes = timeStringToMinutes(course.startTime),
-                let endMinutes = timeStringToMinutes(course.endTime)
+                let startMinutes = DateHelper.timeStringToMinutes(course.startTime),
+                let endMinutes = DateHelper.timeStringToMinutes(course.endTime)
             else {
                 continue
             }
@@ -155,23 +155,5 @@ class AcademicCalendarViewModel: ObservableObject {
         scheduleBlocks = nextBlocks
         legendItems = nextLegendItems.sorted { $0.courseCode < $1.courseCode }
         asyncCourses = nextAsyncCourses.sorted { $0.courseCode < $1.courseCode }
-    }
-    
-    private func timeStringToMinutes(_ timeString: String) -> Int? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "h:mm a"
-        
-        guard let date = formatter.date(from: timeString) else {
-            return nil
-        }
-        
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: date)
-        guard let hour = components.hour, let minute = components.minute else {
-            return nil
-        }
-        
-        return hour * 60 + minute
     }
 }

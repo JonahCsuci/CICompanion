@@ -45,15 +45,17 @@ struct CIView<Heading: View, Content: View>: View {
     
     
     var body: some View {
-        ZStack {
-            ViewHelper.bgColor.ignoresSafeArea()
-            VStack(spacing: 0) {
-                heading
-                content
-                Spacer()
+        NavigationStack {
+            ZStack {
+                ViewHelper.bgColor.ignoresSafeArea()
+                VStack(alignment: .leading, spacing: 0) {
+                    heading
+                    content
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .padding()
         }
     }
 }
