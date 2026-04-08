@@ -78,6 +78,14 @@ struct CICompanionApp: App {
                                 Image(systemName: "gearshape.fill")
                                 Text("Settings")
                             }
+
+                        #if DEBUG
+                        APITestView(viewModel: container.apiTestViewModel)
+                            .tabItem {
+                                Image(systemName: "wrench.and.screwdriver.fill")
+                                Text("API Test")
+                            }
+                        #endif
                     }
                     .tint(Color(red: 0.6, green: 0.8, blue: 1.0))
                     
@@ -140,4 +148,3 @@ struct CICompanionApp: App {
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 }
-

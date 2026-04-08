@@ -16,6 +16,8 @@ class APITestViewModel: ObservableObject {
     @Published var events: [Event] = []
     @Published var studentCourses: [Course] = []
     @Published var studentEvents: [Event] = []
+    @Published var contactEmail: String = ""
+    @Published var contacts: [ContactStudent] = []
     
     let courseRepository: CourseRepositoryProtocol
     let eventsRepository: EventsRepositoryProtocol
@@ -119,6 +121,47 @@ class APITestViewModel: ObservableObject {
                 statusMessage = "Deleted event \(eventId)"
             } catch {
                 statusMessage = "Delete event failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func testAddContact() {
+        let email = contactEmail.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !email.isEmpty else {
+            statusMessage = "Enter a contact email"
+            return
+        }
+
+        Task {
+            do {
+                try await studentRepository.addStudentContact(email: email)
+                statusMessage = "Added contact \(email)"
+            } catch {
+                statusMessage = "Add contact failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func testLoadContacts() {
+        Task {
+            do {
+                contacts = try await studentRepository.loadStudentContacts()
+                statusMessage = "Loaded \(contacts.count) contacts"
+            } catch {
+                statusMessage = "Load contacts failed: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func testDeleteContact(contactStudentId: String) {
+        Task {
+            do {
+                try await studentRepository.deleteStudentContact(contactStudentId: contactStudentId)
+                contacts.removeAll { $0.id == contactStudentId }
+                statusMessage = "Removed contact"
+            } catch {
+                statusMessage = "Remove contact failed: \(error.localizedDescription)"
             }
         }
     }
