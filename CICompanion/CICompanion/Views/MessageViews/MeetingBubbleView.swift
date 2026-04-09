@@ -12,6 +12,8 @@ struct MeetingBubbleView: View {
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
     
+    @State var navigationActive = false
+    
     init (
         message: Message,
         isCurrentUser: Bool,
@@ -38,7 +40,7 @@ struct MeetingBubbleView: View {
         HStack {
             if isCurrentUser { Spacer(minLength: 60) }
 
-            NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id)) {
+            NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive]), isActive: $navigationActive) {
                 VStack {
                     Text("Meeting Scheduler")
                         .font(.system(size: 20).weight(.semibold))

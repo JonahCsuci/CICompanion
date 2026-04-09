@@ -72,4 +72,18 @@ class DateHelper {
         
         return formatter.string(from: date)
     }
+    
+    public static func minutesToDate(_ minutesToConvert: Int) -> Date {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "h:mm a"
+        
+        let hours : Int = minutesToConvert / 60;
+        let minutes : Int = minutesToConvert % 60;
+        
+        let components = DateComponents(hour: hours, minute: minutes)
+        let date = Calendar.current.date(from: components)!
+        
+        return date
+    }
 }

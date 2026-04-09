@@ -50,13 +50,12 @@ struct SignInView: View {
                                     .frame(width: 320, alignment: .leading)
                                 
                                 TextField("", text: $email)
-                                    .padding(.horizontal, 12)
-                                    .frame(width: 320, height: 48)
+                                    .font(.system(size: ViewHelper.textSize))
                                     .foregroundColor(.white)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .stroke(Color.blue.opacity(0.8), lineWidth: 2)
-                                    )
+                                    .lineLimit(1)
+                                    .padding(ViewHelper.padding)
+                                    .background(ViewHelper.fieldBgColor)
+                                    .cornerRadius(ViewHelper.componentRounding)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                                     .keyboardType(.emailAddress)
@@ -69,13 +68,11 @@ struct SignInView: View {
                                     .frame(width: 320, alignment: .leading)
                                 
                                 SecureField("", text: $password)
-                                    .padding(.horizontal, 12)
+                                    .font(.system(size: ViewHelper.textSize))
                                     .foregroundColor(.white)
-                                    .frame(width: 320, height: 48)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .stroke(Color.blue.opacity(0.8), lineWidth: 2)
-                                    )
+                                    .padding(ViewHelper.padding)
+                                    .background(ViewHelper.fieldBgColor)
+                                    .cornerRadius(ViewHelper.componentRounding)
                             }
                         }
                         

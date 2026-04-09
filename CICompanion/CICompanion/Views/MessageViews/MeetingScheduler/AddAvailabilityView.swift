@@ -8,17 +8,22 @@
 import SwiftUI
 
 struct AddAvailabilityView: View {
+    @Environment(\.dismiss) var dismiss 
+
     @StateObject private var viewModel: AddAvailabilityViewModel
     @State private var selectedBlocks: Set<TimeBlock> = []
+    var navigationsActive: [Binding<Bool>]
 
     var messageId : Int
     
     init (
         viewModel: AddAvailabilityViewModel,
-        messageId: Int
+        messageId: Int,
+        navigationActive: [Binding<Bool>]
     ) {
         _viewModel = StateObject(wrappedValue: viewModel);
         self.messageId = messageId
+        self.navigationsActive = navigationActive
     }
     
     var rowHeight: CGFloat = 50
@@ -135,6 +140,10 @@ struct AddAvailabilityView: View {
                 HStack() {
                     Button {
                         viewModel.send(ranges: selectedBlocks, messageId: messageId)
+                        
+                        for nav in navigationsActive {
+                            nav.wrappedValue = false
+                        }
                     } label: {
                         HStack {
                             Image(systemName: "checkmark")

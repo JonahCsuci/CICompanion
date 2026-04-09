@@ -9,7 +9,7 @@ struct Message: Codable, Identifiable {
     let id: Int
     let conversationId: Int
     let senderId: String
-    let senderName: String
+    let senderName: String?
     let body: String
     let createdAt: String
 }

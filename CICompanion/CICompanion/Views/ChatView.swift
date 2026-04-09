@@ -7,7 +7,8 @@ import SwiftUI
 internal import ClientRuntime
 
 struct ChatView: View {
-
+    @State var navigationActive = false
+    
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
     var sessionManager : SessionManager
@@ -91,10 +92,11 @@ struct ChatView: View {
     private var inputBar: some View {
         HStack(spacing: 10) {
             NavigationLink(destination: CreateMeetingView(
+                navigationActive: $navigationActive,
                 sessionManager: sessionManager,
                 conversationID: conversation.id,
                 messagingRepository: messagingRepository
-            )) {
+            ), isActive: $navigationActive) {
                 Image(systemName: "plus")
                     .font(.system(size: 32))
                     .foregroundColor(ViewHelper.textImportant)

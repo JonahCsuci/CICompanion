@@ -9,10 +9,12 @@ import SwiftUI
 
 struct CreateMeetingView: View {
     @State var startDate: Date = Date()
-    @State var endDate: Date = Date().addingTimeInterval(60*60*24*7) // a week from now
-    @State var startTime: Date = Date()
-    @State var endTime: Date = Date().addingTimeInterval(60*60)
-    @State var studyRoomSearch: Bool = true
+    @State var endDate: Date = Date().addingTimeInterval(60*60*24*5) // 5 days from now
+    @State var startTime: Date = DateHelper.minutesToDate(60*9)
+    @State var endTime: Date = DateHelper.minutesToDate(60*17)
+    //@State var studyRoomSearch: Bool = true
+    var navigationActive: Binding<Bool>
+    @State var subNavActive: Bool = false
     
     var sessionManager : SessionManager
     var conversationID : Int
@@ -57,16 +59,16 @@ struct CreateMeetingView: View {
                     CITimeField(time: $endTime)
                 }
                 
-                CISliderToggle(label: "Search for study rooms", toggleBool: $studyRoomSearch, toggleAction: {
-                    
-                })
+                //CISliderToggle(label: "Search for study rooms", toggleBool: $studyRoomSearch, toggleAction: {
+                //
+                //})
                 
                 Spacer()
                 
                 HStack {
                     Spacer()
                     VStack {
-                        NavigationLink {
+                        NavigationLink(destination:
                             AddAvailabilityView(
                                 viewModel: AddAvailabilityViewModel(
                                     meetingScheduler: MeetingScheduler(
@@ -75,9 +77,11 @@ struct CreateMeetingView: View {
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository
                                 ),
-                                messageId: -1
-                            )
-                        } label: {
+                                messageId: -1,
+                                navigationActive: [$subNavActive, navigationActive]
+                            ),
+                            isActive: $subNavActive
+                        ) {
                             Text("Send the Meeting Scheduler")
                                 .font(.system(size: ViewHelper.textSize, weight: .bold))
                                 .foregroundColor(ViewHelper.textImportant)
