@@ -53,6 +53,7 @@ struct CICompanionApp: App {
                         // Messages tab
                         MessagesView(
                             viewModel: container.conversationsViewModel,
+                            studentRepository: container.studentRepository,
                             messagingRepository: container.messagingRepository,
                             sessionManager: container.sessionManager
                         )
