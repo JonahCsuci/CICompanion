@@ -11,11 +11,9 @@ import Foundation
 
 @MainActor
 class AddAvailabilityViewModel: ObservableObject {
-    let meetingScheduler: MeetingScheduler
+    var meetingScheduler: MeetingScheduler
     let sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
-
-    @Published var selectedRanges: [TimeRange] = []
 
     init(
         meetingScheduler: MeetingScheduler,
@@ -29,16 +27,22 @@ class AddAvailabilityViewModel: ObservableObject {
     
     func addTimeRanges(ranges: Set<TimeBlock>) {
         for range in ranges {
-            selectedRanges.append(range.range)
+            meetingScheduler.availableTimeRanges.append(range.range)
         }
     }
     
-    func send(ranges: Set<TimeBlock>, isNew: Bool) {
+    func send(ranges: Set<TimeBlock>, messageId: Int) {
+        addTimeRanges(ranges: ranges)
+        
         Task {
             do {
                 let encoder = JSONEncoder()
                 if let encoded = try? encoder.encode(meetingScheduler) {
-                    try await messagingRepository.sendMessage(conversationId: self.meetingScheduler.conversationID, body: encoded.base64EncodedString())
+                    if (messageId == -1) {
+                        try await messagingRepository.sendMessage(conversationId: self.meetingScheduler.conversationID, body: encoded.base64EncodedString())
+                    } else {
+                        try await messagingRepository.editMeetup(messageId: messageId, body: encoded.base64EncodedString())
+                    }
                 }
             } catch {
                 print("goo")

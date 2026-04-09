@@ -75,7 +75,7 @@ struct CreateMeetingView: View {
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository
                                 ),
-                                newMeeting: false
+                                messageId: -1
                             )
                         } label: {
                             Text("Send the Meeting Scheduler")

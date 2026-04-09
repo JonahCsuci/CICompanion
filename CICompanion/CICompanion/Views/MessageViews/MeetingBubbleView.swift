@@ -39,11 +39,18 @@ struct MeetingBubbleView: View {
         HStack {
             if isCurrentUser { Spacer(minLength: 60) }
 
-            NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), newMeeting: false)) {
+            NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id)) {
                 VStack {
                     Text("Meeting Scheduler")
                         .font(.system(size: 20).weight(.semibold))
                     Text("Please click to add availability")
+                    
+                    if (meetingScheduler.bestTimes(studyRoomTimes: []).count <= 0) {
+                        Text("No best times available")
+                    } else {
+                        Text("Best time: " + DateHelper.minutesToTimeString(meetingScheduler.bestTimes(studyRoomTimes: [])[0].startTime) + " to " + DateHelper.minutesToTimeString(meetingScheduler.bestTimes(studyRoomTimes: [])[0].endTime))
+                        Text("People availabile: " + String(meetingScheduler.bestTimes(studyRoomTimes: [])[0].peopleAvailable))
+                    }
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)

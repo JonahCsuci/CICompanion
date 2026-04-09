@@ -129,18 +129,17 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
     }
 
     func editMeetup(messageId: Int, body: String) async throws {
-        
-        guard let url = URL(string: "\(baseURL)/meeting/\(messageId)/conversations/\(body)") else {
+        guard let url = URL(string: "\(baseURL)/meeting/\(messageId)/conversations") else {
             throw URLError(.badURL)
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "body": body
         ])
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleMessagingResponse(data: data, response: response)
     }

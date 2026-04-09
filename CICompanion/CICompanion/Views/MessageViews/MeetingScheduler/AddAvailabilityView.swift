@@ -11,14 +11,14 @@ struct AddAvailabilityView: View {
     @StateObject private var viewModel: AddAvailabilityViewModel
     @State private var selectedBlocks: Set<TimeBlock> = []
 
-    var newMeeting : Bool
+    var messageId : Int
     
     init (
         viewModel: AddAvailabilityViewModel,
-        newMeeting: Bool
+        messageId: Int
     ) {
         _viewModel = StateObject(wrappedValue: viewModel);
-        self.newMeeting = newMeeting
+        self.messageId = messageId
     }
     
     var rowHeight: CGFloat = 50
@@ -134,7 +134,7 @@ struct AddAvailabilityView: View {
                 Spacer()
                 HStack() {
                     Button {
-                        viewModel.send(ranges: selectedBlocks, isNew: newMeeting)
+                        viewModel.send(ranges: selectedBlocks, messageId: messageId)
                     } label: {
                         HStack {
                             Image(systemName: "checkmark")
