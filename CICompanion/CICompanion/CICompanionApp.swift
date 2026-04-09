@@ -55,9 +55,7 @@ struct CICompanionApp: App {
                             viewModel: container.conversationsViewModel,
                             studentRepository: container.studentRepository,
                             messagingRepository: container.messagingRepository,
-                            sessionManager: container.sessionManager,
-                            studentRepository: container.studentRepository,
-                            courseRepository: container.courseRepository
+                            sessionManager: container.sessionManager
                         )
                             .tabItem {
                                 Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -82,13 +80,13 @@ struct CICompanionApp: App {
                                 Text("Settings")
                             }
 
-                        #if DEBUG
+                        /**#if DEBUG
                         APITestView(viewModel: container.apiTestViewModel)
                             .tabItem {
                                 Image(systemName: "wrench.and.screwdriver.fill")
                                 Text("API Test")
                             }
-                        #endif
+                        #endif**/
                     }
                     .tint(Color(red: 0.6, green: 0.8, blue: 1.0))
                     

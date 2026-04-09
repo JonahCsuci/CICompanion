@@ -29,6 +29,15 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "40A54D052F5BFA82000D3581"
+            BuildableName = "CICompanion.app"
+            BlueprintName = "CICompanion"
+            ReferencedContainer = "container:CICompanion.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO"
@@ -42,15 +51,6 @@
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "40A54D052F5BFA82000D3581"
-            BuildableName = "CICompanion.app"
-            BlueprintName = "CICompanion"
-            ReferencedContainer = "container:CICompanion.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
