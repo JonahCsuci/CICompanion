@@ -94,8 +94,55 @@ struct APITestView: View {
                         .buttonStyle(.borderedProminent)
                     }
                     
+                    VStack(spacing: 10) {
+                        TextField("Contact email", text: $viewModel.contactEmail)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.emailAddress)
+                            .textFieldStyle(.roundedBorder)
+
+                        Button("Add Contact") {
+                            viewModel.testAddContact()
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("Load Contacts") {
+                            viewModel.testLoadContacts()
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+
                 }
-                
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Contacts")
+                        .font(.headline)
+
+                    if viewModel.contacts.isEmpty {
+                        Text("No contacts loaded")
+                            .foregroundColor(.gray)
+                    } else {
+                        ForEach(viewModel.contacts) { contact in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(contact.name)
+                                    Text(contact.email)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+
+                                Spacer()
+
+                                Button("Remove") {
+                                    viewModel.testDeleteContact(contactStudentId: contact.id)
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Courses")
                         .font(.headline)
