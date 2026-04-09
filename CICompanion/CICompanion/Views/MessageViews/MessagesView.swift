@@ -58,7 +58,9 @@ struct MessagesView: View {
                         messagingRepository: messagingRepository,
                         currentUserId: sessionManager.userId ?? ""
                     ),
-                    conversation: conversation
+                    conversation: conversation,
+                    sessionManager: sessionManager,
+                    messagingRepository: messagingRepository
                 )
             }
         }

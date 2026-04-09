@@ -9,16 +9,28 @@ import SwiftUI
 
 struct AddAvailabilityView: View {
     @StateObject private var viewModel: AddAvailabilityViewModel
-    @State private var edit = false
+    @State private var selectedBlocks: Set<TimeBlock> = []
+
+    var newMeeting : Bool
     
     init (
-        viewModel: AddAvailabilityViewModel
+        viewModel: AddAvailabilityViewModel,
+        newMeeting: Bool
     ) {
         _viewModel = StateObject(wrappedValue: viewModel);
+        self.newMeeting = newMeeting
     }
     
     var rowHeight: CGFloat = 50
     var columnWidth: CGFloat = 50
+    
+    func timeRanges() -> [Int] {
+        Array(stride(
+            from: viewModel.meetingScheduler.startTime,
+            to: viewModel.meetingScheduler.endTime,
+            by: viewModel.meetingScheduler.timeBlockMinutes
+        ))
+    }
     
     func dateHeader(date: Date) -> some View {
         let calendar = Calendar.current
@@ -47,6 +59,63 @@ struct AddAvailabilityView: View {
         )
     }
     
+
+    func grid() -> some View{
+        let ranges = timeRanges()
+        
+        return HStack {
+            VStack() {
+                Spacer()
+                    .frame(minHeight: rowHeight + ViewHelper.padding)
+                
+                ForEach(ranges, id: \.self) { time in
+                    VStack {
+                        Text(DateHelper.minutesToTimeString(time))
+                            .foregroundColor(ViewHelper.text)
+                    }
+                    .frame(minHeight: rowHeight)
+                }
+            }
+            
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(Array(viewModel.meetingScheduler.daysAllowed.enumerated()), id: \.offset) { dayI, day in
+                    VStack(spacing: ViewHelper.spacing) {
+                        dateHeader(date: day)
+                        
+                        ForEach(ranges, id: \.self) { range in
+                            let block = TimeBlock(
+                                day: day,
+                                range: TimeRange(
+                                    startTime: range,
+                                    endTime: range + viewModel.meetingScheduler.timeBlockMinutes,
+                                    userID: viewModel.sessionManager.userId ?? "",
+                                    day: day
+                                )
+                            )
+                            
+                            Button {
+                                print("hi")
+                                if (selectedBlocks.contains(block)) {
+                                    selectedBlocks.remove(block)
+                                } else {
+                                    selectedBlocks.insert(block)
+                                }
+                            } label: {
+                                VStack {}
+                                    .frame(minWidth: columnWidth, minHeight: rowHeight)
+                                    .background(selectedBlocks.contains(block) ? ViewHelper.accentGreen : ViewHelper.fieldBgColor)
+                                    .cornerRadius(ViewHelper.componentRounding)
+                            }
+                        }
+                    }
+                    .frame(minWidth: columnWidth)
+                    
+                    Spacer()
+                }
+            }
+        }
+    }
+    
     var body : some View {
         ZStack {
             CIView {
@@ -54,128 +123,35 @@ struct AddAvailabilityView: View {
                 CIText("Swipe to add or remove availabilities.", ViewHelper.accentBlue)
                 
                 ScrollView([.vertical, .horizontal]) {
-                    HStack {
-                        VStack {
-                            Spacer()
-                                .frame(minHeight: rowHeight)
-                            
-                            ForEach(Array(stride(from: viewModel.meetingScheduler.startTime, to: viewModel.meetingScheduler.endTime, by: viewModel.meetingScheduler.timeBlockMinutes)), id: \.self) { time in
-                                
-                                VStack {
-                                    Text(DateHelper.minutesToTimeString(time))
-                                        .foregroundColor(ViewHelper.text)
-                                        
-                                }.frame(minHeight: rowHeight)
-                            }
-                            Spacer()
-                        }
-                        ForEach(viewModel.meetingScheduler.daysAllowed.indices) {dayI in
-                            VStack {
-                                dateHeader(date: viewModel.meetingScheduler.daysAllowed[dayI])
-                                
-                                ForEach(viewModel.meetingScheduler.timeRangesForDay(date: viewModel.meetingScheduler.daysAllowed[dayI])) {range in
-                                    
-                                }
-                                
-                                Spacer()
-                            }
-                            .frame(minWidth: columnWidth)
-                            Spacer()
-                        }
-                    }
-                }.padding(ViewHelper.padding)
+                    grid()
+                }.padding(ViewHelper.padding).background(.black.opacity(0.1))
+                    .cornerRadius(ViewHelper.componentRounding)
+                
+                Spacer()
             }
             
-            HStack() {
+            VStack {
                 Spacer()
-                VStack() {
-                    Spacer()
-                    if (!edit) {
-                        Button {
-                            edit = true
-                        } label: {
-                            HStack {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: ViewHelper.textSize))
-                                
-                                CIText("Edit Mode", ViewHelper.textImportant)
-                            }
-                            .foregroundColor(ViewHelper.textImportant)
-                            .padding(ViewHelper.padding)
-                            .background(ViewHelper.accentBlue)
-                            .cornerRadius(32)
-                            .padding(.bottom, ViewHelper.padding)
-                            .padding(.trailing, ViewHelper.padding * 2)
+                HStack() {
+                    Button {
+                        viewModel.send(ranges: selectedBlocks, isNew: newMeeting)
+                    } label: {
+                        HStack {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: ViewHelper.textSize).weight(.bold))
+                            
+                            Text("Submit")
+                                .foregroundColor(ViewHelper.textImportant)
+                                .font(.system(size: ViewHelper.textSize * 1.25))
                         }
-                    } else {
-                        Button {
-                            edit = false
-                        } label: {
-                            HStack {
-                                Image(systemName: "eye")
-                                    .font(.system(size: ViewHelper.textSize))
-                                
-                                CIText("View Availabilities", ViewHelper.textImportant)
-                            }
-                            .foregroundColor(ViewHelper.textImportant)
-                            .padding(ViewHelper.padding)
-                            .background(ViewHelper.accentBlue)
-                            .cornerRadius(32)
-                            .padding(.bottom, ViewHelper.padding)
-                            .padding(.trailing, ViewHelper.padding * 2)
-                        }
+                        .foregroundColor(ViewHelper.textImportant)
+                        .padding(ViewHelper.padding * 1.5)
+                        .background(ViewHelper.accentBlue)
+                        .cornerRadius(32)
+                        .padding(.trailing, ViewHelper.padding * 2)
                     }
                 }
             }
         }
     }
-}
-
-#Preview {
-    AddAvailabilityView(
-        viewModel: AddAvailabilityViewModel(
-            meetingScheduler: MeetingScheduler(
-                daysAllowed: [
-                    Date(),
-                    Calendar.current.date(byAdding: .day, value: 1, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 2, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 4, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 5, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 6, to: Date())!,
-                    Calendar.current.date(byAdding: .day, value: 7, to: Date())!
-                ],
-                timeBlockMinutes: 60,
-                id: UUID(),
-                startTime: 480,
-                endTime: 1200
-            ),
-            courses: [
-                Course(
-                    id: 12,
-                    courseName: "Course Name",
-                    courseCode: "MATH 101",
-                    instructor: "Dr. Loran",
-                    location: "Bell Tower",
-                    startTime: "12:00PM",
-                    endTime: "3:00PM",
-                    days: ["Monday", "Tuesday", "Wednesday"],
-                    isAsynchronous: false,
-                    courseDescription: "Incredible course description"
-                ),
-                Course(
-                    id: 12,
-                    courseName: "Course Name",
-                    courseCode: "MATH 101",
-                    instructor: "Dr. Loran",
-                    location: "Bell Tower",
-                    startTime: "9:00AM",
-                    endTime: "11:00AM",
-                    days: ["Tuesday", "Friday"],
-                    isAsynchronous: false,
-                    courseDescription: "Incredible course description"
-                )
-            ]
-        )
-    )
 }

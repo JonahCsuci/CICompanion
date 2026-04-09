@@ -15,6 +15,7 @@ struct MeetingScheduler: Identifiable, Codable {
     var id = UUID()
     var startTime: Int
     var endTime: Int
+    var conversationID: Int
     
     // other stuff, don't worry about this sergio
     private var calendar: Calendar { .current }
@@ -29,16 +30,16 @@ struct MeetingScheduler: Identifiable, Codable {
         availableTimeRanges: [TimeRange] = [],
         daysAllowed: [Date],
         timeBlockMinutes: Int = 60,
-        id: UUID,
         startTime: Int,
-        endTime: Int
+        endTime: Int,
+        conversationID: Int
     ) {
         self.availableTimeRanges = availableTimeRanges
         self.daysAllowed = daysAllowed
         self.timeBlockMinutes = timeBlockMinutes
-        self.id = id
         self.startTime = startTime
         self.endTime = endTime
+        self.conversationID = conversationID
     }
     
     func bestTimes(studyRoomTimes: [TimeRange]) -> [TimeRange] {

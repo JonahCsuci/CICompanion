@@ -12,17 +12,37 @@ import Foundation
 @MainActor
 class AddAvailabilityViewModel: ObservableObject {
     let meetingScheduler: MeetingScheduler
+    let sessionManager: SessionManager
+    let messagingRepository: MessagingRepositoryProtocol
 
-    let courses: [Course]
     @Published var selectedRanges: [TimeRange] = []
 
     init(
         meetingScheduler: MeetingScheduler,
-        courses: [Course]
+        sessionManager: SessionManager,
+        messagingRepository: MessagingRepositoryProtocol
     ) {
         self.meetingScheduler = meetingScheduler
-        self.courses = courses
+        self.sessionManager = sessionManager
+        self.messagingRepository = messagingRepository
     }
     
+    func addTimeRanges(ranges: Set<TimeBlock>) {
+        for range in ranges {
+            selectedRanges.append(range.range)
+        }
+    }
     
+    func send(ranges: Set<TimeBlock>, isNew: Bool) {
+        Task {
+            do {
+                let encoder = JSONEncoder()
+                if let encoded = try? encoder.encode(meetingScheduler) {
+                    try await messagingRepository.sendMessage(conversationId: self.meetingScheduler.conversationID, body: encoded.base64EncodedString())
+                }
+            } catch {
+                print("goo")
+            }
+        }
+    }
 }

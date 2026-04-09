@@ -8,48 +8,15 @@
 import SwiftUI
 
 struct CreateMeetingView: View {
-    var days : [String] = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday"
-    ]
-    
-    var times : [String] = [
-        "6AM",
-        "7AM",
-        "8AM",
-        "9AM",
-        "10AM",
-        "11AM",
-        "12PM",
-        "1PM",
-        "2PM",
-        "3PM",
-        "4PM",
-        "5PM",
-        "6PM",
-        "7PM",
-        "8PM",
-        "9PM",
-        "10PM",
-        "11PM",
-        "12AM",
-        "1AM",
-        "2AM",
-        "3AM",
-        "4AM",
-        "5AM"
-    ]
-    
     @State var startDate: Date = Date()
     @State var endDate: Date = Date().addingTimeInterval(60*60*24*7) // a week from now
     @State var startTime: Date = Date()
     @State var endTime: Date = Date().addingTimeInterval(60*60)
     @State var studyRoomSearch: Bool = true
+    
+    var sessionManager : SessionManager
+    var conversationID : Int
+    var messagingRepository : MessagingRepositoryProtocol
     
     var body: some View {
         CIView(heading: {
@@ -100,7 +67,16 @@ struct CreateMeetingView: View {
                     Spacer()
                     VStack {
                         NavigationLink {
-                            LaunchLoadingView()
+                            AddAvailabilityView(
+                                viewModel: AddAvailabilityViewModel(
+                                    meetingScheduler: MeetingScheduler(
+                                        daysAllowed: DateHelper.datesFromNowToThen(startDate, endDate), startTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(startTime)) ?? 0, endTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0, conversationID: conversationID
+                                    ),
+                                    sessionManager: sessionManager,
+                                    messagingRepository: messagingRepository
+                                ),
+                                newMeeting: false
+                            )
                         } label: {
                             Text("Send the Meeting Scheduler")
                                 .font(.system(size: ViewHelper.textSize, weight: .bold))
@@ -115,8 +91,4 @@ struct CreateMeetingView: View {
             }
         }
     }
-}
-
-#Preview {
-    CreateMeetingView()
 }

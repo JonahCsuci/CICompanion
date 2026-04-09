@@ -8,6 +8,31 @@
 import SwiftUI
 
 class DateHelper {
+    public static func datesFromNowToThen(_ start: Date, _ end: Date) -> [Date] {
+        var curr : Date = start
+        var dates : [Date] = []
+        
+        while (curr <= end) {
+            curr = Calendar.current.date(byAdding: .day, value: 1, to: curr) ?? Date.distantPast
+            
+            if (curr == Date.distantPast) {
+                return dates
+            }
+            
+            dates.append(curr)
+        }
+        
+        return dates
+    }
+    
+    public static func dateToTimeString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "h:mm a"
+        
+        return formatter.string(from: date)
+    }
+    
     public static func timeStringToMinutes(_ timeString: String) -> Int? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
