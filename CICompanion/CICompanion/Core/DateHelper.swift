@@ -33,6 +33,14 @@ class DateHelper {
         return formatter.string(from: date)
     }
     
+    public static func dateToDayString(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "EEEE MMM d"
+        
+        return formatter.string(from: date)
+    }
+    
     public static func timeStringToMinutes(_ timeString: String) -> Int? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")

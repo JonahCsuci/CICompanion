@@ -68,7 +68,18 @@ struct MeetingScheduler: Identifiable, Codable {
                     }
 
                     peoplePerSlot[key, default: []].insert(range.userID)
-                    slots[key]!.peopleAvailable = peoplePerSlot[key]!.count
+                    var slot = slots[key] ?? TimeRange(
+                        startTime: i,
+                        endTime: i + timeBlockMinutes,
+                        userID: "",
+                        day: day,
+                        isStudyRoomAvailable: false,
+                        peopleAvailable: 0
+                    )
+
+                    peoplePerSlot[key, default: []].insert(range.userID)
+                    slot.peopleAvailable = peoplePerSlot[key]!.count
+                    slots[key] = slot
                 }
             }
             
@@ -95,7 +106,17 @@ struct MeetingScheduler: Identifiable, Codable {
                             peopleAvailable: 0
                         )
                     } else {
-                        slots[key]!.isStudyRoomAvailable = true
+                        var slot = slots[key] ?? TimeRange(
+                            startTime: i,
+                            endTime: i + timeBlockMinutes,
+                            userID: "",
+                            day: day,
+                            isStudyRoomAvailable: true,
+                            peopleAvailable: 0
+                        )
+
+                        slot.isStudyRoomAvailable = true
+                        slots[key] = slot
                     }
                 }
             }
@@ -131,7 +152,17 @@ struct MeetingScheduler: Identifiable, Codable {
                 return $0.isStudyRoomAvailable && !$1.isStudyRoomAvailable
             }
 
-            return ($0.endTime - $0.startTime) > ($1.endTime - $1.startTime)
+            let duration0 = $0.endTime - $0.startTime
+            let duration1 = $1.endTime - $1.startTime
+            if duration0 != duration1 {
+                return duration0 > duration1
+            }
+
+            if !calendar.isDate($0.day, inSameDayAs: $1.day) {
+                return $0.day < $1.day
+            }
+
+            return $0.startTime < $1.startTime
         }
     }
 }

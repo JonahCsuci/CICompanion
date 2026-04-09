@@ -26,9 +26,21 @@ class AddAvailabilityViewModel: ObservableObject {
     }
     
     func addTimeRanges(ranges: Set<TimeBlock>) {
-        for range in ranges {
-            meetingScheduler.availableTimeRanges.append(range.range)
+        meetingScheduler.availableTimeRanges.removeAll {
+            $0.userID == sessionManager.userId
         }
+
+        let sortedRanges = ranges
+            .map(\.range)
+            .sorted {
+                if Calendar.current.isDate($0.day, inSameDayAs: $1.day) {
+                    print($0.startTime)
+                    return $0.startTime < $1.startTime
+                }
+                return $0.day < $1.day
+            }
+
+        meetingScheduler.availableTimeRanges.append(contentsOf: sortedRanges)
     }
     
     func send(ranges: Set<TimeBlock>, messageId: Int) {

@@ -22,10 +22,9 @@ struct MeetingBubbleView: View {
         self.message = message
         self.isCurrentUser = isCurrentUser
         do {
-            try self.meetingScheduler = JSONDecoder().decode(MeetingScheduler.self, from: json.data(using: .utf8)!)
+            self.meetingScheduler = try JSONDecoder().decode(MeetingScheduler.self, from: json.data(using: .utf8)!)
         } catch {
             self.meetingScheduler = MeetingScheduler(availableTimeRanges: [], daysAllowed: [], timeBlockMinutes: 0, startTime: 0, endTime: 0, conversationID: 0)
-            exit(EXIT_FAILURE)
         }
         
         self.sessionManager = sessionManager
@@ -44,12 +43,18 @@ struct MeetingBubbleView: View {
                     Text("Meeting Scheduler")
                         .font(.system(size: 20).weight(.semibold))
                     Text("Please click to add availability")
-                    
-                    if (meetingScheduler.bestTimes(studyRoomTimes: []).count <= 0) {
+                    let bestTimes = meetingScheduler.bestTimes(studyRoomTimes: [])
+                    if (bestTimes.isEmpty) {
                         Text("No best times available")
                     } else {
-                        Text("Best time: " + DateHelper.minutesToTimeString(meetingScheduler.bestTimes(studyRoomTimes: [])[0].startTime) + " to " + DateHelper.minutesToTimeString(meetingScheduler.bestTimes(studyRoomTimes: [])[0].endTime))
-                        Text("People availabile: " + String(meetingScheduler.bestTimes(studyRoomTimes: [])[0].peopleAvailable))
+                        Text("Best time: " +
+                             DateHelper.minutesToTimeString(bestTimes[0].startTime) +
+                             " to " +
+                             DateHelper.minutesToTimeString(bestTimes[0].endTime) +
+                             " on " +
+                             DateHelper.dateToDayString(bestTimes[0].day)
+                        )
+                        Text("People available: " + String(bestTimes[0].peopleAvailable))
                     }
                 }
                 .foregroundColor(.white)

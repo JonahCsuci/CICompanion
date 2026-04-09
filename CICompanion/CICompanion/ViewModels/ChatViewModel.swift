@@ -28,7 +28,6 @@ class ChatViewModel: ObservableObject {
             let JSON = try body.base64DecodedString()
             return JSON
         } catch {
-            print("No JSON detected")
             return ""
         }
     }
