@@ -6,8 +6,25 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4003CFCD2F78A49B00D77A81 /* Authenticator in Frameworks */ = {isa = PBXBuildFile; productRef = 4003CFCC2F78A49B00D77A81 /* Authenticator */; };
+		40876F2E2F7C98AE00F20444 /* AWSCognitoAuthPlugin in Frameworks */ = {isa = PBXBuildFile; productRef = 40876F2D2F7C98AE00F20444 /* AWSCognitoAuthPlugin */; };
+		40876F302F7C98AE00F20444 /* Amplify in Frameworks */ = {isa = PBXBuildFile; productRef = 40876F2F2F7C98AE00F20444 /* Amplify */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		41C0A0072F8E000100000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 40A54CFE2F5BFA82000D3581 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 40A54D052F5BFA82000D3581;
+			remoteInfo = CICompanion;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		40A54D062F5BFA82000D3581 /* CICompanion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CICompanion.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		41C0A0012F8E000100000001 /* CICompanionTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CICompanionTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +33,25 @@
 			path = CICompanion;
 			sourceTree = "<group>";
 		};
+		41C0A0022F8E000100000001 /* CICompanionTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = CICompanionTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		40A54D032F5BFA82000D3581 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				40876F302F7C98AE00F20444 /* Amplify in Frameworks */,
+				4003CFCD2F78A49B00D77A81 /* Authenticator in Frameworks */,
+				40876F2E2F7C98AE00F20444 /* AWSCognitoAuthPlugin in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C0A0032F8E000100000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				40A54D082F5BFA82000D3581 /* CICompanion */,
+				41C0A0022F8E000100000001 /* CICompanionTests */,
 				40A54D072F5BFA82000D3581 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +74,7 @@
 			isa = PBXGroup;
 			children = (
 				40A54D062F5BFA82000D3581 /* CICompanion.app */,
+				41C0A0012F8E000100000001 /* CICompanionTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,10 +99,36 @@
 			);
 			name = CICompanion;
 			packageProductDependencies = (
+				4003CFCC2F78A49B00D77A81 /* Authenticator */,
+				40876F2D2F7C98AE00F20444 /* AWSCognitoAuthPlugin */,
+				40876F2F2F7C98AE00F20444 /* Amplify */,
 			);
 			productName = CICompanion;
 			productReference = 40A54D062F5BFA82000D3581 /* CICompanion.app */;
 			productType = "com.apple.product-type.application";
+		};
+		41C0A0062F8E000100000001 /* CICompanionTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 41C0A00B2F8E000100000001 /* Build configuration list for PBXNativeTarget "CICompanionTests" */;
+			buildPhases = (
+				41C0A0052F8E000100000001 /* Sources */,
+				41C0A0032F8E000100000001 /* Frameworks */,
+				41C0A0042F8E000100000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				41C0A0082F8E000100000001 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				41C0A0022F8E000100000001 /* CICompanionTests */,
+			);
+			name = CICompanionTests;
+			packageProductDependencies = (
+			);
+			productName = CICompanionTests;
+			productReference = 41C0A0012F8E000100000001 /* CICompanionTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +143,10 @@
 					40A54D052F5BFA82000D3581 = {
 						CreatedOnToolsVersion = 26.3;
 					};
+					41C0A0062F8E000100000001 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 40A54D052F5BFA82000D3581;
+					};
 				};
 			};
 			buildConfigurationList = 40A54D012F5BFA82000D3581 /* Build configuration list for PBXProject "CICompanion" */;
@@ -94,18 +158,30 @@
 			);
 			mainGroup = 40A54CFD2F5BFA82000D3581;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4003CFCB2F78A49B00D77A81 /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */,
+				40876F2C2F7C98AE00F20444 /* XCRemoteSwiftPackageReference "amplify-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 40A54D072F5BFA82000D3581 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				40A54D052F5BFA82000D3581 /* CICompanion */,
+				41C0A0062F8E000100000001 /* CICompanionTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		40A54D042F5BFA82000D3581 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		41C0A0042F8E000100000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +198,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		41C0A0052F8E000100000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		41C0A0082F8E000100000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 40A54D052F5BFA82000D3581 /* CICompanion */;
+			targetProxy = 41C0A0072F8E000100000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		40A54D0F2F5BFA85000D3581 /* Debug */ = {
@@ -310,6 +401,56 @@
 			};
 			name = Release;
 		};
+		41C0A0092F8E000100000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6V45KF6MU4;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wummiez.CICompanionTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CICompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CICompanion";
+				TEST_TARGET_NAME = CICompanion;
+			};
+			name = Debug;
+		};
+		41C0A00A2F8E000100000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6V45KF6MU4;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.wummiez.CICompanionTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CICompanion.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/CICompanion";
+				TEST_TARGET_NAME = CICompanion;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -331,7 +472,53 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		41C0A00B2F8E000100000001 /* Build configuration list for PBXNativeTarget "CICompanionTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41C0A0092F8E000100000001 /* Debug */,
+				41C0A00A2F8E000100000001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4003CFCB2F78A49B00D77A81 /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/amplify-ui-swift-authenticator";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.3.1;
+			};
+		};
+		40876F2C2F7C98AE00F20444 /* XCRemoteSwiftPackageReference "amplify-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/aws-amplify/amplify-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.54.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4003CFCC2F78A49B00D77A81 /* Authenticator */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4003CFCB2F78A49B00D77A81 /* XCRemoteSwiftPackageReference "amplify-ui-swift-authenticator" */;
+			productName = Authenticator;
+		};
+		40876F2D2F7C98AE00F20444 /* AWSCognitoAuthPlugin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 40876F2C2F7C98AE00F20444 /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = AWSCognitoAuthPlugin;
+		};
+		40876F2F2F7C98AE00F20444 /* Amplify */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 40876F2C2F7C98AE00F20444 /* XCRemoteSwiftPackageReference "amplify-swift" */;
+			productName = Amplify;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 40A54CFE2F5BFA82000D3581 /* Project object */;
 }

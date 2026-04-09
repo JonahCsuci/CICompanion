@@ -1,0 +1,32 @@
+{
+  "name": "cicompanion",
+  "version": "1.0.0",
+  "description": "Mobile app for CSUCI students that centralizes scheduling, campus navigation, event discovery, and peer coordination with location-aware features and push notifications.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonahCsuci/CICompanion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JonahCsuci/CICompanion/issues"
+  },
+  "homepage": "https://github.com/JonahCsuci/CICompanion#readme",
+  "devDependencies": {
+    "@aws-amplify/backend": "^1.22.0",
+    "@aws-amplify/backend-cli": "^1.8.2",
+    "aws-cdk-lib": "^2.234.1",
+    "constructs": "^10.6.0",
+    "esbuild": "^0.27.4",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "aws-amplify": "^6.16.3"
+  }
+}

@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import Amplify
+import AWSCognitoAuthPlugin
 
 /// The root of the CICompanion application.
 @main
@@ -14,48 +16,114 @@ struct CICompanionApp: App {
     /// The dependency injection container for repositories & view models.
     let container = AppContainer()
     
+    @State private var appReady = false
+    
     init() {
+        configureAmplify()
         setupTabBarAppearance()
     }
     
     var body: some Scene {
         WindowGroup {
-            TabView {
-                // Today tab
-                TodayView(viewModel: container.myAcademicCalendarViewModel)
-                    .tabItem {
-                        Image(systemName: "calendar")
-                        Text("Today")
+            Group {
+                if appReady {
+                    TabView {
+                        // Today tab
+                        TodayView(
+                            viewModel: container.myAcademicCalendarViewModel,
+                            studentRepository: container.studentRepository,
+                            sessionManager: container.sessionManager
+                        )
+                            .tabItem {
+                                Image(systemName: "calendar")
+                                Text("Today")
+                            }
+                        
+                        // Schedule tab
+                        ScheduleGridView(viewModel: AcademicCalendarViewModel(
+                            courseRepository: container.courseRepository,
+                            studentRepository: container.studentRepository
+                        ),
+                            sessionManager: container.sessionManager)
+                            .tabItem {
+                                Image(systemName: "square.grid.3x3.fill")
+                                Text("Schedule")
+                            }
+                        
+                        // Messages tab
+                        MessagesView(
+                            viewModel: container.conversationsViewModel,
+                            studentRepository: container.studentRepository,
+                            messagingRepository: container.messagingRepository,
+                            sessionManager: container.sessionManager
+                        )
+                            .tabItem {
+                                Image(systemName: "bubble.left.and.bubble.right.fill")
+                                Text("Messages")
+                            }
+
+                        // Remove the comments below to turn on the Map feature
+//                        MapView()
+//                            .tabItem {
+//                                Image(systemName: "map.fill")
+//                                Text("Map")
+//                            }
+                        
+                        // Settings tab
+                        SettingsView(
+                            courseRepository: container.courseRepository,
+                            studentRepository: container.studentRepository,
+                            sessionManager: container.sessionManager
+                        )
+                            .tabItem {
+                                Image(systemName: "gearshape.fill")
+                                Text("Settings")
+                            }
+
+                        /**#if DEBUG
+                        APITestView(viewModel: container.apiTestViewModel)
+                            .tabItem {
+                                Image(systemName: "wrench.and.screwdriver.fill")
+                                Text("API Test")
+                            }
+                        #endif**/
                     }
-                
-                // Schedule tab
-                ScheduleGridView(viewModel: AcademicCalendarViewModel(
-                    courseRepository: container.courseRepository,
-                    studentRepository: container.studentRepository
-                ))
-                    .tabItem {
-                        Image(systemName: "square.grid.3x3.fill")
-                        Text("Schedule")
-                    }
-                
-                // Remove the comments below to turn on the Map feature
-//                MapView()
-//                    .tabItem {
-//                        Image(systemName: "map.fill")
-//                        Text("Map")
-//                    }
-                
-                // Settings tab
-                SettingsView(
-                    courseRepository: container.courseRepository,
-                    studentRepository: container.studentRepository
-                )
-                    .tabItem {
-                        Image(systemName: "gearshape.fill")
-                        Text("Settings")
-                    }
+                    .tint(Color(red: 0.6, green: 0.8, blue: 1.0))
+                    
+                } else {
+                    LaunchLoadingView()
+                }
             }
-            .tint(Color(red: 0.6, green: 0.8, blue: 1.0))
+            
+            // On app launch, tries to load previous session from the user
+            .task {
+                await container.sessionManager.loadCurrentUser()
+                
+                // If successfully loaded, checks to see if exist in DB
+                if container.sessionManager.isSignedIn {
+                    do {
+                        _ = try await container.studentRepository.loadStudent()
+                    } catch {
+                        print("Load student failed in main: ", error)
+                    }
+                }
+                
+                // Slows down app launch by 1.5sec so we can see loading screen, teehee ;)
+                // Otherwise goes by too fast, can take out if want, dont care tbh
+                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                
+                appReady = true
+            }
+        }
+    }
+    
+    // Sets up user authentication
+    private func configureAmplify() {
+        do {
+            try Amplify.add(plugin: AWSCognitoAuthPlugin())
+            try Amplify.configure(with: .amplifyOutputs)
+        } catch {
+            print("Failed to configure Amplify: \(error)")
         }
     }
     

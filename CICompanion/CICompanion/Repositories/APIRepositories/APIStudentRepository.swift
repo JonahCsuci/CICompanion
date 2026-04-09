@@ -12,8 +12,14 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     // Stored student in memory
     private var student: Student?
+    private var contacts: [ContactStudent]?
+    private let sessionManager: SessionManager
     
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
+    
+    init(sessionManager: SessionManager) {
+        self.sessionManager = sessionManager
+    }
     
     func loadStudent() async throws -> Student {
         
@@ -22,8 +28,9 @@ class APIStudentRepository: StudentRepositoryProtocol {
             return student
         }
         
-        // Temporary hardcoded student ID (will be dynamic later)
-        let studentId = 1
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
         
         // Build API endpoint for fetching all of current student's info
         guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
@@ -51,8 +58,9 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     func addStudentCourse(courseId: Int) async throws {
         
-        // Temporary hardcoded student ID (will be dynamic later)
-        let studentId = 1
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
         
         // Build API endpoint to add a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
@@ -81,8 +89,9 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     func deleteStudentCourse(courseId: Int) async throws {
         
-        // Temporary hardcoded student ID (will be dynamic later)
-        let studentId = 1
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
         
         // Build API endpoint to delete a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
@@ -107,16 +116,13 @@ class APIStudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    // Checks if student has course
-    func hasStudentCourse(courseId: Int) async throws -> Bool {
-        return true
-    }
     
     // Add event to the student's event array
     func addStudentEvent(eventId: Int) async throws {
         
-        // Temporary hardcoded student ID (will be dynamic later)
-        let studentId = 1
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
         
         // Build API endpoint to add an event for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
@@ -145,8 +151,9 @@ class APIStudentRepository: StudentRepositoryProtocol {
 
     func deleteStudentEvent(eventId: Int) async throws {
         
-        // Temporary hardcoded student ID (will be dynamic later)
-        let studentId = 1
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
         
         // Build API endpoint to delete an event for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
@@ -169,5 +176,126 @@ class APIStudentRepository: StudentRepositoryProtocol {
             student.events.removeAll { $0 == eventId }
             self.student = student
         }
+    }
+
+    func addStudentContact(email: String) async throws {
+
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "email": email.trimmingCharacters(in: .whitespacesAndNewlines)
+        ])
+
+        let(data, response) = try await URLSession.shared.data(for: request)
+
+        try handleErrorResponse(data: data, response: response)
+
+        contacts = nil
+    }
+
+    func loadStudentContacts() async throws -> [ContactStudent] {
+
+        if let contacts {
+            return contacts
+        }
+
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let(data, response) = try await URLSession.shared.data(for: request)
+
+        try handleErrorResponse(data: data, response: response)
+
+        let contacts = try JSONDecoder().decode([ContactStudent].self, from: data)
+        self.contacts = contacts
+
+        return contacts
+    }
+
+    func deleteStudentContact(contactStudentId: String) async throws {
+
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let encodedContactStudentId = contactStudentId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let url = URL(string: "\(baseURL)/student/\(studentId)/contacts/\(encodedContactStudentId)") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+
+        let(data, response) = try await URLSession.shared.data(for: request)
+
+        try handleErrorResponse(data: data, response: response)
+
+        if var contacts {
+            contacts.removeAll { $0.id == contactStudentId }
+            self.contacts = contacts
+        }
+    }
+
+    func hasStudentContact(contactStudentId: String) async throws -> Bool {
+        let contacts = try await loadStudentContacts()
+        return contacts.contains { $0.id == contactStudentId }
+    }
+
+    func ensureStudentExists() async throws -> Student {
+            
+        // Authenticates user exists in user pool
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+            
+        let name = sessionManager.name ?? "User"
+
+        guard let email = sessionManager.email, !email.isEmpty else {
+            throw URLError(.userAuthenticationRequired)
+        }
+            
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
+            throw URLError(.badURL)
+        }
+            
+        // Checks if exists in database
+        // If doesn't exist yet, creates and returns student from DB
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+        let body: [String: String] = [
+            "name": name,
+            "email": email
+            ]
+            
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+            
+        try handleErrorResponse(data: data, response: response)
+            
+        let student = try JSONDecoder().decode(Student.self, from: data)
+        self.student = student
+            
+        return student
+        
     }
 }
