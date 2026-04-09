@@ -36,6 +36,32 @@ struct MessagesView: View {
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
     }
+    
+    private var modePicker: some View {
+        HStack(spacing: 8) {
+            ForEach(MessagesMode.allCases) { item in
+                Button {
+                    mode = item
+                } label: {
+                    Text(item.title)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(mode == item ? .white : .gray)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(mode == item ? buttonBlue : cardColor)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(6)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(cardColor.opacity(0.8))
+        )
+    }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -58,7 +84,9 @@ struct MessagesView: View {
                         messagingRepository: messagingRepository,
                         currentUserId: sessionManager.userId ?? ""
                     ),
-                    conversation: conversation
+                    conversation: conversation,
+                    sessionManager: sessionManager,
+                    messagingRepository: messagingRepository
                 )
             }
         }
@@ -126,13 +154,9 @@ struct MessagesView: View {
                 }
             }
 
-            Picker("Messages Mode", selection: $mode) {
-                ForEach(MessagesMode.allCases) { mode in
-                    Text(mode.title).tag(mode)
-                }
-            }
-            .pickerStyle(.segmented)
-            .disabled(!sessionManager.isSignedIn)
+            modePicker
+                .disabled(!sessionManager.isSignedIn)
+                .opacity(sessionManager.isSignedIn ? 1 : 0.5)
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
@@ -436,11 +460,10 @@ private struct AddContactSheet: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(.white)
 
-                    TextField("Email", text: $email)
+                    CITextField(placeholder: "Email", text: $email, lines: 1)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .keyboardType(.emailAddress)
-                        .textFieldStyle(.roundedBorder)
 
                     if let errorMessage = contactsViewModel.errorMessage {
                         Text(errorMessage)
@@ -476,7 +499,6 @@ private struct AddContactSheet: View {
                     Spacer()
                 }
                 .padding(20)
-                .background(cardColor.cornerRadius(8))
                 .padding(16)
             }
             .navigationBarTitleDisplayMode(.inline)

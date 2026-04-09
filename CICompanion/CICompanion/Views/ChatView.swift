@@ -4,19 +4,25 @@
 //
 
 import SwiftUI
+internal import ClientRuntime
 
 struct ChatView: View {
-
+    @State var navigationActive = false
+    
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
+    var sessionManager : SessionManager
+    var messagingRepository : MessagingRepositoryProtocol
 
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
-    init(viewModel: ChatViewModel, conversation: Conversation) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
+        self.sessionManager = sessionManager;
+        self.messagingRepository = messagingRepository;
     }
 
     var body: some View {
@@ -53,11 +59,21 @@ struct ChatView: View {
                 } else {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            MessageBubbleView(
-                                message: message,
-                                isCurrentUser: message.senderId == viewModel.currentUserId
-                            )
-                            .id(message.id)
+                            if (viewModel.getMeeting(body: message.body) != "") {
+                                MeetingBubbleView(
+                                    message: message,
+                                    isCurrentUser: message.senderId == viewModel.currentUserId,
+                                    json: viewModel.getMeeting(body: message.body),
+                                    sessionManager: sessionManager,
+                                    messagingRepository: messagingRepository
+                                )
+                            } else {
+                                MessageBubbleView(
+                                    message: message,
+                                    isCurrentUser: message.senderId == viewModel.currentUserId
+                                )
+                                .id(message.id)
+                            }
                         }
                     }
                     .padding(.horizontal, 12)
@@ -75,12 +91,23 @@ struct ChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
-            TextField("Message", text: $viewModel.messageText)
+            NavigationLink(destination: CreateMeetingView(
+                navigationActive: $navigationActive,
+                sessionManager: sessionManager,
+                conversationID: conversation.id,
+                messagingRepository: messagingRepository
+            ), isActive: $navigationActive) {
+                Image(systemName: "plus")
+                    .font(.system(size: 32))
+                    .foregroundColor(ViewHelper.textImportant)
+            }
+            
+            TextField("", text: $viewModel.messageText, prompt: Text("Message").foregroundColor(ViewHelper.text))
+                .foregroundColor(.white)
                 .font(.system(size: 16))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
                 .background(inputBgColor)
-                .foregroundColor(.white)
                 .cornerRadius(20)
 
             Button {
