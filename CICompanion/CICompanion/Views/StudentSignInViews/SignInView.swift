@@ -12,97 +12,77 @@ struct SignInView: View {
     @Environment(\.dismiss) private var dismiss
     
     let sessionManager: SessionManager
-
+    
     @State private var email = ""
     @State private var password = ""
     @State private var name = ""
     @State private var message = ""
     @State private var showConfirmSignUp = false
     
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-
     var body: some View {
         NavigationStack {
             CIView {
                 HStack {
                     Spacer()
+                    
                     VStack {
-                        Spacer().frame(height: 30)
+                        Spacer()
+                            .frame(height: ViewHelper.biggerSpacing)
                         
                         Image("dolphin")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 120, height: 120)
-                            .padding(.bottom, 12)
+                            .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)
+                            .padding(.bottom, ViewHelper.smallPadding)
                         
-                        Text("Enter Your Details")
-                            .font(.system(size: 32, weight: .bold))
-                            .foregroundColor(.white)
-                            .padding(.bottom, 30)
+                        CIPageTitle("Enter Your Details")
+                            .padding(.bottom, ViewHelper.biggerSpacing)
                         
-                        VStack(spacing: 16) {
-                            
-                            VStack(alignment: .leading, spacing: 8) {
-                                
-                                Text("Email")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 320, alignment: .leading)
-                                
-                                TextField("", text: $email)
-                                    .font(.system(size: ViewHelper.textSize))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
-                                    .padding(ViewHelper.padding)
-                                    .background(ViewHelper.fieldBgColor)
-                                    .cornerRadius(ViewHelper.componentRounding)
-                                    .textInputAutocapitalization(.never)
-                                    .autocorrectionDisabled()
-                                    .keyboardType(.emailAddress)
+                        VStack(spacing: ViewHelper.biggerSpacing) {
+                            CIItem(name: "Email") {
+                                CIEmailTextField(
+                                    placeholder: "",
+                                    text: $email,
+                                    lines: 1
+                                )
+                                .keyboardType(.emailAddress)
+                                .textInputAutocapitalization(.never)
                             }
                             
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Password")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundColor(.white)
-                                    .frame(width: 320, alignment: .leading)
-                                
-                                SecureField("", text: $password)
-                                    .font(.system(size: ViewHelper.textSize))
-                                    .foregroundColor(.white)
-                                    .padding(ViewHelper.padding)
-                                    .background(ViewHelper.fieldBgColor)
-                                    .cornerRadius(ViewHelper.componentRounding)
+                            CIItem(name: "Password") {
+                                CIPasswordTextField(
+                                    placeholder: "",
+                                    text: $password,
+                                    lines: 1
+                                )
                             }
                         }
+                        .frame(width: ViewHelper.buttonWidth)
                         
                         if !message.isEmpty {
-                            Text(message)
-                                .foregroundColor(.red)
-                                .padding(.top, 12)
+                            CIErrorMessage(errorMessage: message)
                         }
                         
                         Button {
                             Task {
                                 do {
-                                    let result = try await Amplify.Auth.signIn (
+                                    let result = try await Amplify.Auth.signIn(
                                         username: email,
                                         password: password
                                     )
-
-                                    // If sign in worked, assign user id
+                                    
                                     if result.isSignedIn {
                                         await sessionManager.loadCurrentUser()
+                                        
                                         do {
                                             let repo = APIStudentRepository(sessionManager: sessionManager)
                                             _ = try await repo.ensureStudentExists()
                                         } catch {
                                             print("ensureStudentExists after sign-in failed:", error)
                                         }
+                                        
                                         dismiss()
                                     } else {
-                                        
-                                        // If user didn't previously confirm security code
                                         switch result.nextStep {
                                         case .confirmSignUp(_):
                                             message = "Confirm your account"
@@ -116,35 +96,51 @@ struct SignInView: View {
                                 }
                             }
                         } label: {
-                            Text("Sign in")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 320, height: 50)
-                                .background(Color(red: 0.36, green: 0.55, blue: 0.90))
-                                .cornerRadius(8)
+                            Text("Sign In")
+                                .font(.system(size: ViewHelper.buttonTextSize, weight: .bold))
+                                .foregroundColor(ViewHelper.textImportant)
+                                .frame(width: ViewHelper.buttonWidth, height: ViewHelper.buttonHeight)
+                                .background(ViewHelper.accentBlue)
+                                .cornerRadius(ViewHelper.componentRounding)
                         }
-                        .padding(.top, 24)
+                        .padding(.top, ViewHelper.padding)
+                        
+                        NavigationLink("Need to reset password?") {
+                            ForgotPasswordView(sessionManager: sessionManager)
+                        }
+                        .font(.system(size: ViewHelper.textSize))
+                        .padding(.top, ViewHelper.smallPadding)
+                        .foregroundColor(ViewHelper.accentBlue)
                         
                         Spacer()
                         
-                        Text("Don't have an account?")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 18))
-                        
-                        NavigationLink("Create Account") {
-                            SignUpView(sessionManager: self.sessionManager)
+                        VStack(spacing: ViewHelper.smallPadding) {
+                            CIText("Don't have an account?", ViewHelper.text)
+                            
+                            NavigationLink("Create Account") {
+                                SignUpView(sessionManager: sessionManager)
+                            }
+                            .font(.system(size: ViewHelper.textSize, weight: .semibold))
+                            .foregroundColor(ViewHelper.accentBlue)
                         }
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(Color(red: 0.36, green: 0.55, blue: 0.90))
                         
                         Spacer()
                     }
+                    
                     Spacer()
                 }
             }
             .navigationDestination(isPresented: $showConfirmSignUp) {
-                ConfirmSignUpView(email: email, name: name, sessionManager: self.sessionManager)
+                ConfirmSignUpView(
+                    email: email,
+                    name: name,
+                    sessionManager: sessionManager
+                )
             }
         }
     }
+}
+
+#Preview {
+    SignInView(sessionManager: SessionManager())
 }

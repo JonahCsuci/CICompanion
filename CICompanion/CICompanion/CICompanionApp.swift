@@ -110,7 +110,7 @@ struct CICompanionApp: App {
                 
                 // Slows down app launch by 1.5sec so we can see loading screen, teehee ;)
                 // Otherwise goes by too fast, can take out if want, dont care tbh
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(for: .seconds(1.5))
                 
                 appReady = true
             }
