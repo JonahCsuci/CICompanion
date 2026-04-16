@@ -30,7 +30,7 @@ struct ForgotPasswordView: View {
                     
                     VStack {
                         
-                        Image("dolphin")
+                        Image("TeamKNOWN")
                             .resizable()
                             .scaledToFit()
                             .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)
@@ -134,7 +134,7 @@ struct ForgotPasswordView: View {
                                         message = ""
                                         successMessage = "Password reset confirmed"
                                         
-                                        try await Task.sleep(for: .seconds(1.5))
+                                        try await Task.sleep(for: .seconds(2))
                                         
                                         dismiss()
                                     }

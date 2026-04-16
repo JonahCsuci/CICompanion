@@ -29,7 +29,7 @@ struct SignInView: View {
                         Spacer()
                             .frame(height: ViewHelper.biggerSpacing)
                         
-                        Image("dolphin")
+                        Image("TeamKNOWN")
                             .resizable()
                             .scaledToFit()
                             .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)

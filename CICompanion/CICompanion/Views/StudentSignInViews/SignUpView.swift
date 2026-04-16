@@ -25,7 +25,7 @@ struct SignUpView: View {
                 Spacer()
                 
                 VStack {
-                    Image("dolphin")
+                    Image("TeamKNOWN")
                         .resizable()
                         .scaledToFit()
                         .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)
@@ -33,7 +33,7 @@ struct SignUpView: View {
                         .padding(.bottom, ViewHelper.smallPadding)
                     
                     CIPageTitle("Create Your Account")
-                        .padding(.bottom, ViewHelper.biggerSpacing * 2)
+                        .padding(.bottom, ViewHelper.biggerSpacing)
                     
                     VStack(spacing: ViewHelper.biggerSpacing) {
                         CIItem(name: "Name") {
