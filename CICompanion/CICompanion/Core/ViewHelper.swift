@@ -218,6 +218,86 @@ struct CITextField: View {
     }
 }
 
+struct CIEmailTextField: View {
+    let placeholder: String
+    let text: Binding<String>
+    let lines: ClosedRange<Int>
+    
+    init (
+        placeholder: String,
+        text: Binding<String>,
+        lines: Int
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines...lines
+    }
+    
+    init (
+        placeholder: String,
+        text: Binding<String>,
+        lines: ClosedRange<Int>
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines
+    }
+    
+    var body: some View {
+        TextField("", text: text, prompt: Text(placeholder).foregroundColor(ViewHelper.text), axis: .vertical)
+            .font(.system(size: ViewHelper.textSize))
+            .foregroundColor(.white)
+            .lineLimit(lines)
+            .padding(ViewHelper.padding)
+            .background(ViewHelper.fieldBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
+    }
+}
+
+struct CIPasswordTextField: View {
+    let placeholder: String
+    let text: Binding<String>
+    let lines: ClosedRange<Int>
+    
+    init(
+        placeholder: String,
+        text: Binding<String>,
+        lines: Int
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines...lines
+    }
+    
+    init(
+        placeholder: String,
+        text: Binding<String>,
+        lines: ClosedRange<Int>
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines
+    }
+    
+    var body: some View {
+        SecureField(
+            "",
+            text: text,
+            prompt: Text(placeholder).foregroundColor(ViewHelper.text)
+        )
+        .font(.system(size: ViewHelper.textSize))
+        .foregroundColor(.white)
+        .lineLimit(lines)
+        .padding(ViewHelper.padding)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled(true)
+    }
+}
+
 struct CICheckBoxToggle: View {
     var label: String
     var toggleBool: Bool
@@ -558,6 +638,11 @@ class ViewHelper {
     public static let textSize = 16.0
     public static let titleTextSize = 28.0
     public static let spacing = 8.0
+    public static let biggerSpacing = 16.0
     public static let borderWidth = 1.5
     public static let opacity = 0.22
+    public static let buttonWidth = 320.0
+    public static let buttonHeight = 50.0
+    public static let buttonTextSize = 18.0
+    public static let logoSize = 120.0
 }
