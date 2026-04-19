@@ -212,9 +212,9 @@ struct ContactInformation: View {
         let secondRange = ranges[1]
         
         if firstRange.startHour < secondRange.startHour {
-            return "\(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))       \(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))"
+            return "\(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1)) \(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))"
         } else {
-            return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))       \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
+            return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1)) \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
         }
     }
 
