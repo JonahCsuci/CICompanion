@@ -8,37 +8,100 @@ internal import ClientRuntime
 
 struct ChatView: View {
     @State var navigationActive = false
-    
+
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
+    let contacts: [ContactStudent]
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var showGroupInfo = false
+    // Set when we want ChatView itself to pop AFTER GroupInfoView's sheet finishes its dismiss animation.
+    // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
+    @State private var pendingDismiss = false
 
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contacts: [ContactStudent]) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
         self.sessionManager = sessionManager;
         self.messagingRepository = messagingRepository;
+        self.contacts = contacts
+    }
+
+    // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
+    private var activeConversation: Conversation {
+        viewModel.loadedConversation ?? conversation
     }
 
     var body: some View {
         VStack(spacing: 0) {
             messageList
+            errorBanner
             inputBar
         }
         .background(bgColor)
-        .navigationTitle(conversation.otherParticipant.name)
+        .navigationTitle(activeConversation.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             viewModel.loadMessages(conversationId: conversation.id)
         }
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
+        }
+        .alert("Conversation unavailable", isPresented: $viewModel.accessRevoked) {
+            Button("OK") {
+                // If GroupInfoView is open, close it first and let onDismiss pop the stack
+                // — popping while a sheet is presented would orphan the sheet.
+                if showGroupInfo {
+                    pendingDismiss = true
+                    showGroupInfo = false
+                } else {
+                    dismiss()
+                }
+            }
+        } message: {
+            Text(viewModel.accessRevokedMessage ?? "You no longer have access to this conversation.")
+        }
+        .toolbar {
+            if activeConversation.isGroup {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showGroupInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+        }
+        .sheet(
+            isPresented: $showGroupInfo,
+            onDismiss: {
+                if pendingDismiss {
+                    pendingDismiss = false
+                    dismiss()
+                }
+            }
+        ) {
+            GroupInfoView(
+                conversation: activeConversation,
+                currentUserId: viewModel.currentUserId,
+                contacts: contacts,
+                messagingRepository: messagingRepository,
+                onConversationChanged: {
+                    await viewModel.refreshMessages(conversationId: conversation.id)
+                },
+                onLeft: {
+                    pendingDismiss = true
+                }
+            )
         }
     }
 
@@ -70,7 +133,9 @@ struct ChatView: View {
                             } else {
                                 MessageBubbleView(
                                     message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId
+                                    isCurrentUser: message.senderId == viewModel.currentUserId,
+                                    showSenderName: shouldShowSenderName(for: message),
+                                    receiptText: receiptText(for: message)
                                 )
                                 .id(message.id)
                             }
@@ -86,6 +151,29 @@ struct ChatView: View {
             .onChange(of: viewModel.messages.count) { _ in
                 scrollToBottom(proxy: proxy)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var errorBanner: some View {
+        if let errorMessage = viewModel.errorMessage {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                Text(errorMessage)
+                    .lineLimit(2)
+                Spacer()
+                Button {
+                    viewModel.clearErrorMessage()
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .foregroundColor(.white)
+            }
+            .font(.system(size: 13, weight: .medium))
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.red.opacity(0.85))
         }
     }
 
@@ -134,6 +222,51 @@ struct ChatView: View {
         withAnimation(.easeOut(duration: 0.2)) {
             proxy.scrollTo(lastId, anchor: .bottom)
         }
+    }
+
+    private func shouldShowSenderName(for message: Message) -> Bool {
+        // Sender name above bubble for incoming messages in group chats only.
+        activeConversation.isGroup && message.senderId != viewModel.currentUserId
+    }
+
+    // Returns receipt text only for the most recent outgoing message; nil for everything else.
+    private func receiptText(for message: Message) -> String? {
+        guard message.senderId == viewModel.currentUserId else { return nil }
+        guard message.id == lastOutgoingMessageId else { return nil }
+
+        if activeConversation.isGroup {
+            return groupReceiptText(for: message)
+        }
+        return directReceiptText(for: message)
+    }
+
+    private var lastOutgoingMessageId: Int? {
+        viewModel.messages.last(where: { $0.senderId == viewModel.currentUserId })?.id
+    }
+
+    private func directReceiptText(for message: Message) -> String {
+        switch message.deliveryStatus {
+        case "seen":
+            return "Seen"
+        case "delivered":
+            return "Delivered"
+        default:
+            // Includes "sent" and the null case for an own outgoing message that has no recipient receipt yet.
+            return "Sent"
+        }
+    }
+
+    private func groupReceiptText(for message: Message) -> String? {
+        let readers = message.readBy ?? []
+        // No readers yet = "Sent" (matches the direct-chat treatment of an own outgoing message
+        // that hasn't reached anyone). Avoids leaving the bubble visually orphaned.
+        if readers.isEmpty {
+            return "Sent"
+        }
+        // Always list reader names. "Read by all" was unreliable when membership changed mid-conversation
+        // (old messages keep receipts from removed members, so the count comparison drifted).
+        let names = readers.map(\.name).joined(separator: ", ")
+        return "Read by \(names)"
     }
 
     // Polls for new messages every 5 seconds while this view is on screen.
