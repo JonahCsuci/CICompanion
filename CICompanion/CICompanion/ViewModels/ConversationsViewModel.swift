@@ -37,6 +37,16 @@ class ConversationsViewModel: ObservableObject {
         }
     }
 
+    // Silent background refresh used by polling — no spinner, no error banner on transient failures.
+    func refreshConversationsSilently() async {
+        do {
+            let loaded = try await messagingRepository.loadConversations()
+            conversations = sortedByRecent(loaded.filter { $0.lastMessageAt != nil })
+        } catch {
+            // Intentional: best-effort background refresh
+        }
+    }
+
     // Most recent conversations first; nil lastMessageAt sorts to bottom
     private func sortedByRecent(_ list: [Conversation]) -> [Conversation] {
         list.sorted { lhs, rhs in
