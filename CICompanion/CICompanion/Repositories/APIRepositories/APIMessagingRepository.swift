@@ -67,7 +67,12 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleErrorResponse(data: data, response: response)
 
-        return try JSONDecoder().decode([Conversation].self, from: data)
+        struct ConversationsResponse: Codable {
+            let conversations: [Conversation]
+        }
+
+        let wrapper = try JSONDecoder().decode(ConversationsResponse.self, from: data)
+        return wrapper.conversations
     }
 
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
@@ -145,20 +150,140 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
     }
     
     func loadMeetup(messageId: Int) async throws -> Message {
-        
+
         guard let url = URL(string: "\(baseURL)/meeting/\(messageId)") else {
             throw URLError(.badURL)
         }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        
+
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleMessagingResponse(data: data, response: response)
-        
+
         return try JSONDecoder().decode(Message.self, from: data)
     }
-    
+
+    func createGroupConversation(groupName: String, memberIds: [String], firstMessageBody: String) async throws -> Conversation {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/group") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "groupName": groupName,
+            "memberIds": memberIds,
+            "firstMessageBody": firstMessageBody
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+
+        return try JSONDecoder().decode(Conversation.self, from: data)
+    }
+
+    func addGroupParticipant(conversationId: Int, memberId: String) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/participants") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "memberId": memberId
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
+    func removeGroupParticipant(conversationId: Int, memberId: String) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/participants/\(memberId)") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
+    func leaveGroup(conversationId: Int) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/leave") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
+    func renameGroup(conversationId: Int, groupName: String) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/rename") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "groupName": groupName
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
+    func markDelivered(conversationId: Int) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/delivered") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
+    func markRead(conversationId: Int) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/read") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+    }
+
     private func authenticatedUserId() throws -> String {
         guard let userId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)

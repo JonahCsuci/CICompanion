@@ -4,12 +4,14 @@
 //
 
 import SwiftUI
-internal import ClientRuntime
 
 struct ChatView: View {
     @State var navigationActive = false
-    
+    @State private var showGroupInfo = false
+    @Environment(\.dismiss) private var dismiss
+
     @StateObject var viewModel: ChatViewModel
+    @ObservedObject var contactsViewModel: ContactsViewModel
     let conversation: Conversation
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
@@ -18,11 +20,12 @@ struct ChatView: View {
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contactsViewModel: ContactsViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
-        self.sessionManager = sessionManager;
-        self.messagingRepository = messagingRepository;
+        self.sessionManager = sessionManager
+        self.messagingRepository = messagingRepository
+        self.contactsViewModel = contactsViewModel
     }
 
     var body: some View {
@@ -31,21 +34,74 @@ struct ChatView: View {
             inputBar
         }
         .background(bgColor)
-        .navigationTitle(conversation.otherParticipant.name)
+        .navigationTitle(conversation.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        .toolbar {
+            if conversation.isGroup {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showGroupInfo = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+        }
         .task {
             viewModel.loadMessages(conversationId: conversation.id)
+            try? await messagingRepository.markRead(conversationId: conversation.id)
         }
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
+        }
+        .sheet(isPresented: $showGroupInfo) {
+            GroupInfoView(
+                conversation: conversation,
+                messagingRepository: messagingRepository,
+                contactsViewModel: contactsViewModel,
+                currentUserId: viewModel.currentUserId,
+                onConversationUpdated: {
+                    viewModel.loadMessages(conversationId: conversation.id)
+                },
+                onLeftGroup: {
+                    dismiss()
+                }
+            )
         }
     }
 
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                if viewModel.isLoading && viewModel.messages.isEmpty {
+                if viewModel.isForbidden {
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(.orange)
+
+                        Text(viewModel.errorMessage ?? "You no longer have access to this conversation")
+                            .font(.system(size: 16))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Back to Chats")
+                                .font(.system(size: ViewHelper.buttonTextSize, weight: .bold))
+                                .foregroundColor(ViewHelper.textImportant)
+                                .frame(width: ViewHelper.buttonWidth, height: ViewHelper.buttonHeight)
+                                .background(ViewHelper.accentBlue)
+                                .cornerRadius(ViewHelper.componentRounding)
+                        }
+                        .padding(.top, ViewHelper.biggerSpacing)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.top, 100)
+                } else if viewModel.isLoading && viewModel.messages.isEmpty {
                     ProgressView()
                         .tint(.white)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -57,20 +113,25 @@ struct ChatView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, 100)
                 } else {
+                    let latestOutgoingId = viewModel.latestOutgoingMessageId
+
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            if (viewModel.getMeeting(body: message.body) != "") {
+                            let meetingJSON = viewModel.getMeeting(body: message.body)
+                            if !meetingJSON.isEmpty {
                                 MeetingBubbleView(
                                     message: message,
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    json: viewModel.getMeeting(body: message.body),
+                                    json: meetingJSON,
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository
                                 )
                             } else {
                                 MessageBubbleView(
                                     message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId
+                                    isCurrentUser: message.senderId == viewModel.currentUserId,
+                                    isLatestOutgoing: message.id == latestOutgoingId,
+                                    conversationType: conversation.conversationType
                                 )
                                 .id(message.id)
                             }
@@ -122,6 +183,8 @@ struct ChatView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(Color(red: 0.10, green: 0.12, blue: 0.18))
+        .disabled(viewModel.isForbidden)
+        .opacity(viewModel.isForbidden ? 0.5 : 1.0)
     }
 
     private var sendButtonDisabled: Bool {
@@ -136,13 +199,13 @@ struct ChatView: View {
         }
     }
 
-    // Polls for new messages every 5 seconds while this view is on screen.
-    // SwiftUI cancels this .task automatically when the view disappears.
     private func pollForNewMessages() async {
         while !Task.isCancelled {
             try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { break }
             await viewModel.refreshMessages(conversationId: conversation.id)
+            guard !viewModel.isForbidden else { break }
+            try? await messagingRepository.markDelivered(conversationId: conversation.id)
         }
     }
 }

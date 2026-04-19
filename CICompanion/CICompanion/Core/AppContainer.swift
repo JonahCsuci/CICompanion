@@ -61,4 +61,8 @@ class AppContainer {
     lazy var conversationsViewModel = ConversationsViewModel(
         messagingRepository: messagingRepository
     )
+
+    lazy var contactsViewModel = ContactsViewModel(
+        studentRepository: studentRepository
+    )
 }

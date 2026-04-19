@@ -5,14 +5,31 @@
 
 import SwiftUI
 
+private enum MessagesViewFormatters {
+    static let iso8601WithFractionalSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter
+    }()
+
+    static let iso8601: ISO8601DateFormatter = ISO8601DateFormatter()
+
+    static let relative: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+}
+
 struct MessagesView: View {
 
     @StateObject var viewModel: ConversationsViewModel
-    @StateObject private var contactsViewModel: ContactsViewModel
+    @ObservedObject var contactsViewModel: ContactsViewModel
     @ObservedObject var sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
 
     @State private var showNewChat = false
+    @State private var showNewGroup = false
     @State private var showAddContact = false
     @State private var showSignIn = false
     @State private var navigationPath = NavigationPath()
@@ -25,14 +42,12 @@ struct MessagesView: View {
 
     init(
         viewModel: ConversationsViewModel,
-        studentRepository: StudentRepositoryProtocol,
+        contactsViewModel: ContactsViewModel,
         messagingRepository: MessagingRepositoryProtocol,
         sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        _contactsViewModel = StateObject(
-            wrappedValue: ContactsViewModel(studentRepository: studentRepository)
-        )
+        self.contactsViewModel = contactsViewModel
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
     }
@@ -82,11 +97,15 @@ struct MessagesView: View {
                 ChatView(
                     viewModel: ChatViewModel(
                         messagingRepository: messagingRepository,
-                        currentUserId: sessionManager.userId ?? ""
+                        currentUserId: sessionManager.userId ?? "",
+                        onMessageSent: { [weak viewModel] in
+                            viewModel?.loadConversations()
+                        }
                     ),
                     conversation: conversation,
                     sessionManager: sessionManager,
-                    messagingRepository: messagingRepository
+                    messagingRepository: messagingRepository,
+                    contactsViewModel: contactsViewModel
                 )
             }
         }
@@ -101,6 +120,10 @@ struct MessagesView: View {
                 mode = .chats
             }
         }
+        .task(id: sessionManager.isSignedIn) {
+            guard sessionManager.isSignedIn else { return }
+            await pollConversations()
+        }
         .onChange(of: mode) { _, newValue in
             guard sessionManager.isSignedIn, newValue == .contacts else { return }
 
@@ -110,8 +133,19 @@ struct MessagesView: View {
         }
         .sheet(isPresented: $showNewChat) {
             NewChatView(
+                contactsViewModel: contactsViewModel,
                 messagingRepository: messagingRepository,
                 onConversationCreated: { conversation in
+                    viewModel.loadConversations()
+                    navigationPath.append(conversation)
+                }
+            )
+        }
+        .sheet(isPresented: $showNewGroup) {
+            NewGroupView(
+                contactsViewModel: contactsViewModel,
+                messagingRepository: messagingRepository,
+                onGroupCreated: { conversation in
                     viewModel.loadConversations()
                     navigationPath.append(conversation)
                 }
@@ -139,17 +173,33 @@ struct MessagesView: View {
                 Spacer()
 
                 if sessionManager.isSignedIn {
-                    Button {
-                        if mode == .chats {
-                            showNewChat = true
-                        } else {
+                    if mode == .chats {
+                        Menu {
+                            Button {
+                                showNewChat = true
+                            } label: {
+                                Label("New Chat", systemImage: "message")
+                            }
+
+                            Button {
+                                showNewGroup = true
+                            } label: {
+                                Label("New Group", systemImage: "person.3")
+                            }
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    } else {
+                        Button {
                             contactsViewModel.clearError()
                             showAddContact = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
                         }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
                     }
                 }
             }
@@ -218,9 +268,17 @@ struct MessagesView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Text("No conversations yet")
-                .font(.system(size: 18))
-                .foregroundColor(.gray)
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 16))
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            } else {
+                Text("No conversations yet")
+                    .font(.system(size: 18))
+                    .foregroundColor(.gray)
+            }
 
             Button {
                 showNewChat = true
@@ -325,19 +383,20 @@ struct MessagesView: View {
 
     private func conversationRow(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
-            // Accent bar from mockup
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBar)
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text(conversation.otherParticipant.name)
+                    Text(conversation.displayTitle)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
                         .lineLimit(1)
 
-                    if contactsViewModel.isContact(studentId: conversation.otherParticipant.id) {
+                    if !conversation.isGroup,
+                       let otherParticipant = conversation.otherParticipant,
+                       contactsViewModel.isContact(studentId: otherParticipant.id) {
                         Text("Contact")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(accentBar)
@@ -350,18 +409,43 @@ struct MessagesView: View {
                     }
                 }
 
-                Text(previewText(for: conversation))
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(previewText(for: conversation))
+                        .font(.system(size: 14))
+                        .foregroundColor(.gray)
+                        .lineLimit(1)
+
+                    if conversation.isGroup, let participants = conversation.participants {
+                        Text("•")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray.opacity(0.5))
+                        Text("\(participants.count) members")
+                            .font(.system(size: 12))
+                            .foregroundColor(.gray.opacity(0.8))
+                    }
+                }
             }
 
             Spacer()
 
-            if let timeString = conversation.lastMessageAt {
-                Text(relativeTime(from: timeString))
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
+            VStack(alignment: .trailing, spacing: 4) {
+                if let timeString = conversation.lastMessageAt {
+                    Text(relativeTime(from: timeString))
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
+
+                if let unreadCount = conversation.unreadCount, unreadCount > 0 {
+                    ZStack {
+                        Circle()
+                            .fill(buttonBlue)
+                            .frame(width: 20, height: 20)
+
+                        Text("\(min(unreadCount, 99))")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -409,18 +493,19 @@ struct MessagesView: View {
     }
 
     private func relativeTime(from isoString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let date = MessagesViewFormatters.iso8601WithFractionalSeconds.date(from: isoString)
+            ?? MessagesViewFormatters.iso8601.date(from: isoString)
+        guard let date else { return "" }
+        return MessagesViewFormatters.relative.localizedString(for: date, relativeTo: Date())
+    }
 
-        // Try with fractional seconds first, then without
-        guard let date = formatter.date(from: isoString)
-                ?? ISO8601DateFormatter().date(from: isoString) else {
-            return ""
+    private func pollConversations() async {
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .seconds(5))
+            guard !Task.isCancelled else { break }
+            guard sessionManager.isSignedIn else { break }
+            viewModel.loadConversations()
         }
-
-        let relative = RelativeDateTimeFormatter()
-        relative.unitsStyle = .abbreviated
-        return relative.localizedString(for: date, relativeTo: Date())
     }
 }
 

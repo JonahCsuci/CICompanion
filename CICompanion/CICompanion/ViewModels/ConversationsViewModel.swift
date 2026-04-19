@@ -26,11 +26,16 @@ class ConversationsViewModel: ObservableObject {
         Task {
             do {
                 let loaded = try await messagingRepository.loadConversations()
-                conversations = sortedByRecent(loaded.filter { $0.lastMessageAt != nil })
+                let sorted = sortedByRecent(loaded)
+                if sorted != conversations {
+                    conversations = sorted
+                }
                 isLoading = false
             } catch {
-                conversations = []
-                errorMessage = "Unable to load conversations."
+                if !conversations.isEmpty {
+                    conversations = []
+                }
+                errorMessage = "Unable to load conversations: \(error.localizedDescription)"
                 isLoading = false
                 print("Error loading conversations:", error)
             }

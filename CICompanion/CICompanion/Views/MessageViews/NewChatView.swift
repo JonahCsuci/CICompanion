@@ -7,15 +7,15 @@ import SwiftUI
 
 struct NewChatView: View {
 
+    @ObservedObject var contactsViewModel: ContactsViewModel
     let messagingRepository: MessagingRepositoryProtocol
     let onConversationCreated: (Conversation) -> Void
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var students: [Participant] = []
-    @State private var isLoading = true
     @State private var isCreating = false
     @State private var searchText = ""
+    @State private var errorMessage: String?
 
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     private let cardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
@@ -25,15 +25,39 @@ struct NewChatView: View {
             ZStack {
                 bgColor.ignoresSafeArea()
 
-                if isLoading {
+                if contactsViewModel.isLoading {
                     ProgressView()
                         .tint(.white)
-                } else if filteredStudents.isEmpty {
-                    Text("No students found")
+                } else if contactsViewModel.contacts.isEmpty {
+                    VStack(spacing: 12) {
+                        Text("No contacts yet")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 16))
+                        Text("Add contacts from the Contacts tab to start chatting")
+                            .foregroundColor(.gray.opacity(0.7))
+                            .font(.system(size: 14))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 40)
+                    }
+                } else if filteredContacts.isEmpty {
+                    Text("No contacts match your search")
                         .foregroundColor(.gray)
                         .font(.system(size: 16))
                 } else {
-                    studentList
+                    contactList
+                }
+
+                if let errorMessage {
+                    VStack {
+                        Spacer()
+                        Text(errorMessage)
+                            .font(.system(size: ViewHelper.smallTextSize))
+                            .foregroundColor(ViewHelper.accentRed)
+                            .multilineTextAlignment(.center)
+                            .padding(ViewHelper.padding)
+                            .frame(maxWidth: .infinity)
+                            .background(ViewHelper.fieldBgColor)
+                    }
                 }
             }
             .navigationTitle("New Chat")
@@ -45,10 +69,7 @@ struct NewChatView: View {
                         .foregroundColor(.white)
                 }
             }
-            .searchable(text: $searchText, prompt: "Search students")
-            .task {
-                await loadStudents()
-            }
+            .searchable(text: $searchText, prompt: "Search contacts")
             .disabled(isCreating)
             .overlay {
                 if isCreating {
@@ -63,16 +84,16 @@ struct NewChatView: View {
         .preferredColorScheme(.dark)
     }
 
-    private var studentList: some View {
-        List(filteredStudents) { student in
+    private var contactList: some View {
+        List(filteredContacts) { contact in
             Button {
-                startConversation(with: student)
+                startConversation(with: contact)
             } label: {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(student.name)
+                    Text(contact.name)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(.white)
-                    Text(student.email)
+                    Text(contact.email)
                         .font(.system(size: 13))
                         .foregroundColor(.gray)
                 }
@@ -84,36 +105,29 @@ struct NewChatView: View {
         .scrollContentBackground(.hidden)
     }
 
-    private var filteredStudents: [Participant] {
-        guard !searchText.isEmpty else { return students }
+    private var filteredContacts: [ContactStudent] {
+        guard !searchText.isEmpty else { return contactsViewModel.contacts }
         let query = searchText.lowercased()
-        return students.filter {
+        return contactsViewModel.contacts.filter {
             $0.name.lowercased().contains(query) || $0.email.lowercased().contains(query)
         }
     }
 
-    private func loadStudents() async {
-        do {
-            students = try await messagingRepository.loadAllStudents()
-            isLoading = false
-        } catch {
-            isLoading = false
-            print("Error loading students:", error)
-        }
-    }
-
-    private func startConversation(with student: Participant) {
+    private func startConversation(with contact: ContactStudent) {
         isCreating = true
+        errorMessage = nil
 
         Task {
             do {
                 let conversation = try await messagingRepository.createOrGetDirectConversation(
-                    otherStudentId: student.id
+                    otherStudentId: contact.id
                 )
+                isCreating = false
                 dismiss()
                 onConversationCreated(conversation)
             } catch {
                 isCreating = false
+                errorMessage = error.localizedDescription
                 print("Error creating conversation:", error)
             }
         }
