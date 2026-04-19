@@ -90,6 +90,19 @@ struct ProposeMeetingView: View {
                 
                 CIText("\(proposal.studyRoomID != nil ? "Study room available: \(proposal.studyRoom())" : "Study room not available")")
                 
+                if (proposal.studyRoomID != nil) {
+                    Link(destination: URL(string: "https://csuci.libcal.com/space/\(proposal.studyRoomID!)")!) {
+                        HStack {
+                            Image(systemName: "link").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                .foregroundColor(ViewHelper.textImportant)
+                            CIText("Book study room", fontWeight: .bold)
+                        }
+                    }
+                    .padding(ViewHelper.padding)
+                    .background(ViewHelper.accentBlue)
+                    .cornerRadius(ViewHelper.componentRounding)
+                }
+                
                 CIText("\(time.peopleAvailable.count) / \(meet.respondees.count) \((time.peopleAvailable.count == 1) ? "person" : "people") available")
                 
                 Button {
