@@ -33,10 +33,14 @@ class DateHelper {
         return formatter.string(from: date)
     }
     
-    public static func dateToDayString(_ date: Date) -> String {
+    public static func dateToDayString(_ date: Date, _ short: Bool = false) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "EEEE MMM d"
+        if short {
+            formatter.dateFormat = "MMM d"
+        } else {
+            formatter.dateFormat = "EEEE MMM d"
+        }
         
         return formatter.string(from: date)
     }

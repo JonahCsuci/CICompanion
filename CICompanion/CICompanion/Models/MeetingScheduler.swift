@@ -9,13 +9,15 @@ import Foundation
 
 struct MeetingScheduler: Identifiable, Codable {
     // stuff that needs to save and get loaded in database
-    var availableTimeRanges : [TimeRange]
+    var availableTimeRanges : [TimeRange] = []
     var daysAllowed : [Date]
     var timeBlockMinutes = 60
     var id = UUID()
     var startTime: Int
     var endTime: Int
     var conversationID: Int
+    var title: String
+    var respondees: Set<String> = Set()
     
     // other stuff, don't worry about this sergio
     private var calendar: Calendar { .current }
@@ -26,143 +28,100 @@ struct MeetingScheduler: Identifiable, Codable {
         }
     }
     
-    init(
-        availableTimeRanges: [TimeRange] = [],
-        daysAllowed: [Date],
-        timeBlockMinutes: Int = 60,
-        startTime: Int,
-        endTime: Int,
-        conversationID: Int
-    ) {
-        self.availableTimeRanges = availableTimeRanges
-        self.daysAllowed = daysAllowed
-        self.timeBlockMinutes = timeBlockMinutes
-        self.startTime = startTime
-        self.endTime = endTime
-        self.conversationID = conversationID
-    }
-    
-    func bestTimes(studyRoomTimes: [TimeRange]) -> [TimeRange] {
-        var slots: [TimeRange: TimeRange] = [:]
-        var peoplePerSlot: [TimeRange: Set<String>] = [:]
+    func bestTimes(studyRooms: [Int: [TimeRange]]) -> [MeetingProposal] {
+        let mergedStudyRooms = mergeStudyRooms(studyRooms)
+        var results: [MeetingProposal] = []
 
         for day in daysAllowed {
-            for range in timeRangesForDay(date: day) {
-                for i in stride(from: range.startTime, to: range.endTime, by: timeBlockMinutes) {
-                    let key = TimeRange(
-                        startTime: i,
-                        endTime: i + timeBlockMinutes,
-                        userID: "",
-                        day: day
-                    )
+            var dayProposals: [MeetingProposal] = []
 
-                    if slots[key] == nil {
-                        slots[key] = TimeRange(
-                            startTime: i,
-                            endTime: i + timeBlockMinutes,
-                            userID: "",
-                            day: day,
-                            isStudyRoomAvailable: false,
-                            peopleAvailable: 0
-                        )
-                    }
+            for slotStart in stride(from: startTime, to: endTime - timeBlockMinutes + 1, by: timeBlockMinutes) {
+                let slotEnd = slotStart + timeBlockMinutes
 
-                    peoplePerSlot[key, default: []].insert(range.userID)
-                    var slot = slots[key] ?? TimeRange(
-                        startTime: i,
-                        endTime: i + timeBlockMinutes,
-                        userID: "",
+                let availablePeople = timeRangesForDay(date: day)
+                    .filter { $0.startTime <= slotStart && $0.endTime >= slotEnd }
+                    .reduce(into: Set<String>()) { $0.formUnion($1.peopleAvailable) }
+
+                let matchingRoomID = mergedStudyRooms.first { _, roomTimes in
+                    roomTimes
+                        .filter { calendar.isDate($0.day, inSameDayAs: day) }
+                        .contains { $0.startTime <= slotStart && $0.endTime >= slotEnd }
+                }?.key
+
+                if let last = dayProposals.last,
+                   last.timeRange.endTime == slotStart,
+                   last.timeRange.peopleAvailable == availablePeople,
+                   last.studyRoomID == matchingRoomID {
+                    let extended = TimeRange(
+                        startTime: last.timeRange.startTime,
+                        endTime: slotEnd,
                         day: day,
-                        isStudyRoomAvailable: false,
-                        peopleAvailable: 0
+                        isStudyRoomAvailable: matchingRoomID != nil,
+                        peopleAvailable: availablePeople
                     )
-
-                    peoplePerSlot[key, default: []].insert(range.userID)
-                    slot.peopleAvailable = peoplePerSlot[key]!.count
-                    slots[key] = slot
-                }
-            }
-            
-            for range in studyRoomTimes {
-                if !calendar.isDate(range.day, inSameDayAs: day) {
-                    continue
-                }
-
-                for i in stride(from: range.startTime, to: range.endTime, by: timeBlockMinutes) {
-                    let key = TimeRange(
-                        startTime: i,
-                        endTime: i + timeBlockMinutes,
-                        userID: "",
-                        day: day
+                    dayProposals[dayProposals.count - 1] = MeetingProposal(
+                        timeRange: extended,
+                        conversationID: conversationID,
+                        title: title,
+                        respondees: Set(),
+                        studyRoomID: matchingRoomID
                     )
-
-                    if slots[key] == nil {
-                        slots[key] = TimeRange(
-                            startTime: i,
-                            endTime: i + timeBlockMinutes,
-                            userID: "",
+                } else {
+                    dayProposals.append(MeetingProposal(
+                        timeRange: TimeRange(
+                            startTime: slotStart,
+                            endTime: slotEnd,
                             day: day,
-                            isStudyRoomAvailable: true,
-                            peopleAvailable: 0
-                        )
-                    } else {
-                        var slot = slots[key] ?? TimeRange(
-                            startTime: i,
-                            endTime: i + timeBlockMinutes,
-                            userID: "",
-                            day: day,
-                            isStudyRoomAvailable: true,
-                            peopleAvailable: 0
-                        )
-
-                        slot.isStudyRoomAvailable = true
-                        slots[key] = slot
-                    }
+                            isStudyRoomAvailable: matchingRoomID != nil,
+                            peopleAvailable: availablePeople
+                        ),
+                        conversationID: conversationID,
+                        title: title,
+                        respondees: Set(),
+                        studyRoomID: matchingRoomID
+                    ))
                 }
             }
+
+            results.append(contentsOf: dayProposals)
         }
 
-        let sortedSlots = slots.values.sorted {
-            if calendar.isDate($0.day, inSameDayAs: $1.day) {
-                return $0.startTime < $1.startTime
+        return results.sorted {
+            let lhs = $0.timeRange
+            let rhs = $1.timeRange
+
+            if lhs.peopleAvailable.count != rhs.peopleAvailable.count {
+                return lhs.peopleAvailable.count > rhs.peopleAvailable.count
             }
-            return $0.day < $1.day
+            if lhs.isStudyRoomAvailable != rhs.isStudyRoomAvailable {
+                return lhs.isStudyRoomAvailable && !rhs.isStudyRoomAvailable
+            }
+            if !calendar.isDate(lhs.day, inSameDayAs: rhs.day) {
+                return lhs.day < rhs.day
+            }
+            return lhs.startTime < rhs.startTime
         }
+    }
 
-        var merged: [TimeRange] = []
-
-        for time in sortedSlots {
-            if let last = merged.last,
-               calendar.isDate(last.day, inSameDayAs: time.day),
-               time.startTime == last.endTime,
-               time.peopleAvailable == last.peopleAvailable,
-               time.isStudyRoomAvailable == last.isStudyRoomAvailable {
-                merged[merged.count - 1].endTime = time.endTime
-            } else {
-                merged.append(time)
+    private func mergeStudyRooms(_ studyRooms: [Int: [TimeRange]]) -> [Int: [TimeRange]] {
+        var merged: [Int: [TimeRange]] = [:]
+        for (roomID, roomTimes) in studyRooms {
+            var mergedTimes: [TimeRange] = []
+            for roomTime in roomTimes.sorted(by: { $0.startTime < $1.startTime }) {
+                if let last = mergedTimes.last, last.endTime >= roomTime.startTime {
+                    mergedTimes[mergedTimes.count - 1] = TimeRange(
+                        startTime: last.startTime,
+                        endTime: max(last.endTime, roomTime.endTime),
+                        day: last.day,
+                        isStudyRoomAvailable: true,
+                        peopleAvailable: last.peopleAvailable
+                    )
+                } else {
+                    mergedTimes.append(roomTime)
+                }
             }
+            merged[roomID] = mergedTimes
         }
-
-        return merged.sorted {
-            if $0.peopleAvailable != $1.peopleAvailable {
-                return $0.peopleAvailable > $1.peopleAvailable
-            }
-
-            if $0.isStudyRoomAvailable != $1.isStudyRoomAvailable {
-                return $0.isStudyRoomAvailable && !$1.isStudyRoomAvailable
-            }
-
-            let duration0 = $0.endTime - $0.startTime
-            let duration1 = $1.endTime - $1.startTime
-            if duration0 != duration1 {
-                return duration0 > duration1
-            }
-
-            if !calendar.isDate($0.day, inSameDayAs: $1.day) {
-                return $0.day < $1.day
-            }
-
-            return $0.startTime < $1.startTime
-        }
+        return merged
     }
 }

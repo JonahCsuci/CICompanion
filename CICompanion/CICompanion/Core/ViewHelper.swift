@@ -307,18 +307,24 @@ struct CITextButton: View {
 struct CIText: View {
     var text: String
     var color: Color
+    var fontSize: CGFloat
+    var fontWeight: Font.Weight
     
     init (
         _ text: String,
-        _ color: Color
+        color: Color = ViewHelper.textImportant,
+        fontSize: CGFloat = ViewHelper.textSize,
+        fontWeight: Font.Weight = .regular
     ) {
         self.text = text
         self.color = color
+        self.fontSize = fontSize
+        self.fontWeight = fontWeight
     }
     
     var body: some View {
         Text(text)
-            .font(.system(size: ViewHelper.textSize))
+            .font(.system(size: fontSize, weight: fontWeight))
             .foregroundColor(color)
             .lineLimit(1)
     }
@@ -337,7 +343,7 @@ struct CIDateField: View {
             showPicker.toggle()
         } label: {
             HStack {
-                CIText(formattedDate, .white)
+                CIText(formattedDate, color: .white)
                     .font(Font.system(size: ViewHelper.smallTextSize))
                 Spacer()
                 Image(systemName: "chevron.down")
@@ -373,7 +379,7 @@ struct CITimeField: View {
             showPicker.toggle()
         } label: {
             HStack {
-                CIText(formattedDate, .white)
+                CIText(formattedDate, color: .white)
                     .font(Font.system(size: ViewHelper.smallTextSize))
                 Spacer()
                 Image(systemName: "chevron.down")
@@ -424,7 +430,7 @@ struct CIDropDown: View {
             }
         }, label: {
             HStack {
-                CIText(selectedItem, .white)
+                CIText(selectedItem, color: .white)
 
                 Spacer()
 
@@ -510,11 +516,11 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
                     .padding(.trailing, 10)
                 
                 VStack(alignment: .leading, spacing: ViewHelper.spacing / 2) {
-                    CIText(title, color)
+                    CIText(title, color: color)
                         .font(.system(size: ViewHelper.textSize * 1.5, weight: .bold))
                     
                     HStack(spacing: ViewHelper.spacing) {
-                        CIText(subtitle, ViewHelper.text)
+                        CIText(subtitle, color: ViewHelper.text)
                             .font(.system(size: ViewHelper.smallTextSize))
                     }
                 }
@@ -548,6 +554,8 @@ class ViewHelper {
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
+    public static let currentUserColor = Color(red: 0.329, green: 0.431, blue: 1)
+    public static let otherUserColor = Color(red: 0.769, green: 0.306, blue: 0.984)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0

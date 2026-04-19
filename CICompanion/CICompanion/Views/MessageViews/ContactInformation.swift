@@ -38,7 +38,7 @@ struct ContactInformation: View {
                         
                     
                     if selectedStudentCourses.isEmpty {
-                        CIText("No courses found", ViewHelper.text)
+                        CIText("No courses found", color: ViewHelper.text)
                     } else {
                         ForEach(selectedStudentCourses, id: \.id) { course in
                             CIDropDownCard(

@@ -405,6 +405,11 @@ struct MessagesView: View {
         guard let preview = conversation.lastMessagePreview, !preview.isEmpty else {
             return "No messages yet"
         }
+        
+        if let meetingScheduler = messagingRepository.getMeeting(body: preview) {
+            return "Scheduling a meeting: \(meetingScheduler.title)"
+        }
+        
         return preview
     }
 

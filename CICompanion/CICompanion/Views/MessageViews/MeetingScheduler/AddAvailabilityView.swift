@@ -93,13 +93,11 @@ struct AddAvailabilityView: View {
                                 range: TimeRange(
                                     startTime: range,
                                     endTime: range + viewModel.meetingScheduler.timeBlockMinutes,
-                                    userID: viewModel.sessionManager.userId ?? "",
                                     day: day
                                 )
                             )
                             
                             Button {
-                                print("hi")
                                 if (selectedBlocks.contains(block)) {
                                     selectedBlocks.remove(block)
                                 } else {
@@ -125,11 +123,11 @@ struct AddAvailabilityView: View {
         ZStack {
             CIView {
                 CIPageTitle("Share your availabilities")
-                CIText("Swipe to add or remove availabilities.", ViewHelper.accentBlue)
+                CIText("Swipe to add or remove availabilities.", color: ViewHelper.accentBlue)
                 
                 ScrollView([.vertical, .horizontal]) {
                     grid()
-                }.padding(ViewHelper.padding).background(.black.opacity(0.1))
+                }.padding(ViewHelper.padding).background(.black.opacity(ViewHelper.opacity))
                     .cornerRadius(ViewHelper.componentRounding)
                 
                 Spacer()
@@ -156,7 +154,7 @@ struct AddAvailabilityView: View {
                         .foregroundColor(ViewHelper.textImportant)
                         .padding(ViewHelper.padding * 1.5)
                         .background(ViewHelper.accentBlue)
-                        .cornerRadius(32)
+                        .cornerRadius(ViewHelper.componentRounding * 2)
                         .padding(.trailing, ViewHelper.padding * 2)
                     }
                 }

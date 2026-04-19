@@ -59,11 +59,19 @@ struct ChatView: View {
                 } else {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            if (viewModel.getMeeting(body: message.body) != "") {
+                            if let prop = messagingRepository.getMeetingProposal(body: message.body) {
+                                MeetingProposalBubbleView(
+                                    message: message,
+                                    isCurrentUser: message.senderId == viewModel.currentUserId,
+                                    proposal: prop,
+                                    sessionManager: sessionManager,
+                                    messagingRepository: messagingRepository
+                                )
+                            } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(
                                     message: message,
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    json: viewModel.getMeeting(body: message.body),
+                                    meetingScheduler: meetingScheduler,
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository
                                 )

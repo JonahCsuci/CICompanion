@@ -13,60 +13,116 @@ struct MeetingBubbleView: View {
     let messagingRepository : MessagingRepositoryProtocol
     
     @State var navigationActive = false
-    
-    init (
-        message: Message,
-        isCurrentUser: Bool,
-        json: String,
-        sessionManager : SessionManager,
-        messagingRepository : MessagingRepositoryProtocol
-    ) {
-        self.message = message
-        self.isCurrentUser = isCurrentUser
-        do {
-            self.meetingScheduler = try JSONDecoder().decode(MeetingScheduler.self, from: json.data(using: .utf8)!)
-        } catch {
-            self.meetingScheduler = MeetingScheduler(availableTimeRanges: [], daysAllowed: [], timeBlockMinutes: 0, startTime: 0, endTime: 0, conversationID: 0)
-        }
-        
-        self.sessionManager = sessionManager
-        self.messagingRepository = messagingRepository
-    }
 
-    private let currentUserColor = Color(red: 0.30, green: 0.50, blue: 0.85)
-    private let otherUserColor = Color(red: 0.55, green: 0.25, blue: 0.85)
-
-    var body: some View {
-        HStack {
-            if isCurrentUser { Spacer(minLength: 60) }
-
-            NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive]), isActive: $navigationActive) {
-                VStack {
-                    Text("Meeting Scheduler")
-                        .font(.system(size: 20).weight(.semibold))
-                    Text("Please click to add availability")
-                    let bestTimes = meetingScheduler.bestTimes(studyRoomTimes: [])
-                    if (bestTimes.isEmpty) {
-                        Text("No best times available")
-                    } else {
-                        Text("Best time: " +
-                             DateHelper.minutesToTimeString(bestTimes[0].startTime) +
-                             " to " +
-                             DateHelper.minutesToTimeString(bestTimes[0].endTime) +
-                             " on " +
-                             DateHelper.dateToDayString(bestTimes[0].day)
-                        )
-                        Text("People available: " + String(bestTimes[0].peopleAvailable))
+    var alreadyResponded: some View {
+        VStack {
+            Divider()
+                .background(ViewHelper.textImportant)
+            CIText("You have responded already")
+            HStack {
+                NavigationLink(
+                    destination: MeetingDetailsView(
+                        navigationsActive: [$navigationActive],
+                        messageId: message.id,
+                        meetingScheduler: meetingScheduler,
+                        sessionManager: sessionManager,
+                        messagingRepository: messagingRepository
+                    ),
+                    isActive: $navigationActive
+                ) {
+                    HStack{
+                        Image(systemName: "text.page")
+                        CIText("Details", fontWeight: .semibold)
                     }
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(isCurrentUser ? currentUserColor : otherUserColor)
+                .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+                .cornerRadius(16)
+                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive], messagingRepository: messagingRepository), isActive: $navigationActive) {
+                    HStack{
+                        Image(systemName: "calendar")
+                        CIText("Propose a time", fontWeight: .semibold)
+                    }
+                }
+                .foregroundColor(.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
                 .cornerRadius(16)
             }
+        }
+    }
+    
+    var noResponse: some View {
+        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive]), isActive: $navigationActive) {
+            HStack{
+                Image(systemName: "plus")
+                CIText("Add your availabilities", fontWeight: .semibold)
+            }
+        }
+        .foregroundColor(.white)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+        .cornerRadius(16)
+    }
+    
+    var body: some View {
+        HStack {
+            if isCurrentUser { Spacer(minLength: 60) }
+            
+            VStack {
+                CIText("\(meetingScheduler.title)", fontSize: 20, fontWeight: .semibold)
+                
+                if let startDate = meetingScheduler.daysAllowed.first {
+                    if let endDate = meetingScheduler.daysAllowed.last {
+                        CIText("Scheduling from \(DateHelper.dateToDayString(startDate, true)) to \(DateHelper.dateToDayString(endDate, true))")
+                    }
+                }
+                
+                if sessionManager.userId != nil && meetingScheduler.respondees.contains(sessionManager.userId!) {
+                    alreadyResponded
+                } else {
+                    noResponse
+                }
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(isCurrentUser ? ViewHelper.currentUserColor : ViewHelper.otherUserColor)
+            .cornerRadius(16)
 
             if !isCurrentUser { Spacer(minLength: 60) }
         }
     }
+}
+
+#Preview {
+    var sessionManager =  SessionManager()
+    
+    MeetingBubbleView(
+        message: Message(
+            id: 12,
+            conversationId: 12,
+            senderId: "",
+            senderName: "",
+            body: "",
+            createdAt: ""
+        ),
+        isCurrentUser: true,
+        meetingScheduler: MeetingScheduler(
+            daysAllowed: [Date()],
+            startTime: 450,
+            endTime: 600,
+            conversationID: 12,
+            title: "CSUCI Study Session",
+            respondees: Set(["myid"])
+        ),
+        sessionManager: sessionManager,
+        messagingRepository: APIMessagingRepository(
+                sessionManager: sessionManager
+        )
+    )
 }

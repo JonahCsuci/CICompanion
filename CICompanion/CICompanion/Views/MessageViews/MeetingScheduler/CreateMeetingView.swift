@@ -20,6 +20,8 @@ struct CreateMeetingView: View {
     var conversationID : Int
     var messagingRepository : MessagingRepositoryProtocol
     
+    @State var title : String = ""
+    
     var body: some View {
         CIView(heading: {
             CIHeader {
@@ -29,32 +31,34 @@ struct CreateMeetingView: View {
             VStack(alignment: .leading, spacing: ViewHelper.spacing * 2) {
                 Divider()
                 
+                CITextField(placeholder: "Title of meeting", text: $title, lines: 1)
+                
                 HStack(spacing:0) {
-                    CIText("What range of ", ViewHelper.text)
-                    CIText("days", ViewHelper.accentBlue)
+                    CIText("What range of ", color: ViewHelper.text)
+                    CIText("days", color: ViewHelper.accentBlue)
                         .bold()
-                    CIText(" will the scheduler allow?", ViewHelper.text)
+                    CIText(" will the scheduler allow?", color: ViewHelper.text)
                 }
                 HStack(spacing: ViewHelper.spacing*2) {
                     CIDateField(date: $startDate)
                     
-                    CIText("to", ViewHelper.text)
+                    CIText("to", color: ViewHelper.text)
                         .fixedSize()
                     
                     CIDateField(date: $endDate)
                 }
                 
                 HStack(spacing: 0) {
-                    CIText("What range of ", ViewHelper.text)
-                    CIText("times", ViewHelper.accentBlue)
+                    CIText("What range of ", color: ViewHelper.text)
+                    CIText("times", color: ViewHelper.accentBlue)
                         .bold()
-                    CIText(" will the scheduler allow?", ViewHelper.text)
+                    CIText(" will the scheduler allow?", color: ViewHelper.text)
                 }
                 
                 HStack(spacing: ViewHelper.spacing*2) {
                     CITimeField(time: $startTime)
                     
-                    CIText("to", ViewHelper.text)
+                    CIText("to", color: ViewHelper.text)
                     
                     CITimeField(time: $endTime)
                 }
@@ -72,7 +76,11 @@ struct CreateMeetingView: View {
                             AddAvailabilityView(
                                 viewModel: AddAvailabilityViewModel(
                                     meetingScheduler: MeetingScheduler(
-                                        daysAllowed: DateHelper.datesFromNowToThen(startDate, endDate), startTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(startTime)) ?? 0, endTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0, conversationID: conversationID
+                                        daysAllowed: DateHelper.datesFromNowToThen(startDate, endDate),
+                                        startTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(startTime)) ?? 0,
+                                        endTime: DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0,
+                                        conversationID: conversationID,
+                                        title: title
                                     ),
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository
