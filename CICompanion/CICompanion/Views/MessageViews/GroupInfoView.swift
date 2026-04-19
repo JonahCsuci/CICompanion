@@ -28,6 +28,25 @@ struct GroupInfoView: View {
 
     private let maxMembers = 5
 
+    private let memberTitleSpacing: CGFloat = 6
+    private let memberContentSpacing: CGFloat = 3
+    private let adminBadgeTextSize: CGFloat = 10
+    private let adminBadgeHorizontalPadding: CGFloat = 7
+    private let adminBadgeVerticalPadding: CGFloat = 2
+    private let adminBadgeStrokeOpacity: Double = 0.6
+    private let removeButtonTextSize: CGFloat = 13
+    private let removeButtonHorizontalPadding: CGFloat = 12
+    private let removeButtonVerticalPadding: CGFloat = 6
+    private let removeButtonProgressWidth: CGFloat = 64
+    private let removeButtonProgressHeight: CGFloat = 28
+    private let removeButtonBackgroundOpacity: Double = 0.15
+    private let actionRowIconSize: CGFloat = 17
+    private let actionRowSpacing: CGFloat = ViewHelper.spacing + 2
+    private let cardRowVerticalPadding: CGFloat = ViewHelper.smallPadding + 4
+    private let hairlineOpacity: Double = 0.06
+    private let hairlineHeight: CGFloat = 0.5
+    private let refreshIntervalSeconds: Int = 3
+
     init(
         conversation: Conversation,
         currentUserId: String,
@@ -82,11 +101,11 @@ struct GroupInfoView: View {
                 }
             }
             .task {
-                // Refresh immediately on open and every 3s while visible so member changes from other admins
+                // Refresh immediately on open and every few seconds while visible so member changes from other admins
                 // (or the user themselves being removed) reflect without waiting for ChatView's slower poll.
                 while !Task.isCancelled {
                     await onConversationChanged()
-                    try? await Task.sleep(for: .seconds(3))
+                    try? await Task.sleep(for: .seconds(refreshIntervalSeconds))
                 }
             }
             .sheet(isPresented: $showAddMember) {
@@ -164,8 +183,8 @@ struct GroupInfoView: View {
 
     private var rowDivider: some View {
         Rectangle()
-            .fill(Color.white.opacity(0.06))
-            .frame(height: 0.5)
+            .fill(Color.white.opacity(hairlineOpacity))
+            .frame(height: hairlineHeight)
             .padding(.leading, ViewHelper.padding)
     }
 
@@ -174,20 +193,20 @@ struct GroupInfoView: View {
         let isSelf = member.id == currentUserId
 
         return HStack(spacing: ViewHelper.spacing) {
-            VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: memberContentSpacing) {
+                HStack(spacing: memberTitleSpacing) {
                     Text(member.name + (isSelf ? " (You)" : ""))
                         .font(.system(size: ViewHelper.textSize, weight: .semibold))
                         .foregroundColor(.white)
                         .lineLimit(1)
                     if memberIsAdmin {
                         Text("Admin")
-                            .font(.system(size: 10, weight: .semibold))
+                            .font(.system(size: adminBadgeTextSize, weight: .semibold))
                             .foregroundColor(ViewHelper.accentBlue)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 2)
+                            .padding(.horizontal, adminBadgeHorizontalPadding)
+                            .padding(.vertical, adminBadgeVerticalPadding)
                             .background(
-                                Capsule().stroke(ViewHelper.accentBlue.opacity(0.6), lineWidth: 1)
+                                Capsule().stroke(ViewHelper.accentBlue.opacity(adminBadgeStrokeOpacity), lineWidth: 1)
                             )
                     }
                 }
@@ -206,15 +225,15 @@ struct GroupInfoView: View {
                     if removingMemberId == member.id {
                         ProgressView()
                             .tint(ViewHelper.accentRed)
-                            .frame(width: 64, height: 28)
+                            .frame(width: removeButtonProgressWidth, height: removeButtonProgressHeight)
                     } else {
                         Text("Remove")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: removeButtonTextSize, weight: .semibold))
                             .foregroundColor(ViewHelper.accentRed)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .padding(.horizontal, removeButtonHorizontalPadding)
+                            .padding(.vertical, removeButtonVerticalPadding)
                             .background(
-                                Capsule().fill(ViewHelper.accentRed.opacity(0.15))
+                                Capsule().fill(ViewHelper.accentRed.opacity(removeButtonBackgroundOpacity))
                             )
                     }
                 }
@@ -223,7 +242,7 @@ struct GroupInfoView: View {
             }
         }
         .padding(.horizontal, ViewHelper.padding)
-        .padding(.vertical, ViewHelper.smallPadding + 4)
+        .padding(.vertical, cardRowVerticalPadding)
     }
 
     private var canAddMembers: Bool {
@@ -234,16 +253,16 @@ struct GroupInfoView: View {
         Button {
             showAddMember = true
         } label: {
-            HStack(spacing: ViewHelper.spacing + 2) {
+            HStack(spacing: actionRowSpacing) {
                 Image(systemName: "person.crop.circle.badge.plus")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: actionRowIconSize, weight: .medium))
                 Text("Add Member")
                     .font(.system(size: ViewHelper.textSize, weight: .semibold))
                 Spacer()
             }
             .foregroundColor(ViewHelper.accentBlue)
             .padding(.horizontal, ViewHelper.padding)
-            .padding(.vertical, ViewHelper.smallPadding + 4)
+            .padding(.vertical, cardRowVerticalPadding)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -253,16 +272,16 @@ struct GroupInfoView: View {
         Button {
             confirmingLeave = true
         } label: {
-            HStack(spacing: ViewHelper.spacing + 2) {
+            HStack(spacing: actionRowSpacing) {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: actionRowIconSize, weight: .medium))
                 Text(isLeaving ? "Leaving..." : "Leave Group")
                     .font(.system(size: ViewHelper.textSize, weight: .semibold))
                 Spacer()
             }
             .foregroundColor(ViewHelper.accentRed)
             .padding(.horizontal, ViewHelper.padding)
-            .padding(.vertical, ViewHelper.smallPadding + 4)
+            .padding(.vertical, cardRowVerticalPadding)
             .background(ViewHelper.fieldBgColor)
             .cornerRadius(ViewHelper.componentRounding)
             .contentShape(Rectangle())

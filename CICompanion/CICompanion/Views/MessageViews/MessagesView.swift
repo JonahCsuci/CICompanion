@@ -24,6 +24,15 @@ struct MessagesView: View {
     private let accentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
     private let buttonBlue = Color(red: 0.36, green: 0.55, blue: 0.90)
 
+    private let pollIntervalSeconds: Int = 3
+    private let pillIconSize: CGFloat = 9
+    private let pillTextSize: CGFloat = 11
+    private let pillIconTextSpacing: CGFloat = 4
+    private let pillHorizontalPadding: CGFloat = 8
+    private let pillVerticalPadding: CGFloat = 3
+    private let pillStrokeOpacity: Double = 0.7
+    private let unreadBadgeTextSize: CGFloat = 11
+
     init(
         viewModel: ConversationsViewModel,
         studentRepository: StudentRepositoryProtocol,
@@ -98,7 +107,7 @@ struct MessagesView: View {
                 await contactsViewModel.loadContacts()
                 // Background poll so new groups, removals, and incoming messages appear without manual refresh.
                 while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(3))
+                    try? await Task.sleep(for: .seconds(pollIntervalSeconds))
                     guard !Task.isCancelled, sessionManager.isSignedIn else { break }
                     await viewModel.refreshConversationsSilently()
                 }
@@ -374,29 +383,29 @@ struct MessagesView: View {
                         .lineLimit(1)
 
                     if conversation.isGroup {
-                        HStack(spacing: 4) {
+                        HStack(spacing: pillIconTextSpacing) {
                             Image(systemName: "person.3.fill")
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(.system(size: pillIconSize, weight: .semibold))
                             Text("Group")
-                                .font(.system(size: 11, weight: .semibold))
+                                .font(.system(size: pillTextSize, weight: .semibold))
                         }
                         .foregroundColor(accentBar)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
+                        .padding(.horizontal, pillHorizontalPadding)
+                        .padding(.vertical, pillVerticalPadding)
                         .background(
                             Capsule()
-                                .stroke(accentBar.opacity(0.7), lineWidth: 1)
+                                .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
                         )
                     } else if let directOtherId = conversation.otherParticipant?.id,
                               contactsViewModel.isContact(studentId: directOtherId) {
                         Text("Contact")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: pillTextSize, weight: .semibold))
                             .foregroundColor(accentBar)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
+                            .padding(.horizontal, pillHorizontalPadding)
+                            .padding(.vertical, pillVerticalPadding)
                             .background(
                                 Capsule()
-                                    .stroke(accentBar.opacity(0.7), lineWidth: 1)
+                                    .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
                             )
                     }
                 }
@@ -418,9 +427,9 @@ struct MessagesView: View {
 
                 if let count = conversation.unreadCount, count > 0 {
                     Text("\(count)")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: unreadBadgeTextSize, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 8)
+                        .padding(.horizontal, pillHorizontalPadding)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(buttonBlue))
                 }

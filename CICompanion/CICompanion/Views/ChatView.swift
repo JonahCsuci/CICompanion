@@ -25,6 +25,12 @@ struct ChatView: View {
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
+    private let errorBannerTextSize: CGFloat = 13
+    private let errorBannerHorizontalPadding: CGFloat = 14
+    private let errorBannerVerticalPadding: CGFloat = 8
+    private let errorBannerBackgroundOpacity: Double = 0.85
+    private let pollIntervalSeconds: Int = 5
+
     init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contacts: [ContactStudent]) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
@@ -169,11 +175,11 @@ struct ChatView: View {
                 }
                 .foregroundColor(.white)
             }
-            .font(.system(size: 13, weight: .medium))
+            .font(.system(size: errorBannerTextSize, weight: .medium))
             .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(Color.red.opacity(0.85))
+            .padding(.horizontal, errorBannerHorizontalPadding)
+            .padding(.vertical, errorBannerVerticalPadding)
+            .background(Color.red.opacity(errorBannerBackgroundOpacity))
         }
     }
 
@@ -225,11 +231,9 @@ struct ChatView: View {
     }
 
     private func shouldShowSenderName(for message: Message) -> Bool {
-        // Sender name above bubble for incoming messages in group chats only.
         activeConversation.isGroup && message.senderId != viewModel.currentUserId
     }
 
-    // Returns receipt text only for the most recent outgoing message; nil for everything else.
     private func receiptText(for message: Message) -> String? {
         guard message.senderId == viewModel.currentUserId else { return nil }
         guard message.id == lastOutgoingMessageId else { return nil }
@@ -273,7 +277,7 @@ struct ChatView: View {
     // SwiftUI cancels this .task automatically when the view disappears.
     private func pollForNewMessages() async {
         while !Task.isCancelled {
-            try? await Task.sleep(for: .seconds(5))
+            try? await Task.sleep(for: .seconds(pollIntervalSeconds))
             guard !Task.isCancelled else { break }
             await viewModel.refreshMessages(conversationId: conversation.id)
         }
