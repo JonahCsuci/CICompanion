@@ -11,7 +11,7 @@ struct ContactInformation: View {
     @State private var loadError: String?
     @State private var selectedStudent: Student?
     @State private var selectedStudentCourses: [Course] = []
-
+    
     init(
         messagingRepository: MessagingRepositoryProtocol,
         courseRepository: CourseRepositoryProtocol,
@@ -44,7 +44,62 @@ struct ContactInformation: View {
                     
                 } else {
                     
-                    availabilitySection
+                    VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
+                       
+                        Text("Weekday Availability")
+                            .foregroundColor(ViewHelper.textImportant)
+                            .font(.system(size: ViewHelper.textSize, weight: .semibold))
+                            
+                        VStack(alignment: .leading, spacing: 12) {
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Most Available Times")
+                                    .font(.system(size: ViewHelper.smallTextSize, weight: .medium))
+                                    .foregroundColor(ViewHelper.text)
+                                
+                                Text(bestMeetingWindow())
+                                    .font(.system(size: ViewHelper.textSize + 2, weight: .bold))
+                                    .foregroundColor(ViewHelper.accentBlue)
+                                
+                                Rectangle()
+                                    .fill(ViewHelper.text)
+                                    .frame(height: 0.5)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 5) {
+                                
+                                HStack(alignment: .top, spacing: 34.4) {
+                                    
+                                    TimeMarker(hour: "8", meridiem: "AM")
+                                    TimeMarker(hour: "10", meridiem: "AM")
+                                    TimeMarker(hour: "12", meridiem: "PM")
+                                        
+                                    TimeMarker(hour: "2", meridiem: "PM")
+                                    TimeMarker(hour: "4", meridiem: "PM")
+                                    TimeMarker(hour: "6", meridiem: "PM")
+                                    TimeMarker(hour: "8", meridiem: "PM")
+                                        
+                                }
+                                
+                                HStack(alignment: .center, spacing: 10) {
+                                    
+                                    ForEach(Array(8...20), id: \.self) { hour in
+                                        
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(
+                                                isFreeOnWeekdays(hour: hour)
+                                                ? ViewHelper.accentBlue
+                                                : ViewHelper.cardBgColor
+                                            )
+                                            .frame(width: 14, height: 32)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(ViewHelper.padding)
+                        .background(ViewHelper.fieldBgColor)
+                        .cornerRadius(ViewHelper.componentRounding)
+                    }
                     
                     Text("Courses")
                         .foregroundColor(ViewHelper.textImportant)
@@ -101,76 +156,11 @@ struct ContactInformation: View {
         }
     }
     
-    private var availabilitySection: some View {
-        VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
-            
-           
-            Text("Weekday Availability")
-                .foregroundColor(ViewHelper.textImportant)
-                .font(.system(size: ViewHelper.textSize, weight: .semibold))
-                
-            VStack(alignment: .leading, spacing: 12) {
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Most Available Times")
-                        .font(.system(size: ViewHelper.smallTextSize, weight: .medium))
-                        .foregroundColor(ViewHelper.text)
-                    
-                    Text(bestMeetingWindow())
-                        .font(.system(size: ViewHelper.textSize + 2, weight: .bold))
-                        .foregroundColor(ViewHelper.accentBlue)
-                    
-                    Rectangle()
-                        .fill(ViewHelper.text)
-                        .frame(height: 0.5)
-                }
-                
-                VStack(alignment: .leading, spacing: 10) {
-                    
-                    HStack(alignment: .top, spacing: 16) {
-                        
-                        TimeMarker(hour: "8", meridiem: "AM")
-                        TimeMarker(hour: "10", meridiem: "AM")
-                        TimeMarker(hour: "12", meridiem: "PM")
-                        
-                        Spacer()
-                            .frame(width: 1)
-                        
-                        TimeMarker(hour: "2", meridiem: "PM")
-                        TimeMarker(hour: "4", meridiem: "PM")
-                        TimeMarker(hour: "6", meridiem: "PM")
-                        TimeMarker(hour: "8", meridiem: "PM")
-                    }
-                    
-                    HStack(alignment: .center, spacing: 4) {
-                        
-                        ForEach(Array(8...20), id: \.self) { hour in
-                            if hour == 14 {
-                                Spacer()
-                                    .frame(width: 8)
-                            }
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(
-                                    isFreeOnWeekdays(hour: hour)
-                                    ? ViewHelper.accentBlue
-                                    : ViewHelper.cardBgColor
-                                )
-                                .frame(width: 14, height: 32)
-                        }
-                    }
-                }
-            }
-            .padding(ViewHelper.padding)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-    }
-    
     private func bestMeetingWindow() -> String {
         
         var freeHours: [Int] = []
         
+        // every free hour from 8 AM to 8 PM
         for hour in 8...20 {
             if isFreeOnWeekdays(hour: hour) {
                 freeHours.append(hour)
@@ -181,50 +171,58 @@ struct ContactInformation: View {
             return "Limited"
         }
         
-        var ranges: [(start: Int, text: String, size: Int)] = []
+        // group consecutive free hours into time ranges
+        var ranges: [(startHour: Int, endHour: Int)] = []
         
-        var start = freeHours[0]
-        var end = freeHours[0]
+        var rangeStart = freeHours[0]
+        var rangeEnd = freeHours[0]
         
         for hour in freeHours.dropFirst() {
-            
-            if hour == end + 1 {
-                end = hour
+            if hour == rangeEnd + 1 {
+                rangeEnd = hour
             } else {
-                ranges.append((
-                    start: start,
-                    text: "\(formatHour(start)) - \(formatHour(end + 1))",
-                    size: end - start + 1
-                ))
-                
-                start = hour
-                end = hour
+                ranges.append((startHour: rangeStart, endHour: rangeEnd))
+                rangeStart = hour
+                rangeEnd = hour
             }
         }
         
-        ranges.append((
-            start: start,
-            text: "\(formatHour(start)) - \(formatHour(end + 1))",
-            size: end - start + 1
-        ))
+        // add the final range
+        ranges.append((startHour: rangeStart, endHour: rangeEnd))
         
-        ranges.sort {
-            if $0.size == $1.size {
-                return $0.start < $1.start
+        // sort by longest range first
+        ranges.sort { first, second in
+            let firstSize = first.endHour - first.startHour
+            let secondSize = second.endHour - second.startHour
+            
+            if firstSize == secondSize {
+                return first.startHour < second.startHour
             }
-            return $0.size > $1.size
+            
+            return firstSize > secondSize
         }
         
+        // turn best 1 or 2 ranges into display text
         if ranges.count == 1 {
-            return ranges[0].text
+            let range = ranges[0]
+            return "\(formatHour(range.startHour)) - \(formatHour(range.endHour + 1))"
         }
         
-        let topTwo = [ranges[0], ranges[1]].sorted { $0.start < $1.start }
+        let firstRange = ranges[0]
+        let secondRange = ranges[1]
         
-        return topTwo[0].text + "       " + topTwo[1].text
+        if firstRange.startHour < secondRange.startHour {
+            return "\(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))       \(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))"
+        } else {
+            return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))       \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
+        }
     }
 
     private func formatHour(_ hour: Int) -> String {
+        
+        if hour == 24 {
+            return "12 AM"
+        }
         
         if hour == 12 {
             return "12 PM"
@@ -234,10 +232,6 @@ struct ContactInformation: View {
             return "\(hour) AM"
         }
         
-        if hour == 24 {
-            return "12 AM"
-        }
-        
         return "\(hour - 12) PM"
     }
 
@@ -245,20 +239,26 @@ struct ContactInformation: View {
         
         for course in selectedStudentCourses {
             
-            if course.days.contains("Monday") ||
-               course.days.contains("Tuesday") ||
-               course.days.contains("Wednesday") ||
-               course.days.contains("Thursday") ||
-               course.days.contains("Friday") {
-                
-                let start = parseHour(course.startTime)
-                let end = parseHour(course.endTime)
-                
-                if start != -1 && end != -1 {
-                    if hour >= start && hour < end {
-                        return false
-                    }
-                }
+            let isWeekdayCourse =
+                course.days.contains("Monday") ||
+                course.days.contains("Tuesday") ||
+                course.days.contains("Wednesday") ||
+                course.days.contains("Thursday") ||
+                course.days.contains("Friday")
+            
+            if !isWeekdayCourse {
+                continue
+            }
+            
+            let startHour = parseHour(course.startTime)
+            let endHour = parseHour(course.endTime)
+            
+            if startHour == -1 || endHour == -1 {
+                continue
+            }
+            
+            if hour >= startHour && hour < endHour {
+                return false
             }
         }
         
@@ -270,11 +270,11 @@ struct ContactInformation: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         
-        if let date = formatter.date(from: time) {
-            return Calendar.current.component(.hour, from: date)
+        guard let date = formatter.date(from: time) else {
+            return -1
         }
         
-        return -1
+        return Calendar.current.component(.hour, from: date)
     }
     
     private func loadContact() async {

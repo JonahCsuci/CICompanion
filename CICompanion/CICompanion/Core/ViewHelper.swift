@@ -631,7 +631,7 @@ struct TimeMarker: View {
             
             Text(meridiem)
                 .foregroundColor(ViewHelper.textImportant)
-                .font(.system(size: ViewHelper.smallTextSize - 1, weight: .bold))
+                .font(.system(size: ViewHelper.smallTextSize - 4, weight: .bold))
         }
     }
 }
