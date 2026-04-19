@@ -619,9 +619,27 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
     }
 }
 
+struct TimeMarker: View {
+    let hour: String
+    let meridiem: String
+    
+    var body: some View {
+        VStack {
+            Text(hour)
+                .foregroundColor(ViewHelper.textImportant)
+                .font(.system(size: ViewHelper.smallTextSize - 1, weight: .bold))
+            
+            Text(meridiem)
+                .foregroundColor(ViewHelper.textImportant)
+                .font(.system(size: ViewHelper.smallTextSize - 4, weight: .bold))
+        }
+    }
+}
+
 class ViewHelper {
     public static let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     public static let fieldBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
+    public static let cardBgColor = Color(red: 0.18, green: 0.20, blue: 0.27)
     public static let textImportant = Color.white
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)

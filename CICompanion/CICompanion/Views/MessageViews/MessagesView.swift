@@ -19,6 +19,8 @@ struct MessagesView: View {
     @State private var navigationPath = NavigationPath()
     @State private var mode: MessagesMode = .chats
 
+    @State private var selectedParticipant: SelectedParticipant?
+
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     private let cardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
@@ -154,6 +156,13 @@ struct MessagesView: View {
         }
         .sheet(isPresented: $showSignIn) {
             SignInView(sessionManager: sessionManager)
+        }
+        .sheet(item: $selectedParticipant) { participant in
+            ContactInformation(
+                messagingRepository: messagingRepository,
+                courseRepository: APICourseRepository(studentRepository: StudentRepository()),
+                participantId: participant.id
+            )
         }
     }
 
@@ -370,7 +379,6 @@ struct MessagesView: View {
 
     private func conversationRow(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
-            // Accent bar from mockup
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBar)
                 .frame(width: 4, height: 44)
@@ -446,10 +454,16 @@ struct MessagesView: View {
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(contact.name)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
+                Button {
+                    selectedParticipant = SelectedParticipant(id: contact.id)
+                } label: {
+                    Text(contact.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
 
                 Text(contact.email)
                     .font(.system(size: 14))
@@ -492,7 +506,6 @@ struct MessagesView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-        // Try with fractional seconds first, then without
         guard let date = formatter.date(from: isoString)
                 ?? ISO8601DateFormatter().date(from: isoString) else {
             return ""
@@ -597,4 +610,8 @@ private struct AddContactSheet: View {
         }
         .preferredColorScheme(.dark)
     }
+}
+
+private struct SelectedParticipant: Identifiable {
+    let id: String
 }
