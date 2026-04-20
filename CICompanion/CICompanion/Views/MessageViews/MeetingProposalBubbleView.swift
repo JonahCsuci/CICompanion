@@ -13,6 +13,7 @@ struct MeetingProposalBubbleView: View {
     let proposal: MeetingProposal
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
+    let courseRepository : CourseRepositoryProtocol
     
     @State var navigationActive = false
     
@@ -70,34 +71,4 @@ struct MeetingProposalBubbleView: View {
             if !isCurrentUser { Spacer(minLength: 60) }
         }
     }
-}
-
-#Preview {
-    var sessionManager =  SessionManager()
-    
-    MeetingProposalBubbleView(
-        message: Message(
-            id: 12,
-            conversationId: 12,
-            senderId: "",
-            senderName: "",
-            body: "",
-            createdAt: ""
-        ),
-        isCurrentUser: true,
-        proposal: MeetingProposal(
-            timeRange: TimeRange(
-                startTime: 120,
-                endTime: 900,
-                day: Date()
-            ),
-            conversationID: 12,
-            title: "Incredible meeting",
-            respondees: Set()
-        ),
-        sessionManager: sessionManager,
-        messagingRepository: APIMessagingRepository(
-                sessionManager: sessionManager
-        )
-    )
 }

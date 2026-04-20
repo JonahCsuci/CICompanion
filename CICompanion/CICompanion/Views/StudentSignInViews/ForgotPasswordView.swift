@@ -43,7 +43,7 @@ struct ForgotPasswordView: View {
                             
                             if sendEmail {
                                 
-                                CIText("Email", ViewHelper.text)
+                                CIText("Email", color: ViewHelper.text)
                                     .foregroundColor(ViewHelper.textImportant)
                                 
                                 CIEmailTextField(
@@ -55,7 +55,7 @@ struct ForgotPasswordView: View {
                                 
                             } else {
                                 
-                                CIText("Code", ViewHelper.text)
+                                CIText("Code", color: ViewHelper.text)
                                 
                                 CITextField(
                                     placeholder: "",
@@ -63,7 +63,7 @@ struct ForgotPasswordView: View {
                                     lines: 1
                                 )
                                 
-                                CIText("New Password", ViewHelper.text)
+                                CIText("New Password", color: ViewHelper.text)
                                     .padding(ViewHelper.smallPadding)
                                 
                                 CIPasswordTextField(
@@ -72,7 +72,7 @@ struct ForgotPasswordView: View {
                                     lines: 1
                                 )
                                 
-                                CIText("Confirm New Password", ViewHelper.text)
+                                CIText("Confirm New Password", color: ViewHelper.text)
                                     .padding(ViewHelper.smallPadding)
                                 
                                 CIPasswordTextField(
@@ -83,7 +83,7 @@ struct ForgotPasswordView: View {
                         }
                         
                         if !email.isEmpty && !sendEmail {
-                            CIText("Code sent to \(email)", ViewHelper.textImportant)
+                            CIText("Code sent to \(email)", color: ViewHelper.textImportant)
                         }
                         
                         if !message.isEmpty {
@@ -91,7 +91,7 @@ struct ForgotPasswordView: View {
                         }
                         
                         if !successMessage.isEmpty {
-                            CIText(successMessage, ViewHelper.accentGreen)
+                            CIText(successMessage, color: ViewHelper.accentGreen)
                         }
                         
                         Button {
@@ -164,7 +164,7 @@ struct ForgotPasswordView: View {
                     
                     VStack(spacing: ViewHelper.smallPadding) {
                         
-                        CIText("Remember Password?", ViewHelper.textImportant)
+                        CIText("Remember Password?", color: ViewHelper.textImportant)
                         
                         CITextButton(text: "Back to Sign In") {
                             dismiss()

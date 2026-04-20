@@ -11,6 +11,7 @@ struct MeetingBubbleView: View {
     let meetingScheduler: MeetingScheduler
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
+    let courseRepository : CourseRepositoryProtocol
     
     @State var navigationActive = false
 
@@ -40,7 +41,7 @@ struct MeetingBubbleView: View {
                 .padding(.vertical, 10)
                 .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
                 .cornerRadius(16)
-                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive], messagingRepository: messagingRepository), isActive: $navigationActive) {
+                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActive) {
                     HStack{
                         Image(systemName: "calendar")
                         CIText("Propose a time", fontWeight: .semibold)
@@ -97,32 +98,4 @@ struct MeetingBubbleView: View {
             if !isCurrentUser { Spacer(minLength: 60) }
         }
     }
-}
-
-#Preview {
-    var sessionManager =  SessionManager()
-    
-    MeetingBubbleView(
-        message: Message(
-            id: 12,
-            conversationId: 12,
-            senderId: "",
-            senderName: "",
-            body: "",
-            createdAt: ""
-        ),
-        isCurrentUser: true,
-        meetingScheduler: MeetingScheduler(
-            daysAllowed: [Date()],
-            startTime: 450,
-            endTime: 600,
-            conversationID: 12,
-            title: "CSUCI Study Session",
-            respondees: Set(["myid"])
-        ),
-        sessionManager: sessionManager,
-        messagingRepository: APIMessagingRepository(
-                sessionManager: sessionManager
-        )
-    )
 }

@@ -11,6 +11,7 @@ struct MessagesView: View {
     @StateObject private var contactsViewModel: ContactsViewModel
     @ObservedObject var sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
 
     @State private var showNewChat = false
     @State private var showNewGroup = false
@@ -39,6 +40,7 @@ struct MessagesView: View {
         viewModel: ConversationsViewModel,
         studentRepository: StudentRepositoryProtocol,
         messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol,
         sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -47,6 +49,7 @@ struct MessagesView: View {
         )
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
+        self.courseRepository = courseRepository
     }
     
     private var modePicker: some View {
@@ -99,6 +102,7 @@ struct MessagesView: View {
                     conversation: conversation,
                     sessionManager: sessionManager,
                     messagingRepository: messagingRepository,
+                    courseRepository: courseRepository,
                     contacts: contactsViewModel.contacts
                 )
             }

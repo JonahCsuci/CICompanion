@@ -22,17 +22,21 @@ struct ProposeMeetingView: View {
     
     var messagingRepository: MessagingRepositoryProtocol
     
+    var courseRepository: CourseRepositoryProtocol
+    
     init (
         viewModel: ProposeMeetingViewModel,
         messageId: Int,
         navigationActive: [Binding<Bool>],
-        messagingRepository: MessagingRepositoryProtocol
+        messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol
     ) {
         _viewModel = StateObject(wrappedValue: viewModel);
         self.messageId = messageId
         self.navigationsActive = navigationActive
         self.meet = viewModel.meetingScheduler
         self.messagingRepository = messagingRepository
+        self.courseRepository = courseRepository
     }
     
     var body: some View {
@@ -126,43 +130,4 @@ struct ProposeMeetingView: View {
         .background(ViewHelper.fieldBgColor)
         .cornerRadius(ViewHelper.componentRounding)
     }
-}
-
-#Preview {
-    let sessionManager = SessionManager()
-    let messagingRepository = APIMessagingRepository(sessionManager: sessionManager)
-    
-    ProposeMeetingView(
-        viewModel: ProposeMeetingViewModel(
-            meetingScheduler: MeetingScheduler(
-                availableTimeRanges: [
-                    TimeRange(
-                        startTime: 120,
-                        endTime: 150,
-                        day: Date()
-                    ),
-                    TimeRange(
-                        startTime: 240,
-                        endTime: 900,
-                        day: Date()
-                    ),
-                    TimeRange(
-                        startTime: 1000,
-                        endTime: 1060,
-                        day: Date()
-                    )
-                ],
-                daysAllowed: [Date()],
-                startTime: 120,
-                endTime: 850,
-                conversationID: 12,
-                title: "Incredible meeting"
-            ),
-            sessionManager: sessionManager,
-            messagingRepository: messagingRepository
-        ),
-        messageId: 12,
-        navigationActive: [],
-        messagingRepository: messagingRepository
-    )
 }

@@ -110,7 +110,7 @@ struct SignUpView: View {
                     Spacer()
                     
                     VStack(spacing: ViewHelper.smallPadding) {
-                        CIText("Already have an account?", ViewHelper.text)
+                        CIText("Already have an account?", color: ViewHelper.text)
                         
                         CITextButton(text: "Back to Sign In") {
                             dismiss()

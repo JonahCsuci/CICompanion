@@ -13,6 +13,7 @@ struct ChatView: View {
     let conversation: Conversation
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
+    let courseRepository : CourseRepositoryProtocol
     let contacts: [ContactStudent]
 
     @Environment(\.dismiss) private var dismiss
@@ -31,11 +32,12 @@ struct ChatView: View {
     private let errorBannerBackgroundOpacity: Double = 0.85
     private let pollIntervalSeconds: Int = 5
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contacts: [ContactStudent]) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent]) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
         self.sessionManager = sessionManager;
         self.messagingRepository = messagingRepository;
+        self.courseRepository = courseRepository;
         self.contacts = contacts
     }
 
@@ -134,7 +136,8 @@ struct ChatView: View {
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
                                     proposal: prop,
                                     sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository
+                                    messagingRepository: messagingRepository,
+                                    courseRepository: courseRepository
                                 )
                             } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(
@@ -142,7 +145,8 @@ struct ChatView: View {
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
                                     meetingScheduler: meetingScheduler,
                                     sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository
+                                    messagingRepository: messagingRepository,
+                                    courseRepository: courseRepository
                                 )
                             } else {
                                 MessageBubbleView(
