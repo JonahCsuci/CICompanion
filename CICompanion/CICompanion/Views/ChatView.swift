@@ -30,7 +30,7 @@ struct ChatView: View {
     private let errorBannerHorizontalPadding: CGFloat = 14
     private let errorBannerVerticalPadding: CGFloat = 8
     private let errorBannerBackgroundOpacity: Double = 0.85
-    private let pollIntervalSeconds: Int = 5
+    private let pollIntervalSeconds: Int = 1
 
     init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent]) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -137,7 +137,8 @@ struct ChatView: View {
                                     proposal: prop,
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository,
-                                    courseRepository: courseRepository
+                                    courseRepository: courseRepository,
+                                    conversation: conversation
                                 )
                             } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(
@@ -146,7 +147,8 @@ struct ChatView: View {
                                     meetingScheduler: meetingScheduler,
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository,
-                                    courseRepository: courseRepository
+                                    courseRepository: courseRepository,
+                                    conversation: conversation
                                 )
                             } else {
                                 MessageBubbleView(

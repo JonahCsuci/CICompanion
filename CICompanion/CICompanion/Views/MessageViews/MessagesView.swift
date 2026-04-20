@@ -506,6 +506,8 @@ struct MessagesView: View {
         
         if let meetingScheduler = messagingRepository.getMeeting(body: preview) {
             return "Scheduling a meeting: \(meetingScheduler.title)"
+        } else if let proposal = messagingRepository.getMeetingProposal(body: preview) {
+            return "Proposing a time for: \(proposal.title)"
         }
         
         return preview

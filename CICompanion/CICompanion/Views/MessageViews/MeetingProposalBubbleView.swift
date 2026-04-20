@@ -14,6 +14,7 @@ struct MeetingProposalBubbleView: View {
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
+    let conversation : Conversation
     
     @State var navigationActive = false
     
@@ -31,8 +32,7 @@ struct MeetingProposalBubbleView: View {
                     CIText("\(DateHelper.dateToDayString(date, true)) · \(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
                 }
                 
-                /// # Please please please TODO: Fix this
-                CIText("\(proposal.respondees.count)/2 people added to calendar", color: ViewHelper.textImportant.opacity(0.75))
+                CIText("\(proposal.respondees.count)/\(conversation.participants != nil ? conversation.participants!.count : 2) people added to calendar", color: ViewHelper.textImportant.opacity(0.75))
                 
                 
                 if sessionManager.userId != nil && proposal.respondees.contains(sessionManager.userId!) {
@@ -47,7 +47,7 @@ struct MeetingProposalBubbleView: View {
                             CIText("Add to calendar")
                             Spacer()
                         }
-                        .padding(10).background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+                        .padding(10).background(ViewHelper.cardBgColor)
                         .cornerRadius(16)
                     
                         Button {
@@ -57,7 +57,7 @@ struct MeetingProposalBubbleView: View {
                                 Image(systemName: "xmark").font(.system(size: ViewHelper.textSize, weight: .bold))
                             }
                         }
-                        .padding(10).background((isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor))
+                        .padding(10).background(ViewHelper.cardBgColor)
                             .cornerRadius(16)
                     }.padding(10)
                 }

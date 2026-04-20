@@ -112,7 +112,9 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         // POST returns 201 for newly created message
         try handleMessagingResponse(data: data, response: response)
         
-        return try JSONDecoder().decode(Message.self, from: data)
+        var message = try JSONDecoder().decode(Message.self, from: data)
+        
+        return message
     }
     
     func editMeetup(messageId: Int, body: String) async throws {

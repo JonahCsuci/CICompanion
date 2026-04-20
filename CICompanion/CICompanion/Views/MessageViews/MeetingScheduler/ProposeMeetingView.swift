@@ -9,11 +9,11 @@ import SwiftUI
 
 struct ProposeMeetingView: View {
     @Environment(\.dismiss) var dismiss
-
+    
     @StateObject private var viewModel: ProposeMeetingViewModel
     
     var navigationsActive: [Binding<Bool>]
-
+    
     var messageId : Int
     
     var meet: MeetingScheduler
@@ -49,7 +49,13 @@ struct ProposeMeetingView: View {
             } else {
                 TabView {
                     ForEach(bestTimes, id: \.self) { time in
-                        card(time)
+                        MeetingProposalCardView(
+                            proposal: time,
+                            meet: meet,
+                            viewModel: viewModel,
+                            courseRepository: courseRepository,
+                            navigationsActive: navigationsActive
+                        )
                     }
                 }
                 .tabViewStyle(.page)
@@ -60,14 +66,14 @@ struct ProposeMeetingView: View {
             await loadBestTimes()
         }
     }
-
+    
     func loadBestTimes() async {
         guard let startDay = meet.daysAllowed.first,
               let endDay = meet.daysAllowed.last else {
             bestTimes = []
             return
         }
-
+        
         do {
             let studyRooms = try await messagingRepository.fetchStudyRooms(
                 start: startDay,
@@ -79,12 +85,20 @@ struct ProposeMeetingView: View {
             bestTimes = meet.bestTimes(studyRooms: [:])
         }
     }
+}
 
+struct MeetingProposalCardView: View {
+    let proposal: MeetingProposal
+    let meet: MeetingScheduler
+    let viewModel: ProposeMeetingViewModel
+    let courseRepository: CourseRepositoryProtocol
+    let navigationsActive: [Binding<Bool>]
     
-    func card(_ proposal: MeetingProposal) -> some View {
-        var time = proposal.timeRange
-        
-        return HStack {
+    @State private var coursesBeforeAfter: ProposeMeetingViewModel.CoursesBeforeAfter? = nil
+    
+    var body: some View {
+        let time = proposal.timeRange
+        HStack {
             Spacer()
             VStack {
                 CIText(DateHelper.dateToDayString(time.day), fontSize: ViewHelper.textSize * 2, fontWeight: .bold)
@@ -109,8 +123,44 @@ struct ProposeMeetingView: View {
                 
                 CIText("\(time.peopleAvailable.count) / \(meet.respondees.count) \((time.peopleAvailable.count == 1) ? "person" : "people") available")
                 
+                if coursesBeforeAfter != nil {
+                    Divider()
+                        .background(ViewHelper.textImportant)
+                    
+                    CIText("How does this fit into your schedule?", color: ViewHelper.text)
+                    
+                    Spacer()
+                    
+                    VStack {
+                        if (coursesBeforeAfter!.before != nil) {
+                            let course = coursesBeforeAfter!.before!
+                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.overlapBefore)
+                        } else {
+                            CIText("No events before...", color: ViewHelper.text)
+                        }
+                        
+                        timeRangeCard(name: proposal.title, start: proposal.timeRange.startTime, end: proposal.timeRange.endTime, overlap: coursesBeforeAfter!.overlapBefore || coursesBeforeAfter!.overlapAfter, meeting: true)
+                        
+                        if (coursesBeforeAfter!.after != nil) {
+                            let course = coursesBeforeAfter!.after!
+                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.overlapAfter)
+                        } else {
+                            CIText("No events after...", color: ViewHelper.text)
+                        }
+                    }
+                    
+                    Spacer()
+                
+                    Divider()
+                        .background(ViewHelper.textImportant)
+                }
+                
                 Button {
                     viewModel.proposeMeeting(prop: proposal)
+                    
+                    for nav in navigationsActive {
+                        nav.wrappedValue = false
+                    }
                 } label: {
                     HStack {
                         Image(systemName: "calendar").font(.system(size: ViewHelper.textSize, weight: .bold))
@@ -128,6 +178,35 @@ struct ProposeMeetingView: View {
         }
         .padding(ViewHelper.padding)
         .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
+        .task {
+            do {
+                coursesBeforeAfter = try await viewModel.getCoursesBeforeAndAfter(
+                    prop: proposal,
+                    courseRepository: courseRepository
+                )
+            } catch {
+                print("Error loading courses: \(error)")
+            }
+        }
+    }
+    
+    func timeRangeCard(name: String, start: Int, end: Int, overlap: Bool = false, meeting: Bool = false) -> some View {
+        HStack {
+            VStack {
+                CIText(name, fontWeight: .medium)
+                if meeting {
+                    CIText("[MEETING]", color: overlap ? ViewHelper.textImportant : ViewHelper.text)
+                }
+            }
+            Spacer()
+            VStack {
+                CIText(DateHelper.minutesToTimeString(start), color: overlap ? ViewHelper.textImportant : ViewHelper.text)
+                CIText(DateHelper.minutesToTimeString(end), color: overlap ? ViewHelper.textImportant : ViewHelper.text)
+            }
+        }
+        .padding(ViewHelper.padding)
+        .background(overlap ? (meeting ? ViewHelper.accentRed : ViewHelper.accentRed.opacity(0.75)) : ViewHelper.cardBgColor)
         .cornerRadius(ViewHelper.componentRounding)
     }
 }

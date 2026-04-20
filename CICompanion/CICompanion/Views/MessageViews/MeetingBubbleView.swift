@@ -12,8 +12,10 @@ struct MeetingBubbleView: View {
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
+    let conversation: Conversation
     
-    @State var navigationActive = false
+    @State var navigationActiveA = false
+    @State var navigationActiveB = false
 
     var alreadyResponded: some View {
         VStack {
@@ -23,13 +25,14 @@ struct MeetingBubbleView: View {
             HStack {
                 NavigationLink(
                     destination: MeetingDetailsView(
-                        navigationsActive: [$navigationActive],
+                        navigationsActive: [$navigationActiveA],
                         messageId: message.id,
                         meetingScheduler: meetingScheduler,
                         sessionManager: sessionManager,
-                        messagingRepository: messagingRepository
+                        messagingRepository: messagingRepository,
+                        conversation: conversation
                     ),
-                    isActive: $navigationActive
+                    isActive: $navigationActiveA
                 ) {
                     HStack{
                         Image(systemName: "text.page")
@@ -39,9 +42,9 @@ struct MeetingBubbleView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+                .background(ViewHelper.cardBgColor)
                 .cornerRadius(16)
-                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActive) {
+                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveB], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActiveB) {
                     HStack{
                         Image(systemName: "calendar")
                         CIText("Propose a time", fontWeight: .semibold)
@@ -50,14 +53,14 @@ struct MeetingBubbleView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+                .background(ViewHelper.cardBgColor)
                 .cornerRadius(16)
             }
         }
     }
     
     var noResponse: some View {
-        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActive]), isActive: $navigationActive) {
+        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
             HStack{
                 Image(systemName: "plus")
                 CIText("Add your availabilities", fontWeight: .semibold)
@@ -66,7 +69,7 @@ struct MeetingBubbleView: View {
         .foregroundColor(.white)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(isCurrentUser ? ViewHelper.otherUserColor : ViewHelper.currentUserColor)
+        .background(ViewHelper.cardBgColor)
         .cornerRadius(16)
     }
     
