@@ -77,7 +77,7 @@ struct MeetingScheduler: Identifiable, Codable {
                         ),
                         conversationID: conversationID,
                         title: title,
-                        respondees: Set(),
+                        respondees: respondees,
                         studyRoomID: matchingRoomID
                     ))
                 }
@@ -107,19 +107,27 @@ struct MeetingScheduler: Identifiable, Codable {
         var merged: [Int: [TimeRange]] = [:]
         for (roomID, roomTimes) in studyRooms {
             var mergedTimes: [TimeRange] = []
-            for roomTime in roomTimes.sorted(by: { $0.startTime < $1.startTime }) {
-                if let last = mergedTimes.last, last.endTime >= roomTime.startTime {
-                    mergedTimes[mergedTimes.count - 1] = TimeRange(
-                        startTime: last.startTime,
-                        endTime: max(last.endTime, roomTime.endTime),
-                        day: last.day,
-                        isStudyRoomAvailable: true,
-                        peopleAvailable: last.peopleAvailable
-                    )
-                } else {
-                    mergedTimes.append(roomTime)
+
+            let byDay = Dictionary(grouping: roomTimes) { calendar.startOfDay(for: $0.day) }
+
+            for (_, daySlots) in byDay {
+                var dayMerged: [TimeRange] = []
+                for roomTime in daySlots.sorted(by: { $0.startTime < $1.startTime }) {
+                    if let last = dayMerged.last, last.endTime >= roomTime.startTime {
+                        dayMerged[dayMerged.count - 1] = TimeRange(
+                            startTime: last.startTime,
+                            endTime: max(last.endTime, roomTime.endTime),
+                            day: last.day,
+                            isStudyRoomAvailable: true,
+                            peopleAvailable: last.peopleAvailable
+                        )
+                    } else {
+                        dayMerged.append(roomTime)
+                    }
                 }
+                mergedTimes.append(contentsOf: dayMerged)
             }
+
             merged[roomID] = mergedTimes
         }
         return merged

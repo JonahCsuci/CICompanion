@@ -65,7 +65,7 @@ struct AddAvailabilityView: View {
     }
     
 
-    func grid() -> some View{
+    func grid() -> some View {
         let ranges = timeRanges()
         
         return HStack {
@@ -84,6 +84,8 @@ struct AddAvailabilityView: View {
             
             HStack(alignment: .top, spacing: 0) {
                 ForEach(Array(viewModel.meetingScheduler.daysAllowed.enumerated()), id: \.offset) { dayI, day in
+                    let dayName = day.formatted(.dateTime.weekday(.wide))
+                    
                     VStack(spacing: ViewHelper.spacing) {
                         dateHeader(date: day)
                         
@@ -97,17 +99,42 @@ struct AddAvailabilityView: View {
                                 )
                             )
                             
-                            Button {
-                                if (selectedBlocks.contains(block)) {
-                                    selectedBlocks.remove(block)
-                                } else {
-                                    selectedBlocks.insert(block)
+                            let blockedByCourse = viewModel.courses.first {
+                                $0.days.contains(dayName) &&
+                                (DateHelper.timeStringToMinutes($0.startTime) ?? 0) < range + viewModel.meetingScheduler.timeBlockMinutes &&
+                                (DateHelper.timeStringToMinutes($0.endTime) ?? 0) > range
+                            }
+                            
+                            if let _ = blockedByCourse {
+                                Button {
+                                    if selectedBlocks.contains(block) {
+                                        selectedBlocks.remove(block)
+                                    } else {
+                                        selectedBlocks.insert(block)
+                                    }
+                                } label: {
+                                    VStack {}
+                                        .frame(minWidth: columnWidth, minHeight: rowHeight)
+                                        .background(
+                                            selectedBlocks.contains(block)
+                                                ? ViewHelper.accentBlue
+                                                : ViewHelper.accentBlue.opacity(0.4)
+                                        )
+                                        .cornerRadius(ViewHelper.componentRounding)
                                 }
-                            } label: {
-                                VStack {}
-                                    .frame(minWidth: columnWidth, minHeight: rowHeight)
-                                    .background(selectedBlocks.contains(block) ? ViewHelper.accentGreen : ViewHelper.fieldBgColor)
-                                    .cornerRadius(ViewHelper.componentRounding)
+                            } else {
+                                Button {
+                                    if selectedBlocks.contains(block) {
+                                        selectedBlocks.remove(block)
+                                    } else {
+                                        selectedBlocks.insert(block)
+                                    }
+                                } label: {
+                                    VStack {}
+                                        .frame(minWidth: columnWidth, minHeight: rowHeight)
+                                        .background(selectedBlocks.contains(block) ? ViewHelper.accentGreen : ViewHelper.fieldBgColor)
+                                        .cornerRadius(ViewHelper.componentRounding)
+                                }
                             }
                         }
                     }
@@ -119,26 +146,32 @@ struct AddAvailabilityView: View {
         }
     }
     
-    var body : some View {
+    var body: some View {
         ZStack {
             CIView {
-                CIPageTitle("Share your availabilities")
-                CIText("Swipe to add or remove availabilities.", color: ViewHelper.accentBlue)
+                HStack(alignment: .top) {
+                    CIPageTitle("Share your availabilities")
+                    Spacer()
+                    legend
+                }
+                
+                CIText("Tap to add or remove availabilities.", color: ViewHelper.accentBlue)
                 
                 ScrollView([.vertical, .horizontal]) {
                     grid()
-                }.padding(ViewHelper.padding).background(.black.opacity(ViewHelper.opacity))
-                    .cornerRadius(ViewHelper.componentRounding)
+                }
+                .padding(ViewHelper.padding)
+                .background(.black.opacity(ViewHelper.opacity))
+                .cornerRadius(ViewHelper.componentRounding)
                 
                 Spacer()
             }
             
             VStack {
                 Spacer()
-                HStack() {
+                HStack {
                     Button {
                         viewModel.send(ranges: selectedBlocks, messageId: messageId)
-                        
                         for nav in navigationsActive {
                             nav.wrappedValue = false
                         }
@@ -146,10 +179,7 @@ struct AddAvailabilityView: View {
                         HStack {
                             Image(systemName: "checkmark")
                                 .font(.system(size: ViewHelper.textSize).weight(.bold))
-                            
-                            Text("Submit")
-                                .foregroundColor(ViewHelper.textImportant)
-                                .font(.system(size: ViewHelper.textSize * 1.25))
+                            CIText("Submit")
                         }
                         .foregroundColor(ViewHelper.textImportant)
                         .padding(ViewHelper.padding * 1.5)
@@ -159,6 +189,25 @@ struct AddAvailabilityView: View {
                     }
                 }
             }
+        }
+    }
+
+    private var legend: some View {
+        VStack(alignment: .leading, spacing: ViewHelper.tinyPadding) {
+            legendRow(color: ViewHelper.accentGreen, label: "Available")
+            legendRow(color: ViewHelper.accentBlue.opacity(0.4), label: "In class")
+        }
+        .padding(ViewHelper.smallPadding)
+        .background(.black.opacity(ViewHelper.opacity))
+        .cornerRadius(ViewHelper.componentRounding)
+    }
+
+    private func legendRow(color: Color, label: String) -> some View {
+        HStack(spacing: ViewHelper.tinyPadding) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(color)
+                .frame(width: ViewHelper.iconSize, height: ViewHelper.iconSize)
+            CIText(label, fontSize: ViewHelper.smallTextSize)
         }
     }
 }

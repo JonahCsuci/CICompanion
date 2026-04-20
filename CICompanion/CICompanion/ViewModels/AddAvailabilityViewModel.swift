@@ -14,15 +14,29 @@ class AddAvailabilityViewModel: ObservableObject {
     var meetingScheduler: MeetingScheduler
     let sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
+    
+    @Published var courses: [Course] = []
 
     init(
         meetingScheduler: MeetingScheduler,
         sessionManager: SessionManager,
-        messagingRepository: MessagingRepositoryProtocol
+        messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol
     ) {
         self.meetingScheduler = meetingScheduler
         self.sessionManager = sessionManager
         self.messagingRepository = messagingRepository
+        self.courseRepository = courseRepository
+        loadCourses()
+    }
+    
+    func loadCourses() {
+        Task {
+            do {
+                courses = try await courseRepository.loadStudentCourses()
+            }
+        }
     }
     
     func addTimeRanges(ranges: Set<TimeBlock>) {

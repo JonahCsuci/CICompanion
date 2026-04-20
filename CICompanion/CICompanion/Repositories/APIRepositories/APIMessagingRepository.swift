@@ -329,7 +329,7 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
             "pageIndex": "0",
             "pageSize": "18"
         ]
-
+        
         var pairs: [String] = []
         for (key, value) in params {
             let encodedKey = key.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? key

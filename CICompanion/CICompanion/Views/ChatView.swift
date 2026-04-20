@@ -203,7 +203,8 @@ struct ChatView: View {
                 navigationActive: $navigationActive,
                 sessionManager: sessionManager,
                 conversationID: conversation.id,
-                messagingRepository: messagingRepository
+                messagingRepository: messagingRepository,
+                courseRepository: courseRepository
             ), isActive: $navigationActive) {
                 Image(systemName: "plus")
                     .font(.system(size: 32))

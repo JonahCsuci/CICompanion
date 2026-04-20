@@ -49,16 +49,6 @@ struct MeetingProposalBubbleView: View {
                         }
                         .padding(10).background(ViewHelper.cardBgColor)
                         .cornerRadius(16)
-                    
-                        Button {
-                            
-                        } label: {
-                            HStack {
-                                Image(systemName: "xmark").font(.system(size: ViewHelper.textSize, weight: .bold))
-                            }
-                        }
-                        .padding(10).background(ViewHelper.cardBgColor)
-                            .cornerRadius(16)
                     }.padding(10)
                 }
             }

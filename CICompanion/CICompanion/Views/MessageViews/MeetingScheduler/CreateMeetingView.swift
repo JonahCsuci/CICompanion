@@ -19,6 +19,7 @@ struct CreateMeetingView: View {
     var sessionManager : SessionManager
     var conversationID : Int
     var messagingRepository : MessagingRepositoryProtocol
+    var courseRepository: CourseRepositoryProtocol
     
     @State var title : String = ""
     
@@ -63,10 +64,6 @@ struct CreateMeetingView: View {
                     CITimeField(time: $endTime)
                 }
                 
-                //CISliderToggle(label: "Search for study rooms", toggleBool: $studyRoomSearch, toggleAction: {
-                //
-                //})
-                
                 Spacer()
                 
                 HStack {
@@ -83,7 +80,8 @@ struct CreateMeetingView: View {
                                         title: title
                                     ),
                                     sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository
+                                    messagingRepository: messagingRepository,
+                                    courseRepository: courseRepository
                                 ),
                                 messageId: -1,
                                 navigationActive: [$subNavActive, navigationActive]

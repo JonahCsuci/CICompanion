@@ -60,7 +60,7 @@ struct MeetingBubbleView: View {
     }
     
     var noResponse: some View {
-        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
+        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
             HStack{
                 Image(systemName: "plus")
                 CIText("Add your availabilities", fontWeight: .semibold)

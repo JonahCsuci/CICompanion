@@ -121,7 +121,7 @@ struct MeetingProposalCardView: View {
                     .cornerRadius(ViewHelper.componentRounding)
                 }
                 
-                CIText("\(time.peopleAvailable.count) / \(meet.respondees.count) \((time.peopleAvailable.count == 1) ? "person" : "people") available")
+                CIText("\(time.peopleAvailable.count) / \(meet.respondees.count) \((meet.respondees.count == 1) ? "person" : "people") available")
                 
                 if coursesBeforeAfter != nil {
                     Divider()
