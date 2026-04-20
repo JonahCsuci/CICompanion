@@ -55,7 +55,7 @@ struct CICompanionApp: App {
                             viewModel: container.conversationsViewModel,
                             studentRepository: container.studentRepository,
                             messagingRepository: container.messagingRepository,
-                            coursesRepository: container.courseRepository,
+                            courseRepository: container.courseRepository,
                             sessionManager: container.sessionManager
                         )
                             .tabItem {
