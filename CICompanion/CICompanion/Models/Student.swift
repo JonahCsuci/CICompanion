@@ -13,4 +13,5 @@ struct Student: Codable, Identifiable {
     let email: String
     var courses: [Int]
     var events: [Int]
+    var availability: String?
 }

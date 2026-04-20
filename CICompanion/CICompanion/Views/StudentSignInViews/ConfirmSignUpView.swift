@@ -13,7 +13,7 @@ struct ConfirmSignUpView: View {
     
     var body: some View {
         CIView {
-            VStack(alignment: .leading, spacing: ViewHelper.spacing * 2) {
+            VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
                 CIPageTitle("Verify Email")
                 
                 VStack(alignment: .leading) {

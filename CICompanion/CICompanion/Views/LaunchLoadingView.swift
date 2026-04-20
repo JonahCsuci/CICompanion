@@ -20,7 +20,7 @@ struct LaunchLoadingView: View {
                 Spacer()
                 VStack(spacing: 0) {
                     HStack(spacing: 16) {
-                        Image("dolphin")
+                        Image("TeamKNOWN")
                             .resizable()
                             .scaledToFit()
                             .frame(width: 58, height: 58)
