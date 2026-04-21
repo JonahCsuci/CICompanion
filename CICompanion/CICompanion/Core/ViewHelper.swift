@@ -608,12 +608,14 @@ class ViewHelper {
     public static let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     public static let fieldBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     public static let cardBgColor = Color(red: 0.18, green: 0.20, blue: 0.27)
+    public static let lightBgColor = Color(red: 0.25, green: 0.28, blue: 0.32)
     public static let textImportant = Color.white
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
+    public static let accentPink = Color(red: 0.95, green: 0.425, blue: 0.465)
     public static let currentUserColor = Color(red: 0.329, green: 0.431, blue: 1)
     public static let otherUserColor = Color(red: 0.769, green: 0.306, blue: 0.984)
     public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)

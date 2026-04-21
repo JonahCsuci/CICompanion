@@ -42,7 +42,7 @@ struct MeetingBubbleView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(ViewHelper.cardBgColor)
+                .background(ViewHelper.lightBgColor)
                 .cornerRadius(16)
                 NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveB], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActiveB) {
                     HStack{
@@ -53,7 +53,7 @@ struct MeetingBubbleView: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(ViewHelper.cardBgColor)
+                .background(ViewHelper.lightBgColor)
                 .cornerRadius(16)
             }
         }
@@ -69,7 +69,7 @@ struct MeetingBubbleView: View {
         .foregroundColor(.white)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(ViewHelper.cardBgColor)
+        .background(ViewHelper.lightBgColor)
         .cornerRadius(16)
     }
     
