@@ -55,6 +55,7 @@ struct CICompanionApp: App {
                             viewModel: container.conversationsViewModel,
                             studentRepository: container.studentRepository,
                             messagingRepository: container.messagingRepository,
+                            courseRepository: container.courseRepository,
                             sessionManager: container.sessionManager
                         )
                             .tabItem {
@@ -93,8 +94,8 @@ struct CICompanionApp: App {
                 } else {
                     LaunchLoadingView()
                 }
-            }
-            
+            }.preferredColorScheme(.dark)
+                .background(ViewHelper.bgColor)
             // On app launch, tries to load previous session from the user
             .task {
                 await container.sessionManager.loadCurrentUser()

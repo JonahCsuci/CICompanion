@@ -115,7 +115,7 @@ struct SignInView: View {
                         Spacer()
                         
                         VStack(spacing: ViewHelper.smallPadding) {
-                            CIText("Don't have an account?", ViewHelper.text)
+                            CIText("Don't have an account?", color: ViewHelper.text)
                             
                             NavigationLink("Create Account") {
                                 SignUpView(sessionManager: sessionManager)

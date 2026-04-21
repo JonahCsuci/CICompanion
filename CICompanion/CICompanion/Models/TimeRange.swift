@@ -13,15 +13,13 @@ struct TimeRange : Hashable, Identifiable, Codable {
     /// In minutes since 00:00
     var endTime: Int
     
-    var userID: String
-    
     var id: UUID = UUID()
 
     var day: Date
     
     var isStudyRoomAvailable: Bool = false
     
-    var peopleAvailable : Int = 0 // TODO: Make this an array of user IDs instead of an Int
+    var peopleAvailable : Set<String> = Set()
     
     // Sergio don't look below. i barely understand what i was thinking when i implemeted this. google is my beloved, but this is the depths of hell. i bid thee, doth not go down
     

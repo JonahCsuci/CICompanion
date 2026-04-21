@@ -30,16 +30,7 @@ class ChatViewModel: ObservableObject {
         self.messagingRepository = messagingRepository
         self.currentUserId = currentUserId
     }
-
-    func getMeeting(body: String) -> String {
-        do {
-            let JSON = try body.base64DecodedString()
-            return JSON
-        } catch {
-            return ""
-        }
-    }
-
+    
     func loadMessages(conversationId: Int) {
         isLoading = true
         errorMessage = nil

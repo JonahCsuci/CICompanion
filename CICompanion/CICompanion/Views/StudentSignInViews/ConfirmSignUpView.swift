@@ -17,7 +17,7 @@ struct ConfirmSignUpView: View {
                 CIPageTitle("Verify Email")
                 
                 VStack(alignment: .leading) {
-                    CIText("Enter the code sent to " + email, ViewHelper.textImportant)
+                    CIText("Enter the code sent to " + email, color: ViewHelper.textImportant)
                 }
                 
                 CITextField(placeholder: "Verification Code", text: $code, lines: 1)

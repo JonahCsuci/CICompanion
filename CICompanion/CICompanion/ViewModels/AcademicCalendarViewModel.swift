@@ -19,6 +19,7 @@ struct CalendarScheduleBlock: Identifiable {
     let startMinutes: Int
     let endMinutes: Int
     let colorIndex: Int
+    let isMeeting: Bool
 }
 
 struct CalendarLegendItem: Identifiable {
@@ -68,10 +69,10 @@ class AcademicCalendarViewModel: ObservableObject {
         
         Task {
             do {
-                _ = try await studentRepository.loadStudent()
+                let student = try await studentRepository.loadStudent()
                 let studentCourses = try await courseRepository.loadStudentCourses()
                 
-                buildSchedule(from: studentCourses)
+                buildSchedule(courses: studentCourses, meetings: student.meetings)
                 isLoading = false
             } catch {
                 scheduleBlocks = []
@@ -84,7 +85,7 @@ class AcademicCalendarViewModel: ObservableObject {
         }
     }
     
-    private func buildSchedule(from courses: [Course]) {
+    private func buildSchedule(courses: [Course], meetings: [MeetingProposal]) {
         var nextBlocks: [CalendarScheduleBlock] = []
         var nextLegendItems: [CalendarLegendItem] = []
         var nextAsyncCourses: [AsyncCourseItem] = []
@@ -146,10 +147,32 @@ class AcademicCalendarViewModel: ObservableObject {
                         day: day,
                         startMinutes: startMinutes,
                         endMinutes: endMinutes,
-                        colorIndex: colorIndex
+                        colorIndex: colorIndex,
+                        isMeeting: false
                     )
                 )
             }
+        }
+        
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        
+        for proposal in meetings {
+            let dayName = formatter.string(from: proposal.timeRange.day)
+            nextBlocks.append(CalendarScheduleBlock(
+                id: "meeting-\(proposal.conversationID)-\(proposal.timeRange.startTime)",
+                courseId: -1,
+                courseName: proposal.title,
+                courseCode: "[MEETING]",
+                location: proposal.studyRoomID != nil ? proposal.studyRoom() : "",
+                startTime: DateHelper.minutesToTimeString(proposal.timeRange.startTime),
+                endTime: DateHelper.minutesToTimeString(proposal.timeRange.endTime),
+                day: dayName,
+                startMinutes: proposal.timeRange.startTime,
+                endMinutes: proposal.timeRange.endTime,
+                colorIndex: -1,
+                isMeeting: true
+            ))
         }
         
         scheduleBlocks = nextBlocks

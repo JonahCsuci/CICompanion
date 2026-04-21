@@ -36,7 +36,7 @@ struct LaunchLoadingView: View {
                         Spacer()
                         VStack {
                             CILoadingPage()
-                            CIText("Loading...", ViewHelper.text)
+                            CIText("Loading...", color: ViewHelper.text)
                         }
                         Spacer()
                     }

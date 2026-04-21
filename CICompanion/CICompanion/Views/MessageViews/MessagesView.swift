@@ -11,6 +11,8 @@ struct MessagesView: View {
     @StateObject private var contactsViewModel: ContactsViewModel
     @ObservedObject var sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
+    let studentRepository: StudentRepositoryProtocol
 
     @State private var showNewChat = false
     @State private var showNewGroup = false
@@ -39,6 +41,7 @@ struct MessagesView: View {
         viewModel: ConversationsViewModel,
         studentRepository: StudentRepositoryProtocol,
         messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol,
         sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -47,6 +50,8 @@ struct MessagesView: View {
         )
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
+        self.courseRepository = courseRepository
+        self.studentRepository = studentRepository
     }
     
     private var modePicker: some View {
@@ -99,7 +104,9 @@ struct MessagesView: View {
                     conversation: conversation,
                     sessionManager: sessionManager,
                     messagingRepository: messagingRepository,
-                    contacts: contactsViewModel.contacts
+                    courseRepository: courseRepository,
+                    contacts: contactsViewModel.contacts,
+                    studentRepository: studentRepository
                 )
             }
         }
@@ -499,6 +506,13 @@ struct MessagesView: View {
         guard let preview = conversation.lastMessagePreview, !preview.isEmpty else {
             return "No messages yet"
         }
+        
+        if let meetingScheduler = messagingRepository.getMeeting(body: preview) {
+            return "Scheduling a meeting: \(meetingScheduler.title)"
+        } else if let proposal = messagingRepository.getMeetingProposal(body: preview) {
+            return "Proposing a time for: \(proposal.title)"
+        }
+        
         return preview
     }
 

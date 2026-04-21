@@ -387,18 +387,24 @@ struct CITextButton: View {
 struct CIText: View {
     var text: String
     var color: Color
+    var fontSize: CGFloat
+    var fontWeight: Font.Weight
     
     init (
         _ text: String,
-        _ color: Color
+        color: Color = ViewHelper.textImportant,
+        fontSize: CGFloat = ViewHelper.textSize,
+        fontWeight: Font.Weight = .regular
     ) {
         self.text = text
         self.color = color
+        self.fontSize = fontSize
+        self.fontWeight = fontWeight
     }
     
     var body: some View {
         Text(text)
-            .font(.system(size: ViewHelper.textSize))
+            .font(.system(size: fontSize, weight: fontWeight))
             .foregroundColor(color)
             .lineLimit(1)
     }
@@ -406,73 +412,35 @@ struct CIText: View {
 
 struct CIDateField: View {
     @Binding var date: Date
-    @State private var showPicker = false
-
-    private var formattedDate: String {
-        date.formatted(.dateTime.month(.abbreviated).day().year())
-    }
-
+    
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $date,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $date,
+            displayedComponents: .date
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .padding()
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
 struct CITimeField: View {
     @Binding var time: Date
-    @State private var showPicker = false
-    
-    private var formattedDate: String {
-        time.formatted(.dateTime.hour().minute())
-    }
     
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $time,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $time,
+            displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .padding()
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
@@ -504,7 +472,7 @@ struct CIDropDown: View {
             }
         }, label: {
             HStack {
-                CIText(selectedItem, .white)
+                CIText(selectedItem, color: .white)
 
                 Spacer()
 
@@ -590,11 +558,11 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
                     .padding(.trailing, 10)
                 
                 VStack(alignment: .leading, spacing: ViewHelper.spacing / 2) {
-                    CIText(title, color)
+                    CIText(title, color: color)
                         .font(.system(size: ViewHelper.textSize * 1.5, weight: .bold))
                     
                     HStack(spacing: ViewHelper.spacing) {
-                        CIText(subtitle, ViewHelper.text)
+                        CIText(subtitle, color: ViewHelper.text)
                             .font(.system(size: ViewHelper.smallTextSize))
                     }
                 }
@@ -640,12 +608,17 @@ class ViewHelper {
     public static let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     public static let fieldBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     public static let cardBgColor = Color(red: 0.18, green: 0.20, blue: 0.27)
+    public static let lightBgColor = Color(red: 0.25, green: 0.28, blue: 0.32)
     public static let textImportant = Color.white
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
+    public static let accentPink = Color(red: 0.95, green: 0.425, blue: 0.465)
+    public static let currentUserColor = Color(red: 0.329, green: 0.431, blue: 1)
+    public static let otherUserColor = Color(red: 0.769, green: 0.306, blue: 0.984)
+    public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0

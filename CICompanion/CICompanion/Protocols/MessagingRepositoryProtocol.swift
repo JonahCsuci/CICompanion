@@ -19,4 +19,7 @@ protocol MessagingRepositoryProtocol {
     func markRead(conversationId: Int) async throws
     func editMeetup(messageId: Int, body: String) async throws
     func loadMeetup(messageId: Int) async throws -> Message
+    func getMeeting(body: String) -> MeetingScheduler?
+    func getMeetingProposal(body: String) -> MeetingProposal?
+    func fetchStudyRooms(start: Date, end: Date) async throws -> [Int: [TimeRange]]
 }

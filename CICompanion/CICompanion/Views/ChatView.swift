@@ -13,10 +13,13 @@ struct ChatView: View {
     let conversation: Conversation
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
+    let courseRepository : CourseRepositoryProtocol
     let contacts: [ContactStudent]
+    let studentRepository: StudentRepositoryProtocol
 
     @Environment(\.dismiss) private var dismiss
     @State private var showGroupInfo = false
+    @State private var showMeetings = false
     // Set when we want ChatView itself to pop AFTER GroupInfoView's sheet finishes its dismiss animation.
     // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
     @State private var pendingDismiss = false
@@ -29,14 +32,16 @@ struct ChatView: View {
     private let errorBannerHorizontalPadding: CGFloat = 14
     private let errorBannerVerticalPadding: CGFloat = 8
     private let errorBannerBackgroundOpacity: Double = 0.85
-    private let pollIntervalSeconds: Int = 5
+    private let pollIntervalSeconds: Int = 1
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contacts: [ContactStudent]) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent], studentRepository: StudentRepositoryProtocol) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
         self.sessionManager = sessionManager;
         self.messagingRepository = messagingRepository;
+        self.courseRepository = courseRepository;
         self.contacts = contacts
+        self.studentRepository = studentRepository
     }
 
     // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
@@ -86,6 +91,15 @@ struct ChatView: View {
                     }
                 }
             }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showMeetings = true
+                } label: {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.white)
+                }
+            }
         }
         .sheet(
             isPresented: $showGroupInfo,
@@ -128,13 +142,26 @@ struct ChatView: View {
                 } else {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            if (viewModel.getMeeting(body: message.body) != "") {
+                            if let prop = messagingRepository.getMeetingProposal(body: message.body) {
+                                MeetingProposalBubbleView(
+                                    message: message,
+                                    isCurrentUser: message.senderId == viewModel.currentUserId,
+                                    proposal: prop,
+                                    sessionManager: sessionManager,
+                                    messagingRepository: messagingRepository,
+                                    courseRepository: courseRepository,
+                                    conversation: conversation,
+                                    studentRepository: studentRepository
+                                )
+                            } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(
                                     message: message,
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    json: viewModel.getMeeting(body: message.body),
+                                    meetingScheduler: meetingScheduler,
                                     sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository
+                                    messagingRepository: messagingRepository,
+                                    courseRepository: courseRepository,
+                                    conversation: conversation
                                 )
                             } else {
                                 MessageBubbleView(
@@ -156,6 +183,21 @@ struct ChatView: View {
             }
             .onChange(of: viewModel.messages.count) { _ in
                 scrollToBottom(proxy: proxy)
+            }
+            .sheet(isPresented: $showMeetings) {
+                ScrollView {
+                    CIPageTitle("Previous meetings")
+                    ForEach(viewModel.messages) { message in
+                        if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation)
+                                .onTapGesture {
+                                    showMeetings = false
+                                    proxy.scrollTo(meetingScheduler.id, anchor: .center)
+                                }
+                        }
+                    }
+                    Spacer()
+                }.padding(ViewHelper.padding)
             }
         }
     }
@@ -189,7 +231,8 @@ struct ChatView: View {
                 navigationActive: $navigationActive,
                 sessionManager: sessionManager,
                 conversationID: conversation.id,
-                messagingRepository: messagingRepository
+                messagingRepository: messagingRepository,
+                courseRepository: courseRepository
             ), isActive: $navigationActive) {
                 Image(systemName: "plus")
                     .font(.system(size: 32))

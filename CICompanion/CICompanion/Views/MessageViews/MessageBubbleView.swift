@@ -12,8 +12,8 @@ struct MessageBubbleView: View {
     var showSenderName: Bool = false
     var receiptText: String? = nil
 
-    private let currentUserColor = Color(red: 0.30, green: 0.50, blue: 0.85)
-    private let otherUserColor = Color(red: 0.55, green: 0.25, blue: 0.85)
+    private let currentUserColor = ViewHelper.currentUserColor
+    private let otherUserColor = ViewHelper.otherUserColor
     private let metaTextSize: CGFloat = 12
     private let metaHorizontalInset: CGFloat = 4
     private let metaStackSpacing: CGFloat = 2
@@ -34,7 +34,6 @@ struct MessageBubbleView: View {
                         .foregroundColor(.gray)
                         .padding(.horizontal, metaHorizontalInset)
                 }
-
                 Text(message.body)
                     .font(.system(size: bubbleTextSize))
                     .foregroundColor(.white)
