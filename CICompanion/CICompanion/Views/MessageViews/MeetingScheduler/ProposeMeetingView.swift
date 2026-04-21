@@ -88,11 +88,14 @@ struct ProposeMeetingView: View {
 }
 
 struct MeetingProposalCardView: View {
-    let proposal: MeetingProposal
+    @State var proposal: MeetingProposal
     let meet: MeetingScheduler
     let viewModel: ProposeMeetingViewModel
     let courseRepository: CourseRepositoryProtocol
     let navigationsActive: [Binding<Bool>]
+    
+    @State var startTime : Date = Date()
+    @State var endTime : Date = Date()
     
     @State private var coursesBeforeAfter: ProposeMeetingViewModel.CoursesBeforeAfter? = nil
     
@@ -102,7 +105,21 @@ struct MeetingProposalCardView: View {
             Spacer()
             VStack {
                 CIText(DateHelper.dateToDayString(time.day), fontSize: ViewHelper.textSize * 2, fontWeight: .bold)
-                CIText("\(DateHelper.minutesToTimeString(time.startTime)) - \(DateHelper.minutesToTimeString(time.endTime))", fontSize: ViewHelper.textSize * 1.5, fontWeight: .semibold)
+                
+                HStack(spacing: ViewHelper.spacing*2) {
+                    CITimeField(time: $startTime)
+                        .onSubmit {
+                            proposal.timeRange.startTime = DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(startTime)) ?? 0
+                        }
+                    
+                    CIText("to", color: ViewHelper.text)
+                        .fixedSize()
+                    
+                    CITimeField(time: $endTime)
+                        .onSubmit {
+                            proposal.timeRange.endTime = DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0
+                        }
+                }
                 
                 // Access course information to show where this fits in in the schedule!
                 
@@ -156,6 +173,10 @@ struct MeetingProposalCardView: View {
                 }
                 
                 Button {
+                    proposal.timeRange.startTime =  DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(startTime)) ?? 0
+                    
+                    proposal.timeRange.endTime =  DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0
+                    
                     viewModel.proposeMeeting(prop: proposal)
                     
                     for nav in navigationsActive {
@@ -188,6 +209,9 @@ struct MeetingProposalCardView: View {
             } catch {
                 print("Error loading courses: \(error)")
             }
+        }.task {
+            startTime = DateHelper.minutesToDate(proposal.timeRange.startTime)
+            endTime = DateHelper.minutesToDate(proposal.timeRange.endTime)
         }
     }
     

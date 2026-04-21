@@ -412,73 +412,35 @@ struct CIText: View {
 
 struct CIDateField: View {
     @Binding var date: Date
-    @State private var showPicker = false
-
-    private var formattedDate: String {
-        date.formatted(.dateTime.month(.abbreviated).day().year())
-    }
-
+    
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, color: .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $date,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $date,
+            displayedComponents: .date
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .padding()
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
 struct CITimeField: View {
     @Binding var time: Date
-    @State private var showPicker = false
-    
-    private var formattedDate: String {
-        time.formatted(.dateTime.hour().minute())
-    }
     
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, color: .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $time,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $time,
+            displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .padding()
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
@@ -654,6 +616,7 @@ class ViewHelper {
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
     public static let currentUserColor = Color(red: 0.329, green: 0.431, blue: 1)
     public static let otherUserColor = Color(red: 0.769, green: 0.306, blue: 0.984)
+    public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0

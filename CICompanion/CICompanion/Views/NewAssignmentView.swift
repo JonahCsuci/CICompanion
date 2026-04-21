@@ -230,7 +230,8 @@ struct NewAssignmentView: View {
             day: "Monday",
             startMinutes: 540,
             endMinutes: 600,
-            colorIndex: 0
+            colorIndex: 0,
+            isMeeting: false
         ),
         isPresented: .constant(true),
         assignments: .constant([:])

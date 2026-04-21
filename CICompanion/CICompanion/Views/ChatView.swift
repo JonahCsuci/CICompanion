@@ -15,6 +15,7 @@ struct ChatView: View {
     var messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
     let contacts: [ContactStudent]
+    let studentRepository: StudentRepositoryProtocol
 
     @Environment(\.dismiss) private var dismiss
     @State private var showGroupInfo = false
@@ -32,13 +33,14 @@ struct ChatView: View {
     private let errorBannerBackgroundOpacity: Double = 0.85
     private let pollIntervalSeconds: Int = 1
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent]) {
+    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent], studentRepository: StudentRepositoryProtocol) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
         self.sessionManager = sessionManager;
         self.messagingRepository = messagingRepository;
         self.courseRepository = courseRepository;
         self.contacts = contacts
+        self.studentRepository = studentRepository
     }
 
     // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
@@ -138,7 +140,8 @@ struct ChatView: View {
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository,
                                     courseRepository: courseRepository,
-                                    conversation: conversation
+                                    conversation: conversation,
+                                    studentRepository: studentRepository
                                 )
                             } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(

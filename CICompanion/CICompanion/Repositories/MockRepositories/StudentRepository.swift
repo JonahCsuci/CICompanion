@@ -146,4 +146,8 @@ class StudentRepository: StudentRepositoryProtocol {
             userInfo: [NSLocalizedDescriptionKey: message]
         )
     }
+    
+    func updateScheduleTimes(meetings: [MeetingProposal]) async throws {
+        return
+    }
 }

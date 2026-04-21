@@ -10,11 +10,13 @@ import SwiftUI
 struct MeetingProposalBubbleView: View {
     let message: Message
     let isCurrentUser: Bool
-    let proposal: MeetingProposal
+    @State var proposal: MeetingProposal
     let sessionManager : SessionManager
     let messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
     let conversation : Conversation
+    let studentRepository: StudentRepositoryProtocol
+    @State var responded = false
     
     @State var navigationActive = false
     
@@ -32,15 +34,25 @@ struct MeetingProposalBubbleView: View {
                     CIText("\(DateHelper.dateToDayString(date, true)) · \(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
                 }
                 
-                CIText("\(proposal.respondees.count)/\(conversation.participants != nil ? conversation.participants!.count : 2) people added to calendar", color: ViewHelper.textImportant.opacity(0.75))
-                
-                
-                if sessionManager.userId != nil && proposal.respondees.contains(sessionManager.userId!) {
-                    
+                if responded {
+                    CIText("✓ Added to calendar", fontSize: ViewHelper.smallTextSize)
                 } else {
                     HStack(spacing: 12) {
                         Button {
-                            
+                            responded = true
+                            Task {
+                                do {
+                                    var meetings = try await studentRepository.loadStudent().meetings
+                                    
+                                    if !meetings.contains(proposal) {
+                                        meetings.append(proposal)
+                                    }
+                                    
+                                    try await studentRepository.updateScheduleTimes(meetings: meetings)
+                                } catch {
+                                    print("There was an error adding the student meeting: \(error)")
+                                }
+                            }
                         } label: {
                             Spacer()
                             Image(systemName: "calendar").font(.system(size: ViewHelper.textSize, weight: .semibold))
@@ -59,6 +71,15 @@ struct MeetingProposalBubbleView: View {
             .cornerRadius(16)
 
             if !isCurrentUser { Spacer(minLength: 60) }
+        }.task {
+            do {
+                let student = try await studentRepository.loadStudent()
+                responded = student.meetings.contains(proposal)
+            } catch {
+                responded = false
+                print("Failed to load student in MeetingProposalBubbleView .task: \(error)")
+            }
         }
     }
 }
+
