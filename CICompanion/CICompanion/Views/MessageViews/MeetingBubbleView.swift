@@ -98,7 +98,7 @@ struct MeetingBubbleView: View {
             .background(isCurrentUser ? ViewHelper.currentUserColor : ViewHelper.otherUserColor)
             .cornerRadius(16)
 
-            if !isCurrentUser { Spacer(minLength: 60) }
-        }
+             if !isCurrentUser { Spacer(minLength: 60) }
+        }.id(meetingScheduler.id)
     }
 }

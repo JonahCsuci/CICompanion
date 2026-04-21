@@ -19,6 +19,7 @@ struct ChatView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var showGroupInfo = false
+    @State private var showMeetings = false
     // Set when we want ChatView itself to pop AFTER GroupInfoView's sheet finishes its dismiss animation.
     // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
     @State private var pendingDismiss = false
@@ -88,6 +89,15 @@ struct ChatView: View {
                         Image(systemName: "info.circle")
                             .foregroundColor(.white)
                     }
+                }
+            }
+            
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showMeetings = true
+                } label: {
+                    Image(systemName: "calendar")
+                        .foregroundColor(.white)
                 }
             }
         }
@@ -173,6 +183,21 @@ struct ChatView: View {
             }
             .onChange(of: viewModel.messages.count) { _ in
                 scrollToBottom(proxy: proxy)
+            }
+            .sheet(isPresented: $showMeetings) {
+                ScrollView {
+                    CIPageTitle("Previous meetings")
+                    ForEach(viewModel.messages) { message in
+                        if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation)
+                                .onTapGesture {
+                                    showMeetings = false
+                                    proxy.scrollTo(meetingScheduler.id, anchor: .center)
+                                }
+                        }
+                    }
+                    Spacer()
+                }.padding(ViewHelper.padding)
             }
         }
     }
