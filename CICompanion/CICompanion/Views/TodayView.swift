@@ -660,14 +660,14 @@ struct TodayView: View {
         case .week:
             let cal = Calendar.current
             let weekday = cal.component(.weekday, from: selectedDate)
-            let mondayOffset = (weekday == 1) ? -6 : (2 - weekday)
-            guard let monday = cal.date(byAdding: .day, value: mondayOffset, to: selectedDate),
-                  let sunday = cal.date(byAdding: .day, value: 6, to: monday) else {
+            let sundayOffset = -(weekday - 1)
+            guard let sunday = cal.date(byAdding: .day, value: sundayOffset, to: selectedDate),
+                  let saturday = cal.date(byAdding: .day, value: 6, to: sunday) else {
                 return formattedDate()
             }
             let fmt = DateFormatter()
             fmt.dateFormat = "MMM d"
-            return "\(fmt.string(from: monday)) – \(fmt.string(from: sunday))"
+            return "\(fmt.string(from: sunday)) \u{2013} \(fmt.string(from: saturday))"
         case .month:
             let fmt = DateFormatter()
             fmt.dateFormat = "MMMM yyyy"
@@ -976,15 +976,16 @@ struct TodayView: View {
             .sorted { $0.startMinutes < $1.startMinutes }
     }
     
-    /// Returns the Monday–Friday dates for the current week.
+    /// Returns the Sunday-through-Saturday dates covering the current selection.
     private func currentWeekDates() -> [Date] {
         let cal = Calendar.current
+        // .weekday: Sunday = 1 ... Saturday = 7. Offset back to Sunday.
         let weekday = cal.component(.weekday, from: selectedDate)
-        let mondayOffset = (weekday == 1) ? -6 : (2 - weekday)
-        guard let monday = cal.date(byAdding: .day, value: mondayOffset, to: selectedDate) else {
+        let sundayOffset = -(weekday - 1)
+        guard let sunday = cal.date(byAdding: .day, value: sundayOffset, to: selectedDate) else {
             return []
         }
-        return (0..<Self.weekdayChipCount).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
+        return (0..<Self.weekdayChipCount).compactMap { cal.date(byAdding: .day, value: $0, to: sunday) }
     }
     
     /// Counts incomplete assignments whose due date falls on the given calendar day.

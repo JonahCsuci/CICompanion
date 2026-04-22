@@ -57,6 +57,9 @@ struct ScheduleGridView: View {
         static let unselectedDayOpacity = 0.85
         static let badgeSize: CGFloat = 16
         static let badgeTextSize: CGFloat = 10
+        /// Dark ink used on course blocks — reads better on the bright/pastel
+        /// course colors than pure white, especially on orange and teal.
+        static let blockTextColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     }
 
     /// The course color palette. Meeting blocks override this via `ViewHelper.accentMeeting`.
@@ -237,12 +240,16 @@ struct ScheduleGridView: View {
                 }
                 
                 let weekDates = currentWeekDates()
-                ForEach(viewModel.scheduleBlocks) { block in
+                // Render blocks full-width, but sort by start time so later-starting
+                // classes are drawn on top of earlier ones when they overlap.
+                let orderedBlocks = viewModel.scheduleBlocks
+                    .sorted { $0.startMinutes < $1.startMinutes }
+                ForEach(orderedBlocks) { block in
                     if let col = dayIndex(for: block.day, in: weekDates) {
                         let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
                         let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
                         let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
-                        
+
                         if y >= 0 && y < gridHeight {
                             courseBlock(
                                 block: block,
@@ -262,17 +269,22 @@ struct ScheduleGridView: View {
     
     private func courseBlock(block: CalendarScheduleBlock, width: CGFloat, height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(displayName(block.courseName))
+            Text(block.courseName)
                 .font(.system(size: Layout.blockTitleSize, weight: .bold))
-                .lineLimit(3)
-                .minimumScaleFactor(0.7)
-            
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
+                .truncationMode(.tail)
+
             Text(block.location)
                 .font(.system(size: Layout.blockLocationSize))
                 .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
+                .truncationMode(.tail)
         }
-        .foregroundColor(ViewHelper.textImportant)
-        .padding(.horizontal, ViewHelper.tinyPadding - 1)
+        .foregroundColor(Layout.blockTextColor)
+        .padding(.horizontal, ViewHelper.tinyPadding - 2)
         .padding(.vertical, 4)
         .frame(width: width, height: height, alignment: .topLeading)
         .background(courseColor(for: block))
@@ -283,10 +295,11 @@ struct ScheduleGridView: View {
     
     private func currentWeekDates() -> [Date] {
         let cal = Calendar.current
+        // .weekday: Sunday = 1 ... Saturday = 7. Offset back to Sunday.
         let weekday = cal.component(.weekday, from: weekAnchor)
-        let mondayOffset = (weekday == 1) ? -6 : (2 - weekday)
-        guard let monday = cal.date(byAdding: .day, value: mondayOffset, to: weekAnchor) else { return [] }
-        return (0..<Layout.daysPerWeek).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
+        let sundayOffset = -(weekday - 1)
+        guard let sunday = cal.date(byAdding: .day, value: sundayOffset, to: weekAnchor) else { return [] }
+        return (0..<Layout.daysPerWeek).compactMap { cal.date(byAdding: .day, value: $0, to: sunday) }
     }
     
     private func dayIndex(for dayName: String, in dates: [Date]) -> Int? {
@@ -320,7 +333,7 @@ struct ScheduleGridView: View {
             : String(words[0])
         return "\(first) \(words[1])"
     }
-    
+
     private func courseColor(for block: CalendarScheduleBlock) -> Color {
         if block.isMeeting { return ViewHelper.accentMeeting }
         return Self.courseColors[block.colorIndex % Self.courseColors.count]
