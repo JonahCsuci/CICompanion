@@ -110,7 +110,7 @@ private struct RootTabView: View {
 
     var body: some View {
         TabView {
-            // Today tab
+            // Today tab (Day / Week / Month modes live inside)
             TodayView(
                 viewModel: container.myAcademicCalendarViewModel,
                 studentRepository: container.studentRepository,
@@ -119,17 +119,6 @@ private struct RootTabView: View {
                 .tabItem {
                     Image(systemName: "calendar")
                     Text("Today")
-                }
-
-            // Schedule tab
-            ScheduleGridView(viewModel: AcademicCalendarViewModel(
-                courseRepository: container.courseRepository,
-                studentRepository: container.studentRepository
-            ),
-                sessionManager: container.sessionManager)
-                .tabItem {
-                    Image(systemName: "square.grid.3x3.fill")
-                    Text("Schedule")
                 }
 
             // Messages tab

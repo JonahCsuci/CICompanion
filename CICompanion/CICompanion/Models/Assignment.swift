@@ -13,8 +13,20 @@ struct Assignment: Identifiable, Codable {
     var isCompleted: Bool
     var isPriority: Bool
     var alertTime: String
+    /// The calendar day this assignment is due. Time-of-day is only meaningful when `isAllDay == false`.
+    var dueDate: Date
+    /// When true, the UI should display the day without a specific time.
+    var isAllDay: Bool
     
-    init(id: String = UUID().uuidString, courseId: String, title: String, details: String = "", isCompleted: Bool = false, isPriority: Bool = false, alertTime: String = "1 day before class") {
+    init(id: String = UUID().uuidString,
+         courseId: String,
+         title: String,
+         details: String = "",
+         isCompleted: Bool = false,
+         isPriority: Bool = false,
+         alertTime: String = "1 day before class",
+         dueDate: Date = Date(),
+         isAllDay: Bool = true) {
         self.id = id
         self.courseId = courseId
         self.title = title
@@ -22,5 +34,7 @@ struct Assignment: Identifiable, Codable {
         self.isCompleted = isCompleted
         self.isPriority = isPriority
         self.alertTime = alertTime
+        self.dueDate = dueDate
+        self.isAllDay = isAllDay
     }
 }

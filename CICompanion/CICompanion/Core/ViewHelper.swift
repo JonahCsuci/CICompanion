@@ -610,6 +610,7 @@ class ViewHelper {
     public static let textImportant = Color.white
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)
+    public static let accentDarkBlue = Color(red: 0.15, green: 0.30, blue: 0.75)
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
