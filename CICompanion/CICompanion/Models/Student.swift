@@ -22,8 +22,18 @@ struct Student: Codable, Identifiable {
         email = try container.decode(String.self, forKey: .email)
         courses = try container.decode([Int].self, forKey: .courses)
         events = try container.decode([Int].self, forKey: .events)
-        let meetingsString = (try? container.decode(String.self, forKey: .meetings)) ?? ""
-        
-        meetings = try JSONDecoder().decode([MeetingProposal].self, from: meetingsString.data(using: .utf8) ?? Data())
+
+        // `meetings` is stored server-side as a JSON string and may be missing, null, or empty
+        // for students who have no proposals. Guard against all of those so a blank value
+        // doesn't throw and break the whole Student decode (which silently empties the
+        // Add Class list, student courses, etc.).
+        if let meetingsString = try? container.decode(String.self, forKey: .meetings),
+           let data = meetingsString.data(using: .utf8),
+           !data.isEmpty,
+           let decoded = try? JSONDecoder().decode([MeetingProposal].self, from: data) {
+            meetings = decoded
+        } else {
+            meetings = []
+        }
     }
 }

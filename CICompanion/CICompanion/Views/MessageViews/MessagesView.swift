@@ -445,6 +445,7 @@ struct MessagesView: View {
             LazyVStack(spacing: 0) {
                 ForEach(viewModel.displayedConversations) { conversation in
                     Button {
+                        viewModel.markConversationReadLocally(conversationId: conversation.id)
                         navigationPath.append(conversation)
                     } label: {
                         conversationRow(conversation)
@@ -539,7 +540,8 @@ struct MessagesView: View {
                         .foregroundColor(.gray)
                 }
 
-                if let count = conversation.unreadCount, count > 0 {
+                let count = viewModel.unreadCount(for: conversation)
+                if count > 0 {
                     Text("\(count)")
                         .font(.system(size: unreadBadgeTextSize, weight: .bold))
                         .foregroundColor(.white)
