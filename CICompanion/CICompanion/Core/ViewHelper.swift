@@ -615,9 +615,10 @@ class ViewHelper {
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
-    public static let accentPink = Color(red: 0.95, green: 0.425, blue: 0.465)
-    public static let currentUserColor = Color(red: 0.329, green: 0.431, blue: 1)
-    public static let otherUserColor = Color(red: 0.769, green: 0.306, blue: 0.984)
+    public static let accentPink = Color(red: 0.969, green: 0.761, blue: 0.839)
+    public static let accentPurple = Color(red: 0.29, green: 0.424, blue: 0.902)
+    public static let otherUserColor = fieldBgColor
+    public static let currentUserColor = accentPurple
     public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
