@@ -7,62 +7,97 @@ struct ScheduleGridView: View {
     @StateObject var viewModel: AcademicCalendarViewModel
     @ObservedObject var sessionManager: SessionManager
     @State private var showSignIn = false
-    
-    // Grid configuration
-    private let startHour = 9
-    private let endHour = 15
-    private let hourHeight: CGFloat = 80
-    private let timeColumnWidth: CGFloat = 40
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    
+
+    /// Anchor date whose Monday–Friday week is displayed. Defaults to today.
+    /// Passed in by TodayView's Week mode so the arrows can page through weeks.
+    var weekAnchor: Date = Date()
+    /// When true, hide the "Schedule" title header — the Today tab shows its own header.
+    var showsTitle: Bool = true
+    /// Optional callback that returns the count of pending assignments for a given day.
+    /// When provided, a red badge is rendered on the day header.
+    var assignmentCountForDate: ((Date) -> Int)? = nil
+
+    // MARK: - Layout
+
+    /// Layout constants for the schedule grid. Kept as a nested enum so each magic
+    /// number has a name and lives in a single spot.
+    private enum Layout {
+        static let startHour = 9
+        static let endHour = 15
+        static let hourHeight: CGFloat = 80
+        static let timeColumnWidth: CGFloat = 40
+        static let daysPerWeek = 7
+        static let gridLineColor = Color(white: 0.18)
+        static let gridLineWidth: CGFloat = 0.5
+        static let blockHorizontalInset: CGFloat = 2
+        static let blockVerticalInset: CGFloat = 2
+        static let minBlockHeight: CGFloat = 28
+        static let blockCornerRadius: CGFloat = 6
+        static let blockTitleSize: CGFloat = 11
+        static let blockLocationSize: CGFloat = 9
+        static let hourLabelSize: CGFloat = 12
+        static let meridiemLabelSize: CGFloat = 9
+        static let hourLabelYOffset: CGFloat = 16
+        static let dayNumberSize: CGFloat = 20
+        static let dayNameSize: CGFloat = 12
+        static let dayHeaderCornerRadius: CGFloat = 12
+        static let dayHeaderVerticalPadding: CGFloat = 8
+        static let gridHorizontalPadding: CGFloat = 8
+        static let gridBottomPadding: CGFloat = 20
+        static let signInSpacerHeight: CGFloat = 50
+        static let signInButtonWidth: CGFloat = 200
+        static let signInButtonHeight: CGFloat = 50
+        static let signInButtonCornerRadius: CGFloat = 12
+        static let signInHeadlineSize: CGFloat = 28
+        static let signInButtonTextSize: CGFloat = 18
+        static let signInHorizontalPadding: CGFloat = 30
+        static let courseNameLengthLimit = 14
+        static let firstWordTruncationLimit = 8
+        static let firstWordPrefix = 7
+        static let unselectedDayOpacity = 0.85
+        static let badgeSize: CGFloat = 16
+        static let badgeTextSize: CGFloat = 10
+        /// Dark ink used on course blocks — reads better on the bright/pastel
+        /// course colors than pure white, especially on orange and teal.
+        static let blockTextColor = Color(red: 0.08, green: 0.10, blue: 0.15)
+    }
+
+    /// The course color palette. Meeting blocks override this via `ViewHelper.accentMeeting`.
+    private static let courseColors: [Color] = [
+        Color(red: 1.0, green: 0.65, blue: 0.0),
+        ViewHelper.accentGreen,
+        Color(red: 0.85, green: 0.35, blue: 0.90),
+        Color(red: 0.4, green: 0.65, blue: 1.0),
+        Color(red: 1.0, green: 0.4, blue: 0.6),
+        Color(red: 0.3, green: 0.85, blue: 0.45)
+    ]
+
     // MARK: - Body
     
     var body: some View {
         ZStack {
-            bgColor.ignoresSafeArea()
+            ViewHelper.bgColor.ignoresSafeArea()
             
             VStack(spacing: 0) {
-                Text("Schedule")
-                    .font(.system(size: 28, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 12)
+                if showsTitle {
+                    CIPageTitle("Schedule")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, ViewHelper.biggerSpacing)
+                        .padding(.top, ViewHelper.spacing + 4)
+                        .padding(.bottom, ViewHelper.spacing + 4)
+                }
                 
                 if !sessionManager.isSignedIn {
-                    VStack {
-                        Spacer()
-                            .frame(height: 50)
-                        
-                        Text("Sign in to view your schedule")
-                            .font(.system(size: 28, weight: .semibold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 30)
-                        
-                        Button {
-                            showSignIn = true
-                        } label: {
-                            Text("Sign In")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
-                                .frame(width: 200, height: 50)
-                                .background(Color(red: 0.36, green: 0.55, blue: 0.90))
-                                .cornerRadius(12)
-                        }
-                        
-                        Spacer()
-                    }
+                    signInPrompt
                 } else {
                     dayHeaders()
-                        .padding(.horizontal, 8)
-                        .padding(.bottom, 6)
+                        .padding(.horizontal, Layout.gridHorizontalPadding)
+                        .padding(.bottom, ViewHelper.tinyPadding)
                     
                     ScrollView(.vertical, showsIndicators: false) {
                         gridContent()
-                            .padding(.horizontal, 8)
-                            .padding(.bottom, 20)
+                            .padding(.horizontal, Layout.gridHorizontalPadding)
+                            .padding(.bottom, Layout.gridBottomPadding)
                     }
                 }
             }
@@ -81,6 +116,34 @@ struct ScheduleGridView: View {
             SignInView(sessionManager: sessionManager)
         }
     }
+
+    // MARK: - Sign-In Prompt
+
+    private var signInPrompt: some View {
+        VStack {
+            Spacer()
+                .frame(height: Layout.signInSpacerHeight)
+
+            Text("Sign in to view your schedule")
+                .font(.system(size: Layout.signInHeadlineSize, weight: .semibold))
+                .foregroundColor(ViewHelper.textImportant)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Layout.signInHorizontalPadding)
+
+            Button {
+                showSignIn = true
+            } label: {
+                Text("Sign In")
+                    .font(.system(size: Layout.signInButtonTextSize, weight: .bold))
+                    .foregroundColor(ViewHelper.textImportant)
+                    .frame(width: Layout.signInButtonWidth, height: Layout.signInButtonHeight)
+                    .background(ViewHelper.accentBlue)
+                    .cornerRadius(Layout.signInButtonCornerRadius)
+            }
+
+            Spacer()
+        }
+    }
     
     // MARK: - Day Headers
     
@@ -88,32 +151,46 @@ struct ScheduleGridView: View {
         let weekDates = currentWeekDates()
         
         return HStack(spacing: 0) {
-            Color.clear.frame(width: timeColumnWidth, height: 1)
+            Color.clear.frame(width: Layout.timeColumnWidth, height: 1)
             
-            ForEach(0..<5, id: \.self) { i in
+            ForEach(0..<Layout.daysPerWeek, id: \.self) { i in
                 let date = weekDates[i]
                 let day = Calendar.current.component(.day, from: date)
                 let dayName = shortDayName(for: date)
                 let isToday = Calendar.current.isDateInToday(date)
+                let badgeCount = assignmentCountForDate?(date) ?? 0
                 
                 VStack(spacing: 2) {
                     Text("\(day)")
-                        .font(.system(size: 20, weight: .bold))
-                        .foregroundColor(isToday ? .white : .gray)
+                        .font(.system(size: Layout.dayNumberSize, weight: .bold))
+                        .foregroundColor(isToday ? ViewHelper.textImportant : ViewHelper.text)
                     Text(dayName)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(isToday ? .white.opacity(0.85) : .gray)
+                        .font(.system(size: Layout.dayNameSize, weight: .medium))
+                        .foregroundColor(isToday
+                                         ? ViewHelper.textImportant.opacity(Layout.unselectedDayOpacity)
+                                         : ViewHelper.text)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, Layout.dayHeaderVerticalPadding)
                 .background(
                     Group {
                         if isToday {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(red: 0.30, green: 0.50, blue: 0.90))
+                            RoundedRectangle(cornerRadius: Layout.dayHeaderCornerRadius)
+                                .fill(ViewHelper.accentBlue)
                         }
                     }
                 )
+                .overlay(alignment: .topTrailing) {
+                    if badgeCount > 0 {
+                        Text("\(badgeCount)")
+                            .font(.system(size: Layout.badgeTextSize, weight: .bold))
+                            .foregroundColor(ViewHelper.textImportant)
+                            .frame(minWidth: Layout.badgeSize, minHeight: Layout.badgeSize)
+                            .padding(.horizontal, 3)
+                            .background(Capsule().fill(ViewHelper.accentDarkBlue))
+                            .offset(x: -2, y: 2)
+                    }
+                }
             }
         }
     }
@@ -121,57 +198,65 @@ struct ScheduleGridView: View {
     // MARK: - Grid Content
     
     private func gridContent() -> some View {
-        let totalHours = endHour - startHour
-        let gridHeight = CGFloat(totalHours) * hourHeight
+        let totalHours = Layout.endHour - Layout.startHour
+        let gridHeight = CGFloat(totalHours) * Layout.hourHeight
         
         return GeometryReader { geo in
             let gridWidth = geo.size.width
-            let colWidth = (gridWidth - timeColumnWidth) / 5
+            let colWidth = (gridWidth - Layout.timeColumnWidth) / CGFloat(Layout.daysPerWeek)
             
             ZStack(alignment: .topLeading) {
                 
                 ForEach(0...totalHours, id: \.self) { i in
-                    let y = CGFloat(i) * hourHeight
+                    let y = CGFloat(i) * Layout.hourHeight
                     
                     Path { path in
-                        path.move(to: CGPoint(x: timeColumnWidth, y: y))
+                        path.move(to: CGPoint(x: Layout.timeColumnWidth, y: y))
                         path.addLine(to: CGPoint(x: gridWidth, y: y))
                     }
-                    .stroke(Color(white: 0.18), lineWidth: 0.5)
+                    .stroke(Layout.gridLineColor, lineWidth: Layout.gridLineWidth)
                     
                     if i < totalHours {
-                        let hour = startHour + i
+                        let hour = Layout.startHour + i
                         VStack(spacing: 0) {
                             Text(formatHourLabel(hour))
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.gray)
+                                .font(.system(size: Layout.hourLabelSize, weight: .medium))
+                                .foregroundColor(ViewHelper.text)
                             Text(hour >= 12 ? "PM" : "AM")
-                                .font(.system(size: 9))
-                                .foregroundColor(.gray)
+                                .font(.system(size: Layout.meridiemLabelSize))
+                                .foregroundColor(ViewHelper.text)
                         }
-                        .position(x: timeColumnWidth / 2, y: y + 16)
+                        .position(x: Layout.timeColumnWidth / 2, y: y + Layout.hourLabelYOffset)
                     }
                 }
                 
-                ForEach(0...5, id: \.self) { i in
-                    let x = timeColumnWidth + CGFloat(i) * colWidth
+                ForEach(0...Layout.daysPerWeek, id: \.self) { i in
+                    let x = Layout.timeColumnWidth + CGFloat(i) * colWidth
                     Path { path in
                         path.move(to: CGPoint(x: x, y: 0))
                         path.addLine(to: CGPoint(x: x, y: gridHeight))
                     }
-                    .stroke(Color(white: 0.18), lineWidth: 0.5)
+                    .stroke(Layout.gridLineColor, lineWidth: Layout.gridLineWidth)
                 }
                 
                 let weekDates = currentWeekDates()
-                ForEach(viewModel.scheduleBlocks) { block in
+                // Render blocks full-width, but sort by start time so later-starting
+                // classes are drawn on top of earlier ones when they overlap.
+                let orderedBlocks = viewModel.scheduleBlocks
+                    .sorted { $0.startMinutes < $1.startMinutes }
+                ForEach(orderedBlocks) { block in
                     if let col = dayIndex(for: block.day, in: weekDates) {
-                        let x = timeColumnWidth + CGFloat(col) * colWidth + 2
-                        let y = CGFloat(block.startMinutes - startHour * 60) / 60.0 * hourHeight
-                        let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * hourHeight
-                        
+                        let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
+                        let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
+                        let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
+
                         if y >= 0 && y < gridHeight {
-                            courseBlock(block: block, width: colWidth - 4, height: max(h - 2, 28))
-                                .offset(x: x, y: y)
+                            courseBlock(
+                                block: block,
+                                width: colWidth - Layout.blockHorizontalInset * 2,
+                                height: max(h - Layout.blockVerticalInset, Layout.minBlockHeight)
+                            )
+                            .offset(x: x, y: y)
                         }
                     }
                 }
@@ -184,32 +269,37 @@ struct ScheduleGridView: View {
     
     private func courseBlock(block: CalendarScheduleBlock, width: CGFloat, height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(displayName(block.courseName))
-                .font(.system(size: 11, weight: .bold))
-                .lineLimit(3)
-                .minimumScaleFactor(0.7)
-            
-            Text(block.location)
-                .font(.system(size: 9))
+            Text(block.courseName)
+                .font(.system(size: Layout.blockTitleSize, weight: .bold))
                 .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
+                .truncationMode(.tail)
+
+            Text(block.location)
+                .font(.system(size: Layout.blockLocationSize))
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
+                .truncationMode(.tail)
         }
-        .foregroundColor(.white)
-        .padding(.horizontal, 5)
+        .foregroundColor(Layout.blockTextColor)
+        .padding(.horizontal, ViewHelper.tinyPadding - 2)
         .padding(.vertical, 4)
         .frame(width: width, height: height, alignment: .topLeading)
         .background(courseColor(for: block))
-        .cornerRadius(6)
+        .cornerRadius(Layout.blockCornerRadius)
     }
     
     // MARK: - Helpers
     
     private func currentWeekDates() -> [Date] {
         let cal = Calendar.current
-        let today = Date()
-        let weekday = cal.component(.weekday, from: today)
-        let mondayOffset = (weekday == 1) ? -6 : (2 - weekday)
-        guard let monday = cal.date(byAdding: .day, value: mondayOffset, to: today) else { return [] }
-        return (0..<5).compactMap { cal.date(byAdding: .day, value: $0, to: monday) }
+        // .weekday: Sunday = 1 ... Saturday = 7. Offset back to Sunday.
+        let weekday = cal.component(.weekday, from: weekAnchor)
+        let sundayOffset = -(weekday - 1)
+        guard let sunday = cal.date(byAdding: .day, value: sundayOffset, to: weekAnchor) else { return [] }
+        return (0..<Layout.daysPerWeek).compactMap { cal.date(byAdding: .day, value: $0, to: sunday) }
     }
     
     private func dayIndex(for dayName: String, in dates: [Date]) -> Int? {
@@ -230,29 +320,23 @@ struct ScheduleGridView: View {
     }
     
     private func displayName(_ name: String) -> String {
-        if name.count <= 14 { return name }
+        if name.count <= Layout.courseNameLengthLimit { return name }
         
         let words = name.split(separator: " ")
         if words.count <= 2 { return name }
         
         let line = words.prefix(2).joined(separator: " ")
-        if line.count <= 14 { return line }
+        if line.count <= Layout.courseNameLengthLimit { return line }
         
-        let first = words[0].count > 8 ? String(words[0].prefix(7)) + "." : String(words[0])
+        let first = words[0].count > Layout.firstWordTruncationLimit
+            ? String(words[0].prefix(Layout.firstWordPrefix)) + "."
+            : String(words[0])
         return "\(first) \(words[1])"
     }
-    
+
     private func courseColor(for block: CalendarScheduleBlock) -> Color {
         if block.isMeeting { return ViewHelper.accentMeeting }
-        let colors: [Color] = [
-            Color(red: 1.0, green: 0.65, blue: 0.0),
-            Color(red: 0.2, green: 0.85, blue: 0.8),
-            Color(red: 0.85, green: 0.35, blue: 0.90),
-            Color(red: 0.4, green: 0.65, blue: 1.0),
-            Color(red: 1.0, green: 0.4, blue: 0.6),
-            Color(red: 0.3, green: 0.85, blue: 0.45)
-        ]
-        return colors[block.colorIndex % colors.count]
+        return Self.courseColors[block.colorIndex % Self.courseColors.count]
     }
 }
 

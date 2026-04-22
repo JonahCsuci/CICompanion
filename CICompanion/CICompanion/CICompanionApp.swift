@@ -110,26 +110,16 @@ private struct RootTabView: View {
 
     var body: some View {
         TabView {
-            // Today tab
+            // Today tab (Day / Week / Month modes live inside)
             TodayView(
                 viewModel: container.myAcademicCalendarViewModel,
                 studentRepository: container.studentRepository,
+                courseRepository: container.courseRepository,
                 sessionManager: container.sessionManager
             )
                 .tabItem {
                     Image(systemName: "calendar")
                     Text("Today")
-                }
-
-            // Schedule tab
-            ScheduleGridView(viewModel: AcademicCalendarViewModel(
-                courseRepository: container.courseRepository,
-                studentRepository: container.studentRepository
-            ),
-                sessionManager: container.sessionManager)
-                .tabItem {
-                    Image(systemName: "square.grid.3x3.fill")
-                    Text("Schedule")
                 }
 
             // Messages tab
@@ -153,16 +143,8 @@ private struct RootTabView: View {
 //                    Text("Map")
 //                }
 
-            // Settings tab
-            SettingsView(
-                courseRepository: container.courseRepository,
-                studentRepository: container.studentRepository,
-                sessionManager: container.sessionManager
-            )
-                .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Settings")
-                }
+            // Settings moved into a top-left gear button on each main view;
+            // no longer a standalone tab.
 
             /**#if DEBUG
             APITestView(viewModel: container.apiTestViewModel)
