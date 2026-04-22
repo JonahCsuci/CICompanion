@@ -18,6 +18,7 @@ struct MessagesView: View {
     @State private var showNewGroup = false
     @State private var showAddContact = false
     @State private var showSignIn = false
+    @State private var showSettings = false
     @State private var navigationPath = NavigationPath()
     @State private var mode: MessagesMode = .chats
 
@@ -188,6 +189,13 @@ struct MessagesView: View {
         .sheet(isPresented: $showSignIn) {
             SignInView(sessionManager: sessionManager)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(
+                courseRepository: courseRepository,
+                studentRepository: studentRepository,
+                sessionManager: sessionManager
+            )
+        }
         .sheet(item: $selectedParticipant) { participant in
             ContactInformation(
                 messagingRepository: messagingRepository,
@@ -200,6 +208,17 @@ struct MessagesView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                        .foregroundColor(ViewHelper.textImportant)
+                        .frame(width: ViewHelper.navButtonSize, height: ViewHelper.navButtonSize)
+                        .background(Circle().fill(cardColor))
+                }
+                .accessibilityLabel("Settings")
+
                 Text("Messages")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)

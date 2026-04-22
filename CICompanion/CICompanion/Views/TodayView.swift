@@ -20,17 +20,21 @@ struct TodayView: View {
     @StateObject var viewModel: AcademicCalendarViewModel
     @ObservedObject var sessionManager: SessionManager
     @State private var showSignIn = false
+    @State private var showSettings = false
     
     let studentRepository: StudentRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
     
     init (
         viewModel: AcademicCalendarViewModel,
         studentRepository: StudentRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol,
         sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.sessionManager = sessionManager
         self.studentRepository = studentRepository
+        self.courseRepository = courseRepository
     }
     /// Tracks which course card is currently expanded (by its unique ID).
     /// `nil` means no card is expanded. Only one card can be expanded at a time.
@@ -71,6 +75,7 @@ struct TodayView: View {
                 
                 VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
                     HStack {
+                        settingsButton
                         Text(formattedHeader())
                             .font(.system(size: Layout.headerTitleSize, weight: .bold))
                             .foregroundColor(ViewHelper.textImportant)
@@ -137,6 +142,28 @@ struct TodayView: View {
                 initialDate: selectedDate
             )
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(
+                courseRepository: courseRepository,
+                studentRepository: studentRepository,
+                sessionManager: sessionManager
+            )
+        }
+    }
+    
+    /// Top-left gear that opens the shared Settings sheet. Shown on every view
+    /// in place of the old Settings tab.
+    private var settingsButton: some View {
+        Button {
+            showSettings = true
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: Layout.navIconSize, weight: .semibold))
+                .foregroundColor(ViewHelper.textImportant)
+                .frame(width: Layout.navButtonSize, height: Layout.navButtonSize)
+                .background(Circle().fill(ViewHelper.fieldBgColor))
+        }
+        .accessibilityLabel("Settings")
     }
 
     // MARK: - Mode Picker / Nav
@@ -154,8 +181,8 @@ struct TodayView: View {
         static let headerTitleSize: CGFloat = 26
         static let modePickerHeight: CGFloat = 36
         static let modePickerTextSize: CGFloat = 14
-        static let navButtonSize: CGFloat = 32
-        static let navIconSize: CGFloat = 16
+        static let navButtonSize: CGFloat = ViewHelper.navButtonSize
+        static let navIconSize: CGFloat = ViewHelper.navIconSize
         static let navSpacing: CGFloat = 14
 
         // Sign-in prompt
@@ -1125,7 +1152,9 @@ private struct SwipeToDeleteRow<Content: View>: View {
         viewModel: AcademicCalendarViewModel(
             courseRepository: CourseRepository(studentRepository: StudentRepository()),
             studentRepository: StudentRepository()
-        ), studentRepository: StudentRepository(), sessionManager: SessionManager()
+        ), studentRepository: StudentRepository(),
+        courseRepository: CourseRepository(studentRepository: StudentRepository()),
+        sessionManager: SessionManager()
     )
 }
 

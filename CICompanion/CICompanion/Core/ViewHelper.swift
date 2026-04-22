@@ -622,6 +622,8 @@ class ViewHelper {
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0
+    public static let navIconSize = 16.0
+    public static let navButtonSize = 32.0
     public static let tinyPadding = 6.0
     public static let smallPadding = 8.0
     public static let padding = 14.0

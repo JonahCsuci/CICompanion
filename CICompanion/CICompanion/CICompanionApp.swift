@@ -114,6 +114,7 @@ private struct RootTabView: View {
             TodayView(
                 viewModel: container.myAcademicCalendarViewModel,
                 studentRepository: container.studentRepository,
+                courseRepository: container.courseRepository,
                 sessionManager: container.sessionManager
             )
                 .tabItem {
@@ -142,16 +143,8 @@ private struct RootTabView: View {
 //                    Text("Map")
 //                }
 
-            // Settings tab
-            SettingsView(
-                courseRepository: container.courseRepository,
-                studentRepository: container.studentRepository,
-                sessionManager: container.sessionManager
-            )
-                .tabItem {
-                    Image(systemName: "gearshape.fill")
-                    Text("Settings")
-                }
+            // Settings moved into a top-left gear button on each main view;
+            // no longer a standalone tab.
 
             /**#if DEBUG
             APITestView(viewModel: container.apiTestViewModel)
