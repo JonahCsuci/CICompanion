@@ -197,7 +197,7 @@ struct ScheduleGridView: View {
         .padding(.horizontal, 5)
         .padding(.vertical, 4)
         .frame(width: width, height: height, alignment: .topLeading)
-        .background(courseColor(for: block.colorIndex))
+        .background(courseColor(for: block))
         .cornerRadius(6)
     }
     
@@ -242,7 +242,8 @@ struct ScheduleGridView: View {
         return "\(first) \(words[1])"
     }
     
-    private func courseColor(for index: Int) -> Color {
+    private func courseColor(for block: CalendarScheduleBlock) -> Color {
+        if block.isMeeting { return ViewHelper.accentMeeting }
         let colors: [Color] = [
             Color(red: 1.0, green: 0.65, blue: 0.0),
             Color(red: 0.2, green: 0.85, blue: 0.8),
@@ -251,7 +252,7 @@ struct ScheduleGridView: View {
             Color(red: 1.0, green: 0.4, blue: 0.6),
             Color(red: 0.3, green: 0.85, blue: 0.45)
         ]
-        return colors[index % colors.count]
+        return colors[block.colorIndex % colors.count]
     }
 }
 

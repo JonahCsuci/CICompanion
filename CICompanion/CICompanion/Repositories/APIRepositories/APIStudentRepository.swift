@@ -36,7 +36,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
         guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
             throw URLError(.badURL)
         }
-            
+        
         var request = URLRequest(url: url)
         
         // Use GET to retrieve student info from backend
@@ -47,7 +47,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
         
         // Validate HTTP response and throw error if request failed
         try handleErrorResponse(data: data, response: response)
-
+        
         // Decode JSON into Student struct
         let student = try JSONDecoder().decode(Student.self, from: data)
         
@@ -148,7 +148,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
             self.student = student
         }
     }
-
+    
     func deleteStudentEvent(eventId: Int) async throws {
         
         guard let studentId = sessionManager.userId else {
@@ -177,125 +177,160 @@ class APIStudentRepository: StudentRepositoryProtocol {
             self.student = student
         }
     }
-
+    
     func addStudentContact(email: String) async throws {
-
+        
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
-
+        
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
             throw URLError(.badURL)
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "email": email.trimmingCharacters(in: .whitespacesAndNewlines)
         ])
-
+        
         let(data, response) = try await URLSession.shared.data(for: request)
-
+        
         try handleErrorResponse(data: data, response: response)
-
+        
         contacts = nil
     }
-
+    
     func loadStudentContacts() async throws -> [ContactStudent] {
-
+        
         if let contacts {
             return contacts
         }
-
+        
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
-
+        
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
             throw URLError(.badURL)
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-
+        
         let(data, response) = try await URLSession.shared.data(for: request)
-
+        
         try handleErrorResponse(data: data, response: response)
-
+        
         let contacts = try JSONDecoder().decode([ContactStudent].self, from: data)
         self.contacts = contacts
-
+        
         return contacts
     }
-
+    
     func deleteStudentContact(contactStudentId: String) async throws {
-
+        
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
-
+        
         guard let encodedContactStudentId = contactStudentId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
               let url = URL(string: "\(baseURL)/student/\(studentId)/contacts/\(encodedContactStudentId)") else {
             throw URLError(.badURL)
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
-
+        
         let(data, response) = try await URLSession.shared.data(for: request)
-
+        
         try handleErrorResponse(data: data, response: response)
-
+        
         if var contacts {
             contacts.removeAll { $0.id == contactStudentId }
             self.contacts = contacts
         }
     }
-
+    
     func hasStudentContact(contactStudentId: String) async throws -> Bool {
         let contacts = try await loadStudentContacts()
         return contacts.contains { $0.id == contactStudentId }
     }
-
+    
     func ensureStudentExists() async throws -> Student {
-            
+        
         // Authenticates user exists in user pool
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
-            
+        
         let name = sessionManager.name ?? "User"
-
+        
         guard let email = sessionManager.email, !email.isEmpty else {
             throw URLError(.userAuthenticationRequired)
         }
-            
+        
         guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
             throw URLError(.badURL)
         }
-            
+        
         // Checks if exists in database
         // If doesn't exist yet, creates and returns student from DB
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
+        
         let body: [String: String] = [
             "name": name,
             "email": email
-            ]
-            
+        ]
+        
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
         
         let (data, response) = try await URLSession.shared.data(for: request)
-            
+        
         try handleErrorResponse(data: data, response: response)
-            
+        
         let student = try JSONDecoder().decode(Student.self, from: data)
         self.student = student
-            
+        
         return student
         
+    }
+    
+    func updateScheduleTimes(meetings: [MeetingProposal]) async throws {
+        if student != nil {
+            student!.meetings = meetings
+        }
+        
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+        
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/meeting-proposal") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        struct RequestBody: Codable {
+            let studentId: String
+            let meetingProposal: [MeetingProposal]
+        }
+        
+        let body = RequestBody(
+            studentId: studentId,
+            meetingProposal: meetings
+        )
+        
+        request.httpBody = try JSONEncoder().encode(body)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        print("updateScheduleTimes response: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+        print("updateScheduleTimes body: \(String(decoding: data, as: UTF8.self))")
+        try handleErrorResponse(data: data, response: response)
     }
 }

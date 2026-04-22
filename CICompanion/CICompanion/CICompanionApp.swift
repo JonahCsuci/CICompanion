@@ -55,6 +55,7 @@ struct CICompanionApp: App {
                             viewModel: container.conversationsViewModel,
                             studentRepository: container.studentRepository,
                             messagingRepository: container.messagingRepository,
+                            courseRepository: container.courseRepository,
                             sessionManager: container.sessionManager
                         )
                             .tabItem {
@@ -93,8 +94,8 @@ struct CICompanionApp: App {
                 } else {
                     LaunchLoadingView()
                 }
-            }
-            
+            }.preferredColorScheme(.dark)
+                .background(ViewHelper.bgColor)
             // On app launch, tries to load previous session from the user
             .task {
                 await container.sessionManager.loadCurrentUser()
@@ -110,7 +111,7 @@ struct CICompanionApp: App {
                 
                 // Slows down app launch by 1.5sec so we can see loading screen, teehee ;)
                 // Otherwise goes by too fast, can take out if want, dont care tbh
-                try? await Task.sleep(nanoseconds: 1_500_000_000)
+                try? await Task.sleep(for: .seconds(1.5))
                 
                 appReady = true
             }
