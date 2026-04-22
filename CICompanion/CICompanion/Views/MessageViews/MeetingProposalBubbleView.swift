@@ -35,6 +35,12 @@ struct MeetingProposalBubbleView: View {
                     CIText("\(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
                 }
                 
+                HStack(spacing: ViewHelper.tinyPadding) {
+                    Image(systemName: "building.2.fill")
+                        .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text)
+                    CIText(proposal.studyRoomID != nil ? proposal.studyRoom() : "No room", color: (proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text), fontWeight: proposal.studyRoomID != nil ? .semibold : .regular)
+                }
+                
                 if coursesBeforeAfter != nil {
                     if (coursesBeforeAfter!.hasConflict) {
                         HStack {
