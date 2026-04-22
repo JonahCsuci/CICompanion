@@ -18,10 +18,10 @@ struct MessagesView: View {
     @State private var navigationPath = NavigationPath()
     @State private var mode: MessagesMode = .chats
 
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    private let cardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
-    private let accentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
-    private let buttonBlue = Color(red: 0.36, green: 0.55, blue: 0.90)
+    private let bgColor = ViewHelper.bgColor
+    private let cardColor = ViewHelper.fieldBgColor
+    private let accentBar = ViewHelper.accentBlue
+    private let buttonBlue = ViewHelper.accentBlue
 
     init(
         viewModel: ConversationsViewModel,
@@ -36,6 +36,25 @@ struct MessagesView: View {
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
     }
+
+    private var searchBinding: Binding<String> {
+        Binding(
+            get: { viewModel.searchQuery },
+            set: { viewModel.updateSearchQuery($0) }
+        )
+    }
+
+    private var searchFeedbackText: String? {
+        if let searchErrorMessage = viewModel.searchErrorMessage {
+            return searchErrorMessage
+        }
+
+        if viewModel.shouldShowShortSearchHint {
+            return "Type at least 3 characters"
+        }
+
+        return nil
+    }
     
     private var modePicker: some View {
         HStack(spacing: 8) {
@@ -49,7 +68,7 @@ struct MessagesView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
                         .background(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: ViewHelper.componentRounding)
                                 .fill(mode == item ? buttonBlue : cardColor)
                         )
                 }
@@ -86,7 +105,10 @@ struct MessagesView: View {
                     ),
                     conversation: conversation,
                     sessionManager: sessionManager,
-                    messagingRepository: messagingRepository
+                    messagingRepository: messagingRepository,
+                    onConversationUpdated: {
+                        viewModel.loadConversations()
+                    }
                 )
             }
         }
@@ -96,7 +118,9 @@ struct MessagesView: View {
                 await contactsViewModel.loadContacts()
             } else {
                 viewModel.conversations = []
+                viewModel.displayedConversations = []
                 viewModel.errorMessage = nil
+                viewModel.clearSearch()
                 contactsViewModel.reset()
                 mode = .chats
             }
@@ -157,10 +181,40 @@ struct MessagesView: View {
             modePicker
                 .disabled(!sessionManager.isSignedIn)
                 .opacity(sessionManager.isSignedIn ? 1 : 0.5)
+
+            if sessionManager.isSignedIn, mode == .chats {
+                searchRow
+            }
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 12)
+    }
+
+    private var searchRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                CITextField(
+                    placeholder: "Search messages",
+                    text: searchBinding,
+                    lines: 1
+                )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+                if !viewModel.trimmedSearchQuery.isEmpty {
+                    CITextButton(text: "Clear") {
+                        viewModel.clearSearch()
+                    }
+                }
+            }
+
+            if let searchFeedbackText {
+                Text(searchFeedbackText)
+                    .font(.system(size: 13))
+                    .foregroundColor(viewModel.searchErrorMessage == nil ? .gray : .red)
+            }
+        }
     }
 
     private var signInPrompt: some View {
@@ -182,7 +236,7 @@ struct MessagesView: View {
                     .foregroundColor(.white)
                     .frame(width: 200, height: 50)
                     .background(buttonBlue)
-                    .cornerRadius(12)
+                    .cornerRadius(ViewHelper.componentRounding)
             }
 
             Spacer()
@@ -201,12 +255,17 @@ struct MessagesView: View {
 
     private var conversationContent: some View {
         Group {
-            if viewModel.isLoading && viewModel.conversations.isEmpty {
+            if viewModel.isLoading && viewModel.displayedConversations.isEmpty && viewModel.trimmedSearchQuery.isEmpty {
                 Spacer()
-                ProgressView()
-                    .tint(.white)
+                CILoadingPage()
                 Spacer()
-            } else if viewModel.conversations.isEmpty {
+            } else if viewModel.isSearchActive && viewModel.isSearching && viewModel.displayedConversations.isEmpty {
+                Spacer()
+                CILoadingPage()
+                Spacer()
+            } else if viewModel.isSearchActive && viewModel.displayedConversations.isEmpty {
+                emptySearchState
+            } else if viewModel.displayedConversations.isEmpty {
                 emptyChatsState
             } else {
                 conversationList
@@ -218,19 +277,56 @@ struct MessagesView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Text("No conversations yet")
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 16))
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+
+                Button {
+                    viewModel.loadConversations()
+                } label: {
+                    Text("Try Again")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 180, height: 44)
+                        .background(buttonBlue)
+                        .cornerRadius(ViewHelper.componentRounding)
+                }
+            } else {
+                Text("No conversations yet")
+                    .font(.system(size: 18))
+                    .foregroundColor(.gray)
+
+                Button {
+                    showNewChat = true
+                } label: {
+                    Text("Start a Chat")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 180, height: 44)
+                        .background(buttonBlue)
+                        .cornerRadius(ViewHelper.componentRounding)
+                }
+            }
+
+            Spacer()
+        }
+    }
+
+    private var emptySearchState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Text("No matching conversations")
                 .font(.system(size: 18))
                 .foregroundColor(.gray)
 
-            Button {
-                showNewChat = true
-            } label: {
-                Text("Start a Chat")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 180, height: 44)
-                    .background(buttonBlue)
-                    .cornerRadius(10)
+            if !viewModel.trimmedSearchQuery.isEmpty {
+                CITextButton(text: "Clear Search") {
+                    viewModel.clearSearch()
+                }
             }
 
             Spacer()
@@ -241,8 +337,7 @@ struct MessagesView: View {
         Group {
             if contactsViewModel.isLoading && contactsViewModel.contacts.isEmpty {
                 Spacer()
-                ProgressView()
-                    .tint(.white)
+                CILoadingPage()
                 Spacer()
             } else if contactsViewModel.contacts.isEmpty {
                 emptyContactsState
@@ -277,7 +372,7 @@ struct MessagesView: View {
                     .foregroundColor(.white)
                     .frame(width: 180, height: 44)
                     .background(buttonBlue)
-                    .cornerRadius(8)
+                    .cornerRadius(ViewHelper.componentRounding)
             }
 
             Spacer()
@@ -287,7 +382,7 @@ struct MessagesView: View {
     private var conversationList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(viewModel.conversations) { conversation in
+                ForEach(viewModel.displayedConversations) { conversation in
                     Button {
                         navigationPath.append(conversation)
                     } label: {
@@ -297,7 +392,11 @@ struct MessagesView: View {
             }
         }
         .refreshable {
-            viewModel.loadConversations()
+            if viewModel.isSearchActive {
+                viewModel.updateSearchQuery(viewModel.searchQuery)
+            } else {
+                viewModel.loadConversations()
+            }
         }
     }
 
@@ -325,7 +424,6 @@ struct MessagesView: View {
 
     private func conversationRow(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
-            // Accent bar from mockup
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBar)
                 .frame(width: 4, height: 44)
@@ -412,7 +510,6 @@ struct MessagesView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-        // Try with fractional seconds first, then without
         guard let date = formatter.date(from: isoString)
                 ?? ISO8601DateFormatter().date(from: isoString) else {
             return ""
@@ -452,7 +549,7 @@ private struct AddContactSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.08, green: 0.10, blue: 0.15)
+                ViewHelper.bgColor
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -493,7 +590,7 @@ private struct AddContactSheet: View {
                         }
                     }
                     .background(buttonBlue)
-                    .cornerRadius(8)
+                    .cornerRadius(ViewHelper.componentRounding)
                     .disabled(contactsViewModel.isMutating)
 
                     Spacer()

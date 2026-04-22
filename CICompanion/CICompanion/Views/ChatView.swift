@@ -11,6 +11,7 @@ struct ChatView: View {
     
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
+    let onConversationUpdated: () -> Void
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
 
@@ -18,11 +19,18 @@ struct ChatView: View {
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol) {
+    init(
+        viewModel: ChatViewModel,
+        conversation: Conversation,
+        sessionManager: SessionManager,
+        messagingRepository: MessagingRepositoryProtocol,
+        onConversationUpdated: @escaping () -> Void = {}
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
-        self.sessionManager = sessionManager;
-        self.messagingRepository = messagingRepository;
+        self.onConversationUpdated = onConversationUpdated
+        self.sessionManager = sessionManager
+        self.messagingRepository = messagingRepository
     }
 
     var body: some View {
@@ -39,6 +47,10 @@ struct ChatView: View {
         }
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
+        }
+        .onChange(of: viewModel.successfulSendCount) { _, newValue in
+            guard newValue > 0 else { return }
+            onConversationUpdated()
         }
     }
 

@@ -14,6 +14,7 @@ class ChatViewModel: ObservableObject {
     @Published var messageText = ""
     @Published var isLoading = false
     @Published var isSending = false
+    @Published private(set) var successfulSendCount = 0
 
     let messagingRepository: MessagingRepositoryProtocol
     let currentUserId: String
@@ -71,6 +72,7 @@ class ChatViewModel: ObservableObject {
                 )
                 messages.append(sent)
                 messageText = ""
+                successfulSendCount += 1
                 isSending = false
             } catch {
                 isSending = false

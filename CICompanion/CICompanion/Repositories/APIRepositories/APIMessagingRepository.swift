@@ -7,6 +7,10 @@ import Foundation
 
 class APIMessagingRepository: MessagingRepositoryProtocol {
 
+    private struct ConversationsEnvelope: Decodable {
+        let conversations: [Conversation]
+    }
+
     private let sessionManager: SessionManager
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
 
@@ -67,7 +71,29 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleErrorResponse(data: data, response: response)
 
-        return try JSONDecoder().decode([Conversation].self, from: data)
+        return try decodeConversations(from: data)
+    }
+
+    func searchConversations(query: String) async throws -> [Conversation] {
+        let studentId = try authenticatedUserId()
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/messages/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery)
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+
+        return try decodeConversations(from: data)
     }
 
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
@@ -164,6 +190,16 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
             throw URLError(.userAuthenticationRequired)
         }
         return userId
+    }
+
+    private func decodeConversations(from data: Data) throws -> [Conversation] {
+        let decoder = JSONDecoder()
+
+        if let conversations = try? decoder.decode([Conversation].self, from: data) {
+            return conversations
+        }
+
+        return try decoder.decode(ConversationsEnvelope.self, from: data).conversations
     }
 
     // Accepts both 200 and 201 for POST endpoints that create resources.
