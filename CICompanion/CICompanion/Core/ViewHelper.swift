@@ -421,7 +421,6 @@ struct CIDateField: View {
         )
         .labelsHidden()
         .datePickerStyle(.compact)
-        .padding()
         .background(ViewHelper.fieldBgColor)
         .cornerRadius(ViewHelper.componentRounding)
     }
@@ -438,7 +437,6 @@ struct CITimeField: View {
         )
         .labelsHidden()
         .datePickerStyle(.compact)
-        .padding()
         .background(ViewHelper.fieldBgColor)
         .cornerRadius(ViewHelper.componentRounding)
     }
