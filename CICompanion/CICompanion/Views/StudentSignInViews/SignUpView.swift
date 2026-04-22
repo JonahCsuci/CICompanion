@@ -23,78 +23,51 @@ struct SignUpView: View {
         CIView {
             HStack {
                 Spacer()
+                
                 VStack {
-                    Image("dolphin")
+                    Image("TeamKNOWN")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .padding(.top, 20)
-                        .padding(.bottom, 12)
+                        .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)
+                        .padding(.top, ViewHelper.padding + ViewHelper.smallPadding)
+                        .padding(.bottom, ViewHelper.smallPadding)
                     
-                    Text("Create Your Account")
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.bottom, 30)
+                    CIPageTitle("Create Your Account")
+                        .padding(.bottom, ViewHelper.biggerSpacing)
                     
-                    VStack(spacing: 16) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Name")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 320, alignment: .leading)
-                            
-                            TextField("", text: $name)
-                                .padding(.horizontal, 12)
-                                .frame(width: 320, height: 48)
-                                .foregroundColor(.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .stroke(Color.blue.opacity(0.8), lineWidth: 2)
-                                )
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
+                    VStack(spacing: ViewHelper.biggerSpacing) {
+                        CIItem(name: "Name") {
+                            CITextField(
+                                placeholder: "",
+                                text: $name,
+                                lines: 1
+                            )
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
                         }
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 320, alignment: .leading)
-                            
-                            TextField("", text: $email)
-                                .padding(.horizontal, 12)
-                                .frame(width: 320, height: 48)
-                                .foregroundColor(.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .stroke(Color.blue.opacity(0.8), lineWidth: 2)
-                                )
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .keyboardType(.emailAddress)
+                        CIItem(name: "Email") {
+                            CIEmailTextField(
+                                placeholder: "",
+                                text: $email,
+                                lines: 1
+                            )
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
                         }
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Password")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundColor(.white)
-                                .frame(width: 320, alignment: .leading)
-                            
-                            SecureField("", text: $password)
-                                .padding(.horizontal, 12)
-                                .frame(width: 320, height: 48)
-                                .foregroundColor(.white)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .stroke(Color.blue.opacity(0.8), lineWidth: 2)
-                                )
+                        CIItem(name: "Password") {
+                            CIPasswordTextField(
+                                placeholder: "",
+                                text: $password,
+                                lines: 1
+                            )
                         }
                     }
+                    .frame(width: ViewHelper.buttonWidth)
                     
                     if !message.isEmpty {
-                        Text(message)
-                            .foregroundColor(.red)
-                            .padding(.top, 12)
+                        CIErrorMessage(errorMessage: message)
                     }
                     
                     Button {
@@ -126,37 +99,38 @@ struct SignUpView: View {
                         }
                     } label: {
                         Text("Create Account")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 320, height: 50)
-                            .background(Color(red: 0.36, green: 0.55, blue: 0.90))
-                            .cornerRadius(8)
+                            .font(.system(size: ViewHelper.buttonTextSize, weight: .bold))
+                            .foregroundColor(ViewHelper.textImportant)
+                            .frame(width: ViewHelper.buttonWidth, height: ViewHelper.buttonHeight)
+                            .background(ViewHelper.accentBlue)
+                            .cornerRadius(ViewHelper.componentRounding)
                     }
-                    .padding(.top, 24)
+                    .padding(.top, ViewHelper.padding)
                     
                     Spacer()
                     
-                    Text("Already have an account?")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 18))
-                    
-                    Button("Back to Sign In") {
-                        dismiss()
+                    VStack(spacing: ViewHelper.smallPadding) {
+                        CIText("Already have an account?", color: ViewHelper.text)
+                        
+                        CITextButton(text: "Back to Sign In") {
+                            dismiss()
+                        }
                     }
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundColor(Color(red: 0.36, green: 0.55, blue: 0.90))
+                    .frame(maxWidth: .infinity)
                     
                     Spacer()
                 }
+                
                 Spacer()
             }
         }
         .sheet(isPresented: $showConfirm) {
-            CIView {ConfirmSignUpView(
-                email: email,
-                name: name,
-                sessionManager: sessionManager
-            )
+            CIView {
+                ConfirmSignUpView(
+                    email: email,
+                    name: name,
+                    sessionManager: sessionManager
+                )
             }
         }
         .navigationBarBackButtonHidden(true)

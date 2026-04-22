@@ -14,27 +14,48 @@ class AddAvailabilityViewModel: ObservableObject {
     var meetingScheduler: MeetingScheduler
     let sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
+    
+    @Published var courses: [Course] = []
 
     init(
         meetingScheduler: MeetingScheduler,
         sessionManager: SessionManager,
-        messagingRepository: MessagingRepositoryProtocol
+        messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol
     ) {
         self.meetingScheduler = meetingScheduler
         self.sessionManager = sessionManager
         self.messagingRepository = messagingRepository
+        self.courseRepository = courseRepository
+        loadCourses()
+    }
+    
+    func loadCourses() {
+        Task {
+            do {
+                courses = try await courseRepository.loadStudentCourses()
+            }
+        }
     }
     
     func addTimeRanges(ranges: Set<TimeBlock>) {
-        meetingScheduler.availableTimeRanges.removeAll {
-            $0.userID == sessionManager.userId
+        if sessionManager.userId != nil {
+            for var range in meetingScheduler.availableTimeRanges {
+                range.peopleAvailable.remove(sessionManager.userId!)
+            }
+            
+            for block in ranges {
+                var range = block.range
+                range.peopleAvailable.insert(sessionManager.userId!)
+                meetingScheduler.availableTimeRanges.append(range)
+            }
         }
 
         let sortedRanges = ranges
             .map(\.range)
             .sorted {
                 if Calendar.current.isDate($0.day, inSameDayAs: $1.day) {
-                    print($0.startTime)
                     return $0.startTime < $1.startTime
                 }
                 return $0.day < $1.day
@@ -45,6 +66,10 @@ class AddAvailabilityViewModel: ObservableObject {
     
     func send(ranges: Set<TimeBlock>, messageId: Int) {
         addTimeRanges(ranges: ranges)
+        
+        if let uID = sessionManager.userId {
+            meetingScheduler.respondees.insert(uID)
+        }
         
         Task {
             do {
@@ -57,7 +82,7 @@ class AddAvailabilityViewModel: ObservableObject {
                     }
                 }
             } catch {
-                print("goo")
+                print("There was an error updating/creating a meeting message: \(error)")
             }
         }
     }

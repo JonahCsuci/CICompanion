@@ -216,7 +216,7 @@ struct TodayView: View {
     /// Builds a single expandable course card with time, course info, and assignments.
     private func courseCard(for block: CalendarScheduleBlock) -> some View {
         let isExpanded = expandedCardId == block.id
-        let color = courseColor(for: block.colorIndex)
+        let color = courseColor(for: block)
         let courseAssignments = assignments[block.id] ?? []
         let missingCount = courseAssignments.filter { !$0.isCompleted }.count
         
@@ -444,7 +444,8 @@ struct TodayView: View {
         return count
     }
     
-    private func courseColor(for index: Int) -> Color {
+    private func courseColor(for block: CalendarScheduleBlock) -> Color {
+        if block.isMeeting { return ViewHelper.accentMeeting }
         let colors: [Color] = [
             Color(red: 1.0, green: 0.65, blue: 0.0),
             Color(red: 0.2, green: 0.85, blue: 0.8),
@@ -453,7 +454,7 @@ struct TodayView: View {
             Color(red: 1.0, green: 0.4, blue: 0.6),
             Color(red: 0.3, green: 0.85, blue: 0.45)
         ]
-        return colors[index % colors.count]
+        return colors[block.colorIndex % colors.count]
     }
     
     // MARK: - Date Formatting Helpers
