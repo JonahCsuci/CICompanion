@@ -11,6 +11,7 @@ struct ChatView: View {
 
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
+    let onConversationUpdated: () -> Void
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
@@ -34,14 +35,24 @@ struct ChatView: View {
     private let errorBannerBackgroundOpacity: Double = 0.85
     private let pollIntervalSeconds: Int = 1
 
-    init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, courseRepository: CourseRepositoryProtocol, contacts: [ContactStudent], studentRepository: StudentRepositoryProtocol) {
+    init(
+        viewModel: ChatViewModel,
+        conversation: Conversation,
+        sessionManager: SessionManager,
+        messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol,
+        contacts: [ContactStudent],
+        studentRepository: StudentRepositoryProtocol,
+        onConversationUpdated: @escaping () -> Void = {}
+    ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
-        self.sessionManager = sessionManager;
-        self.messagingRepository = messagingRepository;
-        self.courseRepository = courseRepository;
+        self.sessionManager = sessionManager
+        self.messagingRepository = messagingRepository
+        self.courseRepository = courseRepository
         self.contacts = contacts
         self.studentRepository = studentRepository
+        self.onConversationUpdated = onConversationUpdated
     }
 
     // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
@@ -65,6 +76,10 @@ struct ChatView: View {
         }
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
+        }
+        .onChange(of: viewModel.successfulSendCount) { _, newValue in
+            guard newValue > 0 else { return }
+            onConversationUpdated()
         }
         .alert("Conversation unavailable", isPresented: $viewModel.accessRevoked) {
             Button("OK") {

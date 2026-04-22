@@ -8,7 +8,7 @@ internal import ClientRuntime
 import SwiftUI
 
 class APIMessagingRepository: MessagingRepositoryProtocol {
-    
+
     private let sessionManager: SessionManager
     let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
     
@@ -54,6 +54,28 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         try handleErrorResponse(data: data, response: response)
 
         // Backend returns { "conversations": [...] }, not a bare array.
+        return try JSONDecoder().decode(ConversationsResponse.self, from: data).conversations
+    }
+
+    func searchConversations(query: String) async throws -> [Conversation] {
+        let studentId = try authenticatedUserId()
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/messages/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery)
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+
         return try JSONDecoder().decode(ConversationsResponse.self, from: data).conversations
     }
     
@@ -262,7 +284,7 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         }
         return userId
     }
-    
+
     // Accepts both 200 and 201 for POST endpoints that create resources.
     // Separate from the shared handleErrorResponse to avoid changing behavior for other features.
     private func handleMessagingResponse(data: Data, response: URLResponse) throws {
