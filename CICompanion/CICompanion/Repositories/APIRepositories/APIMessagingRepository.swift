@@ -76,7 +76,12 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleErrorResponse(data: data, response: response)
 
-        return try JSONDecoder().decode(ConversationsResponse.self, from: data).conversations
+        // Search endpoint may return either a bare array or { "conversations": [...] }.
+        let decoder = JSONDecoder()
+        if let array = try? decoder.decode([Conversation].self, from: data) {
+            return array
+        }
+        return try decoder.decode(ConversationsResponse.self, from: data).conversations
     }
     
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
