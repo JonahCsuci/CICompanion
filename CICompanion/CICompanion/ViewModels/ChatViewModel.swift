@@ -14,6 +14,7 @@ class ChatViewModel: ObservableObject {
     @Published var messageText = ""
     @Published var isLoading = false
     @Published var isSending = false
+    @Published private(set) var successfulSendCount = 0
     // Latest conversation snapshot returned by loadMessages — carries fresh participants list,
     // group/admin metadata, etc. Falls back to the conversation passed into ChatView.
     @Published var loadedConversation: Conversation?
@@ -78,6 +79,7 @@ class ChatViewModel: ObservableObject {
                 )
                 messages.append(sent)
                 messageText = ""
+                successfulSendCount += 1
                 isSending = false
             } catch {
                 isSending = false
