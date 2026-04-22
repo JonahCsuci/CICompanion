@@ -36,24 +36,24 @@ struct MeetingBubbleView: View {
                 ) {
                     HStack{
                         Image(systemName: "text.page")
-                        CIText("Details", fontWeight: .semibold)
+                        CIText("Details", color: .black, fontWeight: .semibold)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(.black)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(ViewHelper.lightBgColor)
+                .background(.white)
                 .cornerRadius(16)
                 NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveB], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActiveB) {
                     HStack{
                         Image(systemName: "calendar")
-                        CIText("Propose a time", fontWeight: .semibold)
+                        CIText("Propose a time", color: .black, fontWeight: .semibold)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(.black)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(ViewHelper.lightBgColor)
+                .background(.white)
                 .cornerRadius(16)
             }
         }
@@ -63,13 +63,13 @@ struct MeetingBubbleView: View {
         NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
             HStack{
                 Image(systemName: "plus")
-                CIText("Add your availabilities", fontWeight: .semibold)
+                CIText("Add your availabilities", color: .black, fontWeight: .semibold)
             }
         }
-        .foregroundColor(.white)
+        .foregroundColor(.black)
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(ViewHelper.lightBgColor)
+        .background(.white)
         .cornerRadius(16)
     }
     

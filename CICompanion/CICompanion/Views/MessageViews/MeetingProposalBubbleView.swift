@@ -27,36 +27,55 @@ struct MeetingProposalBubbleView: View {
             if isCurrentUser { Spacer(minLength: 60) }
             
             VStack {
-                CIText("\(proposal.title)", fontSize: 20, fontWeight: .semibold)
+                CIText("[Proposed] · \(DateHelper.dateToDayString(proposal.timeRange.day))", color: ViewHelper.textImportant.opacity(0.75))
                 
-                let date = proposal.timeRange.day
+                CIText("\(proposal.title)", fontSize: 20, fontWeight: .bold)
                 
                 HStack(spacing: 0) {
-                    CIText("[Proposed] ", color: ViewHelper.textImportant.opacity(0.75))
-                    CIText("\(DateHelper.dateToDayString(date, true)) · \(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
+                    CIText("\(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
+                }
+                
+                HStack(spacing: ViewHelper.tinyPadding) {
+                    Image(systemName: "building.2.fill")
+                        .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text)
+                    CIText(proposal.studyRoomID != nil ? proposal.studyRoom() : "No room", color: (proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text), fontWeight: proposal.studyRoomID != nil ? .semibold : .regular)
                 }
                 
                 if coursesBeforeAfter != nil {
+                    if (coursesBeforeAfter!.hasConflict) {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill").padding(8).background(ViewHelper.accentRed).cornerRadius(64)
+                            
+                            VStack(alignment: .leading) {
+                                CIText("Conflicts with \(coursesBeforeAfter!.conflicts.count) \(coursesBeforeAfter!.conflicts.count == 1 ? "class" : "classes")", color: .white, fontWeight: .semibold)
+                            }
+                            Spacer()
+                        }
+                        .padding(ViewHelper.padding)
+                        .background(.white.opacity(ViewHelper.opacity))
+                        .cornerRadius(ViewHelper.componentRounding)
+                    }
+                    
                     Divider()
                         .background(ViewHelper.textImportant)
                     
-                    CIText("How does this fit into your schedule?")
+                    CIText("Your day")
                     
                     Spacer()
                     
                     VStack {
                         if (coursesBeforeAfter!.before != nil) {
                             let course = coursesBeforeAfter!.before!
-                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.overlapBefore)
+                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
                         } else {
                             CIText("No events before...")
                         }
                         
-                        timeRangeCard(name: proposal.title, start: proposal.timeRange.startTime, end: proposal.timeRange.endTime, overlap: coursesBeforeAfter!.overlapBefore || coursesBeforeAfter!.overlapAfter, meeting: true)
+                        timeRangeCard(name: proposal.title, start: proposal.timeRange.startTime, end: proposal.timeRange.endTime, meeting: true)
                         
                         if (coursesBeforeAfter!.after != nil) {
                             let course = coursesBeforeAfter!.after!
-                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.overlapAfter)
+                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
                         } else {
                             CIText("No events after...")
                         }
@@ -90,11 +109,11 @@ struct MeetingProposalBubbleView: View {
                         } label: {
                             Spacer()
                             Image(systemName: "calendar").font(.system(size: ViewHelper.textSize, weight: .semibold))
-                            CIText("Add to calendar")
+                            CIText("Add to calendar", color: .black)
                             Spacer()
                         }
-                        .padding(10).background(ViewHelper.lightBgColor)
-                        .cornerRadius(16)
+                        .padding(10).background(.white)
+                        .cornerRadius(16).foregroundColor(.black)
                     }.padding(10)
                 }
             }
@@ -107,7 +126,7 @@ struct MeetingProposalBubbleView: View {
             if !isCurrentUser { Spacer(minLength: 60) }
         }.task {
             do {
-                coursesBeforeAfter = try await getCoursesBeforeAndAfter(
+                coursesBeforeAfter = try await ProposeMeetingViewModel.getCoursesBeforeAndAfter(
                     prop: proposal,
                     courseRepository: courseRepository
                 )
@@ -125,83 +144,38 @@ struct MeetingProposalBubbleView: View {
     }
     
     func timeRangeCard(name: String, start: Int, end: Int, overlap: Bool = false, meeting: Bool = false) -> some View {
-        HStack {
-            VStack {
-                CIText(name, fontWeight: .medium)
+        let color : Color = meeting ? ViewHelper.accentPurple : (overlap ? ViewHelper.accentRed : .white)
+        let textColor : Color = meeting ? .black : .white
+        let bgColor : Color = meeting ? .white : .white.opacity(ViewHelper.opacity)
+        
+        return HStack {
+            RoundedRectangle(cornerRadius: 1.5)
+                .fill(color)
+                .frame(width: 3)
+                .padding(.vertical, 2)
+                .padding(.trailing, 10)
+            
+            VStack(alignment: .leading) {
+                CIText(name, color: textColor, fontWeight: .semibold)
                 if meeting {
-                    CIText("[MEETING]", color: overlap ? ViewHelper.textImportant : ViewHelper.text)
-                    if overlap {
-                        CIText("CONFLICTING TIMES", color: overlap ? ViewHelper.textImportant : ViewHelper.text)
-                    }
+                    CIText("Proposed", color: color, fontWeight: .medium)
+                }
+                if overlap {
+                    CIText("Conflicts", color: ViewHelper.accentPink, fontWeight: .medium)
                 }
             }
+            
             Spacer()
+            
             VStack {
-                CIText(DateHelper.minutesToTimeString(start), color: overlap ? ViewHelper.textImportant : ViewHelper.text)
-                CIText(DateHelper.minutesToTimeString(end), color: overlap ? ViewHelper.textImportant : ViewHelper.text)
+                CIText(DateHelper.minutesToTimeString(start), color: textColor.opacity(ViewHelper.opacity * 2.5), fontWeight: .medium)
+                CIText(DateHelper.minutesToTimeString(end), color: textColor.opacity(ViewHelper.opacity * 2.5), fontWeight: .medium)
             }
         }
         .padding(ViewHelper.padding)
-        .background(overlap ? (meeting ? ViewHelper.accentRed : ViewHelper.accentPink) : ViewHelper.lightBgColor)
+        .background(bgColor)
+        .border(ViewHelper.accentRed, width: overlap ? 1 : 0)
         .cornerRadius(ViewHelper.componentRounding)
-    }
-    
-    func getCoursesBeforeAndAfter(prop: MeetingProposal, courseRepository: CourseRepositoryProtocol) async throws -> ProposeMeetingViewModel.CoursesBeforeAfter? {
-        let courses = try await courseRepository.loadStudentCourses()
-
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "EEEE"
-
-        let dayOfTheWeek = formatter.string(from: prop.timeRange.day)
-        let startTime = prop.timeRange.startTime
-        let endTime = prop.timeRange.endTime
-
-        var before: [Course] = []
-        var after: [Course] = []
-        var overlapBefore = false
-        var overlapAfter = false
-
-        for course in courses {
-            guard course.days.contains(dayOfTheWeek) else { continue }
-            
-            let courseStartTime = DateHelper.timeStringToMinutes(course.startTime)
-            let courseEndTime = DateHelper.timeStringToMinutes(course.endTime)
-            
-            if (courseStartTime == nil || courseEndTime == nil) {continue}
-
-            if courseEndTime! <= startTime {
-                before.append(course)
-            } else if courseStartTime! >= endTime {
-                after.append(course)
-            } else {
-                if courseEndTime! > startTime && courseEndTime! < endTime {
-                    overlapBefore = true
-                    before.append(course)
-                }
-                if courseStartTime! > startTime && courseStartTime! < endTime {
-                    overlapAfter = true
-                    after.append(course)
-                }
-                if courseStartTime! <= startTime && courseEndTime! >= endTime {
-                    overlapBefore = true
-                    overlapAfter = true
-                    before.append(course)
-                    after.append(course)
-                }
-            }
-        }
-        
-        before.sort {
-            (DateHelper.timeStringToMinutes($0.endTime) ?? 0) >
-            (DateHelper.timeStringToMinutes($1.endTime) ?? 0)
-        }
-        after.sort {
-            (DateHelper.timeStringToMinutes($0.startTime) ?? 0) >
-            (DateHelper.timeStringToMinutes($1.startTime) ?? 0)
-        }
-
-        return ProposeMeetingViewModel.CoursesBeforeAfter(before: before.first, after: after.first, overlapBefore: overlapBefore, overlapAfter: overlapAfter)
     }
 }
 
