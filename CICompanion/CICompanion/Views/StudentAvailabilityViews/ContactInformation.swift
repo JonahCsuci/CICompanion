@@ -207,15 +207,16 @@ struct ContactInformation: View {
             let range = ranges[0]
             return "\(formatHour(range.startHour)) - \(formatHour(range.endHour + 1))"
         }
-        
+
         let firstRange = ranges[0]
         let secondRange = ranges[1]
-        
+
         if firstRange.startHour < secondRange.startHour {
-            return "\(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1)) \(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))"
+            return "\(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))      \(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))"
         } else {
-            return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1)) \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
+            return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))      \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
         }
+        
     }
 
     private func formatHour(_ hour: Int) -> String {
