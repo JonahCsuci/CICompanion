@@ -11,22 +11,35 @@ struct MessagesView: View {
     @StateObject private var contactsViewModel: ContactsViewModel
     @ObservedObject var sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
+    let courseRepository: CourseRepositoryProtocol
+    let studentRepository: StudentRepositoryProtocol
 
     @State private var showNewChat = false
+    @State private var showNewGroup = false
     @State private var showAddContact = false
     @State private var showSignIn = false
+    @State private var showSettings = false
     @State private var navigationPath = NavigationPath()
     @State private var mode: MessagesMode = .chats
 
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    private let cardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
-    private let accentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
-    private let buttonBlue = Color(red: 0.36, green: 0.55, blue: 0.90)
+    @State private var selectedParticipant: SelectedParticipant?
+
+    private let bgColor = ViewHelper.bgColor
+    private let cardColor = ViewHelper.fieldBgColor
+    private let accentBar = ViewHelper.accentBlue
+    private let buttonBlue = ViewHelper.accentBlue
+
+    private let pillIconSize: CGFloat = 9
+    private let pillIconTextSpacing: CGFloat = 4
+    private let pillHorizontalPadding: CGFloat = 8
+    private let pillVerticalPadding: CGFloat = 3
+    private let pillStrokeOpacity: Double = 0.7
 
     init(
         viewModel: ConversationsViewModel,
         studentRepository: StudentRepositoryProtocol,
         messagingRepository: MessagingRepositoryProtocol,
+        courseRepository: CourseRepositoryProtocol,
         sessionManager: SessionManager
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -35,6 +48,27 @@ struct MessagesView: View {
         )
         self.messagingRepository = messagingRepository
         self.sessionManager = sessionManager
+        self.courseRepository = courseRepository
+        self.studentRepository = studentRepository
+    }
+
+    private var searchBinding: Binding<String> {
+        Binding(
+            get: { viewModel.searchQuery },
+            set: { viewModel.updateSearchQuery($0) }
+        )
+    }
+
+    private var searchFeedbackText: String? {
+        if let searchErrorMessage = viewModel.searchErrorMessage {
+            return searchErrorMessage
+        }
+
+        if viewModel.shouldShowShortSearchHint {
+            return "Type at least 3 characters"
+        }
+
+        return nil
     }
     
     private var modePicker: some View {
@@ -49,7 +83,7 @@ struct MessagesView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 40)
                         .background(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: ViewHelper.componentRounding)
                                 .fill(mode == item ? buttonBlue : cardColor)
                         )
                 }
@@ -86,7 +120,13 @@ struct MessagesView: View {
                     ),
                     conversation: conversation,
                     sessionManager: sessionManager,
-                    messagingRepository: messagingRepository
+                    messagingRepository: messagingRepository,
+                    courseRepository: courseRepository,
+                    contacts: contactsViewModel.contacts,
+                    studentRepository: studentRepository,
+                    onConversationUpdated: {
+                        viewModel.loadConversations()
+                    }
                 )
             }
         }
@@ -94,9 +134,17 @@ struct MessagesView: View {
             if sessionManager.isSignedIn {
                 viewModel.loadConversations()
                 await contactsViewModel.loadContacts()
+                // Background poll so new groups, removals, and incoming messages appear without manual refresh.
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(ViewHelper.pollIntervalSeconds))
+                    guard !Task.isCancelled, sessionManager.isSignedIn else { break }
+                    await viewModel.refreshConversationsSilently()
+                }
             } else {
                 viewModel.conversations = []
+                viewModel.displayedConversations = []
                 viewModel.errorMessage = nil
+                viewModel.clearSearch()
                 contactsViewModel.reset()
                 mode = .chats
             }
@@ -110,8 +158,19 @@ struct MessagesView: View {
         }
         .sheet(isPresented: $showNewChat) {
             NewChatView(
+                contacts: contactsViewModel.contacts,
                 messagingRepository: messagingRepository,
                 onConversationCreated: { conversation in
+                    viewModel.loadConversations()
+                    navigationPath.append(conversation)
+                }
+            )
+        }
+        .sheet(isPresented: $showNewGroup) {
+            NewGroupView(
+                contacts: contactsViewModel.contacts,
+                messagingRepository: messagingRepository,
+                onGroupCreated: { conversation in
                     viewModel.loadConversations()
                     navigationPath.append(conversation)
                 }
@@ -127,11 +186,36 @@ struct MessagesView: View {
         .sheet(isPresented: $showSignIn) {
             SignInView(sessionManager: sessionManager)
         }
+        .sheet(isPresented: $showSettings) {
+            SettingsView(
+                courseRepository: courseRepository,
+                studentRepository: studentRepository,
+                sessionManager: sessionManager
+            )
+        }
+        .sheet(item: $selectedParticipant) { participant in
+            ContactInformation(
+                messagingRepository: messagingRepository,
+                courseRepository: APICourseRepository(studentRepository: StudentRepository()),
+                participantId: participant.id
+            )
+        }
     }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
+                Button {
+                    showSettings = true
+                } label: {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                        .foregroundColor(ViewHelper.textImportant)
+                        .frame(width: ViewHelper.navButtonSize, height: ViewHelper.navButtonSize)
+                        .background(Circle().fill(cardColor))
+                }
+                .accessibilityLabel("Settings")
+
                 Text("Messages")
                     .font(.system(size: 28, weight: .bold))
                     .foregroundColor(.white)
@@ -139,17 +223,34 @@ struct MessagesView: View {
                 Spacer()
 
                 if sessionManager.isSignedIn {
-                    Button {
-                        if mode == .chats {
-                            showNewChat = true
-                        } else {
+                    if mode == .chats {
+                        Menu {
+                            Button {
+                                showNewChat = true
+                            } label: {
+                                Label("New Direct Chat", systemImage: "bubble.left.fill")
+                            }
+
+                            Button {
+                                showNewGroup = true
+                            } label: {
+                                Label("New Group Chat", systemImage: "person.3.fill")
+                            }
+                            .disabled(contactsViewModel.contacts.count < 2)
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
+                        }
+                    } else {
+                        Button {
                             contactsViewModel.clearError()
                             showAddContact = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(.white)
                         }
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundColor(.white)
                     }
                 }
             }
@@ -157,10 +258,40 @@ struct MessagesView: View {
             modePicker
                 .disabled(!sessionManager.isSignedIn)
                 .opacity(sessionManager.isSignedIn ? 1 : 0.5)
+
+            if sessionManager.isSignedIn, mode == .chats {
+                searchRow
+            }
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 12)
+    }
+
+    private var searchRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 12) {
+                CITextField(
+                    placeholder: "Search messages",
+                    text: searchBinding,
+                    lines: 1
+                )
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+
+                if !viewModel.trimmedSearchQuery.isEmpty {
+                    CITextButton(text: "Clear") {
+                        viewModel.clearSearch()
+                    }
+                }
+            }
+
+            if let searchFeedbackText {
+                Text(searchFeedbackText)
+                    .font(.system(size: 13))
+                    .foregroundColor(viewModel.searchErrorMessage == nil ? .gray : .red)
+            }
+        }
     }
 
     private var signInPrompt: some View {
@@ -182,7 +313,7 @@ struct MessagesView: View {
                     .foregroundColor(.white)
                     .frame(width: 200, height: 50)
                     .background(buttonBlue)
-                    .cornerRadius(12)
+                    .cornerRadius(ViewHelper.componentRounding)
             }
 
             Spacer()
@@ -201,12 +332,17 @@ struct MessagesView: View {
 
     private var conversationContent: some View {
         Group {
-            if viewModel.isLoading && viewModel.conversations.isEmpty {
+            if viewModel.isLoading && viewModel.displayedConversations.isEmpty && viewModel.trimmedSearchQuery.isEmpty {
                 Spacer()
-                ProgressView()
-                    .tint(.white)
+                CILoadingPage()
                 Spacer()
-            } else if viewModel.conversations.isEmpty {
+            } else if viewModel.isSearchActive && viewModel.isSearching && viewModel.displayedConversations.isEmpty {
+                Spacer()
+                CILoadingPage()
+                Spacer()
+            } else if viewModel.isSearchActive && viewModel.displayedConversations.isEmpty {
+                emptySearchState
+            } else if viewModel.displayedConversations.isEmpty {
                 emptyChatsState
             } else {
                 conversationList
@@ -218,19 +354,56 @@ struct MessagesView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Text("No conversations yet")
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .font(.system(size: 16))
+                    .foregroundColor(.red)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+
+                Button {
+                    viewModel.loadConversations()
+                } label: {
+                    Text("Try Again")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 180, height: 44)
+                        .background(buttonBlue)
+                        .cornerRadius(ViewHelper.componentRounding)
+                }
+            } else {
+                Text("No conversations yet")
+                    .font(.system(size: 18))
+                    .foregroundColor(.gray)
+
+                Button {
+                    showNewChat = true
+                } label: {
+                    Text("Start a Chat")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 180, height: 44)
+                        .background(buttonBlue)
+                        .cornerRadius(ViewHelper.componentRounding)
+                }
+            }
+
+            Spacer()
+        }
+    }
+
+    private var emptySearchState: some View {
+        VStack(spacing: 16) {
+            Spacer()
+
+            Text("No matching conversations")
                 .font(.system(size: 18))
                 .foregroundColor(.gray)
 
-            Button {
-                showNewChat = true
-            } label: {
-                Text("Start a Chat")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 180, height: 44)
-                    .background(buttonBlue)
-                    .cornerRadius(10)
+            if !viewModel.trimmedSearchQuery.isEmpty {
+                CITextButton(text: "Clear Search") {
+                    viewModel.clearSearch()
+                }
             }
 
             Spacer()
@@ -241,8 +414,7 @@ struct MessagesView: View {
         Group {
             if contactsViewModel.isLoading && contactsViewModel.contacts.isEmpty {
                 Spacer()
-                ProgressView()
-                    .tint(.white)
+                CILoadingPage()
                 Spacer()
             } else if contactsViewModel.contacts.isEmpty {
                 emptyContactsState
@@ -277,7 +449,7 @@ struct MessagesView: View {
                     .foregroundColor(.white)
                     .frame(width: 180, height: 44)
                     .background(buttonBlue)
-                    .cornerRadius(8)
+                    .cornerRadius(ViewHelper.componentRounding)
             }
 
             Spacer()
@@ -287,8 +459,9 @@ struct MessagesView: View {
     private var conversationList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(viewModel.conversations) { conversation in
+                ForEach(viewModel.displayedConversations) { conversation in
                     Button {
+                        viewModel.markConversationReadLocally(conversationId: conversation.id)
                         navigationPath.append(conversation)
                     } label: {
                         conversationRow(conversation)
@@ -297,7 +470,11 @@ struct MessagesView: View {
             }
         }
         .refreshable {
-            viewModel.loadConversations()
+            if viewModel.isSearchActive {
+                viewModel.updateSearchQuery(viewModel.searchQuery)
+            } else {
+                viewModel.loadConversations()
+            }
         }
     }
 
@@ -325,28 +502,32 @@ struct MessagesView: View {
 
     private func conversationRow(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
-            // Accent bar from mockup
             RoundedRectangle(cornerRadius: 2)
                 .fill(accentBar)
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text(conversation.otherParticipant.name)
+                    Text(conversation.displayTitle)
                         .font(.system(size: 16, weight: .bold))
                         .foregroundColor(.white)
                         .lineLimit(1)
 
-                    if contactsViewModel.isContact(studentId: conversation.otherParticipant.id) {
-                        Text("Contact")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(accentBar)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(
-                                Capsule()
-                                    .stroke(accentBar.opacity(0.7), lineWidth: 1)
-                            )
+                    if conversation.isGroup {
+                        let others = max(conversation.participantIds.count - 1, 0)
+                        HStack(spacing: pillIconTextSpacing) {
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: pillIconSize, weight: .semibold))
+                            Text("Group +\(others)")
+                                .font(.system(size: ViewHelper.pillTextSize, weight: .semibold))
+                        }
+                        .foregroundColor(accentBar)
+                        .padding(.horizontal, pillHorizontalPadding)
+                        .padding(.vertical, pillVerticalPadding)
+                        .background(
+                            Capsule()
+                                .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
+                        )
                     }
                 }
 
@@ -358,10 +539,22 @@ struct MessagesView: View {
 
             Spacer()
 
-            if let timeString = conversation.lastMessageAt {
-                Text(relativeTime(from: timeString))
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray)
+            VStack(alignment: .trailing, spacing: 4) {
+                if let timeString = conversation.lastMessageAt {
+                    Text(relativeTime(from: timeString))
+                        .font(.system(size: 12))
+                        .foregroundColor(.gray)
+                }
+
+                let count = viewModel.unreadCount(for: conversation)
+                if count > 0 {
+                    Text("\(count)")
+                        .font(.system(size: ViewHelper.pillTextSize, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, pillHorizontalPadding)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(buttonBlue))
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -375,10 +568,16 @@ struct MessagesView: View {
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(contact.name)
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
+                Button {
+                    selectedParticipant = SelectedParticipant(id: contact.id)
+                } label: {
+                    Text(contact.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
 
                 Text(contact.email)
                     .font(.system(size: 14))
@@ -390,7 +589,16 @@ struct MessagesView: View {
 
             Button("Remove") {
                 Task {
-                    await contactsViewModel.removeContact(contactStudentId: contact.id)
+                    let removedId = contact.id
+                    await contactsViewModel.removeContact(contactStudentId: removedId)
+                    // Optimistically drop any direct chat with this contact while the network refresh is in flight,
+                    // so the user can't tap a stale row and immediately hit a 403 from the archived conversation.
+                    viewModel.conversations.removeAll {
+                        $0.otherParticipant?.id == removedId
+                    }
+                    // Backend also archives direct chats and drops the contact from any groups we admin,
+                    // so a full refresh is still needed for groups.
+                    viewModel.loadConversations()
                 }
             }
             .buttonStyle(.bordered)
@@ -405,6 +613,13 @@ struct MessagesView: View {
         guard let preview = conversation.lastMessagePreview, !preview.isEmpty else {
             return "No messages yet"
         }
+        
+        if let meetingScheduler = messagingRepository.getMeeting(body: preview) {
+            return "Scheduling a meeting: \(meetingScheduler.title)"
+        } else if let proposal = messagingRepository.getMeetingProposal(body: preview) {
+            return "Proposing a time for: \(proposal.title)"
+        }
+        
         return preview
     }
 
@@ -412,7 +627,6 @@ struct MessagesView: View {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
 
-        // Try with fractional seconds first, then without
         guard let date = formatter.date(from: isoString)
                 ?? ISO8601DateFormatter().date(from: isoString) else {
             return ""
@@ -452,7 +666,7 @@ private struct AddContactSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.08, green: 0.10, blue: 0.15)
+                ViewHelper.bgColor
                     .ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -493,7 +707,7 @@ private struct AddContactSheet: View {
                         }
                     }
                     .background(buttonBlue)
-                    .cornerRadius(8)
+                    .cornerRadius(ViewHelper.componentRounding)
                     .disabled(contactsViewModel.isMutating)
 
                     Spacer()
@@ -517,4 +731,8 @@ private struct AddContactSheet: View {
         }
         .preferredColorScheme(.dark)
     }
+}
+
+private struct SelectedParticipant: Identifiable {
+    let id: String
 }

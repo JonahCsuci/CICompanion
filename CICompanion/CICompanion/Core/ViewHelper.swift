@@ -218,6 +218,86 @@ struct CITextField: View {
     }
 }
 
+struct CIEmailTextField: View {
+    let placeholder: String
+    let text: Binding<String>
+    let lines: ClosedRange<Int>
+    
+    init (
+        placeholder: String,
+        text: Binding<String>,
+        lines: Int
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines...lines
+    }
+    
+    init (
+        placeholder: String,
+        text: Binding<String>,
+        lines: ClosedRange<Int>
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines
+    }
+    
+    var body: some View {
+        TextField("", text: text, prompt: Text(placeholder).foregroundColor(ViewHelper.text), axis: .vertical)
+            .font(.system(size: ViewHelper.textSize))
+            .foregroundColor(.white)
+            .lineLimit(lines)
+            .padding(ViewHelper.padding)
+            .background(ViewHelper.fieldBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
+    }
+}
+
+struct CIPasswordTextField: View {
+    let placeholder: String
+    let text: Binding<String>
+    let lines: ClosedRange<Int>
+    
+    init(
+        placeholder: String,
+        text: Binding<String>,
+        lines: Int
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines...lines
+    }
+    
+    init(
+        placeholder: String,
+        text: Binding<String>,
+        lines: ClosedRange<Int>
+    ) {
+        self.placeholder = placeholder
+        self.text = text
+        self.lines = lines
+    }
+    
+    var body: some View {
+        SecureField(
+            "",
+            text: text,
+            prompt: Text(placeholder).foregroundColor(ViewHelper.text)
+        )
+        .font(.system(size: ViewHelper.textSize))
+        .foregroundColor(.white)
+        .lineLimit(lines)
+        .padding(ViewHelper.padding)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled(true)
+    }
+}
+
 struct CICheckBoxToggle: View {
     var label: String
     var toggleBool: Bool
@@ -307,18 +387,24 @@ struct CITextButton: View {
 struct CIText: View {
     var text: String
     var color: Color
+    var fontSize: CGFloat
+    var fontWeight: Font.Weight
     
     init (
         _ text: String,
-        _ color: Color
+        color: Color = ViewHelper.textImportant,
+        fontSize: CGFloat = ViewHelper.textSize,
+        fontWeight: Font.Weight = .regular
     ) {
         self.text = text
         self.color = color
+        self.fontSize = fontSize
+        self.fontWeight = fontWeight
     }
     
     var body: some View {
         Text(text)
-            .font(.system(size: ViewHelper.textSize))
+            .font(.system(size: fontSize, weight: fontWeight))
             .foregroundColor(color)
             .lineLimit(1)
     }
@@ -326,73 +412,33 @@ struct CIText: View {
 
 struct CIDateField: View {
     @Binding var date: Date
-    @State private var showPicker = false
-
-    private var formattedDate: String {
-        date.formatted(.dateTime.month(.abbreviated).day().year())
-    }
-
+    
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $date,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $date,
+            displayedComponents: .date
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
 struct CITimeField: View {
     @Binding var time: Date
-    @State private var showPicker = false
-    
-    private var formattedDate: String {
-        time.formatted(.dateTime.hour().minute())
-    }
     
     var body: some View {
-        Button {
-            showPicker.toggle()
-        } label: {
-            HStack {
-                CIText(formattedDate, .white)
-                    .font(Font.system(size: ViewHelper.smallTextSize))
-                Spacer()
-                Image(systemName: "chevron.down")
-            }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(ViewHelper.fieldBgColor)
-            .cornerRadius(ViewHelper.componentRounding)
-        }
-        .sheet(isPresented: $showPicker) {
-            DatePicker(
-                "",
-                selection: $time,
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .padding()
-            .preferredColorScheme(.dark)
-        }
+        DatePicker(
+            "",
+            selection: $time,
+            displayedComponents: .hourAndMinute
+        )
+        .labelsHidden()
+        .datePickerStyle(.compact)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
     }
 }
 
@@ -424,7 +470,7 @@ struct CIDropDown: View {
             }
         }, label: {
             HStack {
-                CIText(selectedItem, .white)
+                CIText(selectedItem, color: .white)
 
                 Spacer()
 
@@ -510,11 +556,11 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
                     .padding(.trailing, 10)
                 
                 VStack(alignment: .leading, spacing: ViewHelper.spacing / 2) {
-                    CIText(title, color)
+                    CIText(title, color: color)
                         .font(.system(size: ViewHelper.textSize * 1.5, weight: .bold))
                     
                     HStack(spacing: ViewHelper.spacing) {
-                        CIText(subtitle, ViewHelper.text)
+                        CIText(subtitle, color: ViewHelper.text)
                             .font(.system(size: ViewHelper.smallTextSize))
                     }
                 }
@@ -539,18 +585,45 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
     }
 }
 
+struct TimeMarker: View {
+    let hour: String
+    let meridiem: String
+    
+    var body: some View {
+        VStack {
+            Text(hour)
+                .foregroundColor(ViewHelper.textImportant)
+                .font(.system(size: ViewHelper.smallTextSize - 1, weight: .bold))
+            
+            Text(meridiem)
+                .foregroundColor(ViewHelper.textImportant)
+                .font(.system(size: ViewHelper.smallTextSize - 4, weight: .bold))
+        }
+    }
+}
+
 class ViewHelper {
     public static let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     public static let fieldBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
+    public static let cardBgColor = Color(red: 0.18, green: 0.20, blue: 0.27)
+    public static let lightBgColor = Color(red: 0.25, green: 0.28, blue: 0.32)
     public static let textImportant = Color.white
     public static let text = Color.gray
     public static let accentBlue = Color(red: 0.35, green: 0.55, blue: 0.95)
+    public static let accentDarkBlue = Color(red: 0.15, green: 0.30, blue: 0.75)
     public static let accentGreen = Color(red: 0.2, green: 0.85, blue: 0.8)
     public static let accentBigGreen = Color(red: 0.2, green: 0.85, blue: 0.2)
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
+    public static let accentPink = Color(red: 0.969, green: 0.761, blue: 0.839)
+    public static let accentPurple = Color(red: 0.29, green: 0.424, blue: 0.902)
+    public static let otherUserColor = fieldBgColor
+    public static let currentUserColor = accentPurple
+    public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)
     public static let componentRounding = 10.0
     public static let iconSize = 12.0
     public static let bigIconSize = 20.0
+    public static let navIconSize = 16.0
+    public static let navButtonSize = 32.0
     public static let tinyPadding = 6.0
     public static let smallPadding = 8.0
     public static let padding = 14.0
@@ -558,6 +631,18 @@ class ViewHelper {
     public static let textSize = 16.0
     public static let titleTextSize = 28.0
     public static let spacing = 8.0
+    public static let biggerSpacing = 16.0
     public static let borderWidth = 1.5
     public static let opacity = 0.22
+    public static let buttonWidth = 320.0
+    public static let buttonHeight = 50.0
+    public static let buttonTextSize = 18.0
+    public static let logoSize = 120.0
+    public static let cardRowVerticalPadding = smallPadding + 4
+    public static let rowIconTextSpacing = spacing + 2
+    public static let hairlineOpacity = 0.06
+    public static let hairlineHeight = 0.5
+    public static let pollIntervalSeconds = 3
+    public static let pillTextSize = 11.0
+    public static let metaTextSize = 13.0
 }
