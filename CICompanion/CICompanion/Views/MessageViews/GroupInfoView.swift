@@ -25,6 +25,7 @@ struct GroupInfoView: View {
     @State private var showAddMember = false
     @State private var confirmingLeave = false
     @State private var errorMessage: String?
+    @State private var selectedParticipant: SelectedParticipant?
 
     private let maxMembers = 5
 
@@ -80,14 +81,18 @@ struct GroupInfoView: View {
                 CIScrollView {
                     Divider()
                         .padding(.bottom, ViewHelper.spacing)
+
                     nameSection
+
                     membersSection
                         .padding(.top, ViewHelper.spacing)
+
                     if let errorMessage {
                         Text(errorMessage)
                             .font(.system(size: ViewHelper.smallTextSize))
                             .foregroundColor(ViewHelper.accentRed)
                     }
+
                     leaveSection
                         .padding(.top, ViewHelper.spacing * 2)
                 }
@@ -116,6 +121,13 @@ struct GroupInfoView: View {
                     }
                 )
             }
+            .sheet(item: $selectedParticipant) { participant in
+                ContactInformation(
+                    messagingRepository: messagingRepository,
+                    courseRepository: APICourseRepository(studentRepository: StudentRepository()),
+                    participantId: participant.id
+                )
+            }
             .confirmationDialog(
                 "Leave this group?",
                 isPresented: $confirmingLeave,
@@ -138,6 +150,7 @@ struct GroupInfoView: View {
             if isAdmin {
                 VStack(alignment: .trailing, spacing: ViewHelper.spacing) {
                     CITextField(placeholder: "Group name", text: $groupName, lines: 1)
+
                     if trimmedName != (conversation.groupName ?? "") && !trimmedName.isEmpty {
                         Button {
                             Task { await saveName() }
@@ -167,10 +180,12 @@ struct GroupInfoView: View {
             VStack(spacing: 0) {
                 ForEach(Array(members.enumerated()), id: \.element.id) { index, member in
                     memberRow(member)
+
                     if index < members.count - 1 {
                         rowDivider
                     }
                 }
+
                 if canAddMembers {
                     rowDivider
                     addMemberRow
@@ -195,10 +210,16 @@ struct GroupInfoView: View {
         return HStack(spacing: ViewHelper.spacing) {
             VStack(alignment: .leading, spacing: memberContentSpacing) {
                 HStack(spacing: memberTitleSpacing) {
-                    Text(member.name + (isSelf ? " (You)" : ""))
-                        .font(.system(size: ViewHelper.textSize, weight: .semibold))
-                        .foregroundColor(.white)
-                        .lineLimit(1)
+                    Button {
+                        selectedParticipant = SelectedParticipant(id: member.id)
+                    } label: {
+                        Text(member.name + (isSelf ? " (You)" : ""))
+                            .font(.system(size: ViewHelper.textSize, weight: .semibold))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                    }
+                    .buttonStyle(.plain)
+
                     if memberIsAdmin {
                         Text("Admin")
                             .font(.system(size: adminBadgeTextSize, weight: .semibold))
@@ -206,10 +227,14 @@ struct GroupInfoView: View {
                             .padding(.horizontal, adminBadgeHorizontalPadding)
                             .padding(.vertical, adminBadgeVerticalPadding)
                             .background(
-                                Capsule().stroke(ViewHelper.accentBlue.opacity(adminBadgeStrokeOpacity), lineWidth: 1)
+                                Capsule().stroke(
+                                    ViewHelper.accentBlue.opacity(adminBadgeStrokeOpacity),
+                                    lineWidth: 1
+                                )
                             )
                     }
                 }
+
                 Text(member.email)
                     .font(.system(size: ViewHelper.smallTextSize))
                     .foregroundColor(ViewHelper.text)
@@ -233,7 +258,9 @@ struct GroupInfoView: View {
                             .padding(.horizontal, removeButtonHorizontalPadding)
                             .padding(.vertical, removeButtonVerticalPadding)
                             .background(
-                                Capsule().fill(ViewHelper.accentRed.opacity(removeButtonBackgroundOpacity))
+                                Capsule().fill(
+                                    ViewHelper.accentRed.opacity(removeButtonBackgroundOpacity)
+                                )
                             )
                     }
                 }
@@ -256,8 +283,10 @@ struct GroupInfoView: View {
             HStack(spacing: actionRowSpacing) {
                 Image(systemName: "person.crop.circle.badge.plus")
                     .font(.system(size: actionRowIconSize, weight: .medium))
+
                 Text("Add Member")
                     .font(.system(size: ViewHelper.textSize, weight: .semibold))
+
                 Spacer()
             }
             .foregroundColor(ViewHelper.accentBlue)
@@ -275,8 +304,10 @@ struct GroupInfoView: View {
             HStack(spacing: actionRowSpacing) {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
                     .font(.system(size: actionRowIconSize, weight: .medium))
+
                 Text(isLeaving ? "Leaving..." : "Leave Group")
                     .font(.system(size: ViewHelper.textSize, weight: .semibold))
+
                 Spacer()
             }
             .foregroundColor(ViewHelper.accentRed)
@@ -302,8 +333,12 @@ struct GroupInfoView: View {
     private func saveName() async {
         isSavingName = true
         errorMessage = nil
+
         do {
-            try await messagingRepository.renameGroup(conversationId: conversation.id, groupName: trimmedName)
+            try await messagingRepository.renameGroup(
+                conversationId: conversation.id,
+                groupName: trimmedName
+            )
             await onConversationChanged()
             isSavingName = false
             dismiss()
@@ -315,8 +350,12 @@ struct GroupInfoView: View {
 
     private func addMember(_ contact: ContactStudent) async {
         errorMessage = nil
+
         do {
-            try await messagingRepository.addParticipant(conversationId: conversation.id, memberId: contact.id)
+            try await messagingRepository.addParticipant(
+                conversationId: conversation.id,
+                memberId: contact.id
+            )
             await onConversationChanged()
             dismiss()
         } catch {
@@ -327,8 +366,12 @@ struct GroupInfoView: View {
     private func removeMember(_ member: Participant) async {
         removingMemberId = member.id
         errorMessage = nil
+
         do {
-            try await messagingRepository.removeParticipant(conversationId: conversation.id, memberId: member.id)
+            try await messagingRepository.removeParticipant(
+                conversationId: conversation.id,
+                memberId: member.id
+            )
             await onConversationChanged()
             removingMemberId = nil
             dismiss()
@@ -341,6 +384,7 @@ struct GroupInfoView: View {
     private func leaveGroup() async {
         isLeaving = true
         errorMessage = nil
+
         do {
             _ = try await messagingRepository.leaveGroup(conversationId: conversation.id)
             isLeaving = false
@@ -365,6 +409,7 @@ private struct AddMemberSheet: View {
         NavigationStack {
             ZStack {
                 ViewHelper.bgColor.ignoresSafeArea()
+
                 if eligibleContacts.isEmpty {
                     Text("All your contacts are already in this group.")
                         .font(.system(size: ViewHelper.textSize))
@@ -381,6 +426,7 @@ private struct AddMemberSheet: View {
                                 Text(contact.name)
                                     .font(.system(size: ViewHelper.textSize, weight: .semibold))
                                     .foregroundColor(.white)
+
                                 Text(contact.email)
                                     .font(.system(size: 13))
                                     .foregroundColor(ViewHelper.text)
@@ -410,8 +456,13 @@ private struct AddMemberSheet: View {
     private var filteredContacts: [ContactStudent] {
         guard !searchText.isEmpty else { return eligibleContacts }
         let query = searchText.lowercased()
+
         return eligibleContacts.filter {
             $0.name.lowercased().contains(query) || $0.email.lowercased().contains(query)
         }
     }
+}
+
+private struct SelectedParticipant: Identifiable {
+    let id: String
 }
