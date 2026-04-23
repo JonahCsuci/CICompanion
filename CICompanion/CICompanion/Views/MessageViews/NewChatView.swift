@@ -17,7 +17,6 @@ struct NewChatView: View {
     @State private var searchText = ""
     @State private var errorMessage: String?
 
-    private let contactEmailTextSize: CGFloat = 13
     private let emptyStateTitleBoost: CGFloat = 2
 
     var body: some View {
@@ -67,7 +66,7 @@ struct NewChatView: View {
                         .font(.system(size: ViewHelper.textSize, weight: .semibold))
                         .foregroundColor(.white)
                     Text(contact.email)
-                        .font(.system(size: contactEmailTextSize))
+                        .font(.system(size: ViewHelper.metaTextSize))
                         .foregroundColor(ViewHelper.text)
                 }
                 .padding(.vertical, 4)
