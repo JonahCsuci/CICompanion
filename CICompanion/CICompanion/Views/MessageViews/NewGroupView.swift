@@ -24,12 +24,6 @@ struct NewGroupView: View {
     private let minSelection = 2
     private let maxSelection = 4
 
-    private let contactRowSpacing: CGFloat = ViewHelper.spacing + 2
-    private let contactRowNameEmailSpacing: CGFloat = 3
-    private let cardRowVerticalPadding: CGFloat = ViewHelper.smallPadding + 4
-    private let hairlineOpacity: Double = 0.06
-    private let hairlineHeight: CGFloat = 0.5
-
     var body: some View {
         NavigationStack {
             CIView(heading: {
@@ -107,8 +101,8 @@ struct NewGroupView: View {
 
     private var rowDivider: some View {
         Rectangle()
-            .fill(Color.white.opacity(hairlineOpacity))
-            .frame(height: hairlineHeight)
+            .fill(Color.white.opacity(ViewHelper.Messaging.hairlineOpacity))
+            .frame(height: ViewHelper.Messaging.hairlineHeight)
             .padding(.leading, ViewHelper.padding * 2 + ViewHelper.bigIconSize)
     }
 
@@ -119,12 +113,12 @@ struct NewGroupView: View {
         return Button {
             toggleSelection(contact.id)
         } label: {
-            HStack(spacing: contactRowSpacing) {
+            HStack(spacing: ViewHelper.Messaging.contactRowSpacing) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.system(size: ViewHelper.bigIconSize, weight: .medium))
                     .foregroundColor(isSelected ? ViewHelper.accentBlue : ViewHelper.text.opacity(0.7))
 
-                VStack(alignment: .leading, spacing: contactRowNameEmailSpacing) {
+                VStack(alignment: .leading, spacing: ViewHelper.Messaging.contactRowNameEmailSpacing) {
                     Text(contact.name)
                         .font(.system(size: ViewHelper.textSize, weight: .semibold))
                         .foregroundColor(atCapacity ? ViewHelper.text : .white)
@@ -138,7 +132,7 @@ struct NewGroupView: View {
                 Spacer()
             }
             .padding(.horizontal, ViewHelper.padding)
-            .padding(.vertical, cardRowVerticalPadding)
+            .padding(.vertical, ViewHelper.Messaging.cardRowVerticalPadding)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)

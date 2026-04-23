@@ -21,19 +21,7 @@ struct MessagesView: View {
 
     @State private var selectedParticipant: SelectedParticipant?
 
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    private let cardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
-    private let accentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
-    private let buttonBlue = Color(red: 0.36, green: 0.55, blue: 0.90)
-
     private let pollIntervalSeconds: Int = 3
-    private let pillIconSize: CGFloat = 9
-    private let pillTextSize: CGFloat = 11
-    private let pillIconTextSpacing: CGFloat = 4
-    private let pillHorizontalPadding: CGFloat = 8
-    private let pillVerticalPadding: CGFloat = 3
-    private let pillStrokeOpacity: Double = 0.7
-    private let unreadBadgeTextSize: CGFloat = 11
 
     init(
         viewModel: ConversationsViewModel,
@@ -62,7 +50,7 @@ struct MessagesView: View {
                         .frame(height: 40)
                         .background(
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(mode == item ? buttonBlue : cardColor)
+                                .fill(mode == item ? ViewHelper.Messaging.listButtonBlue : ViewHelper.Messaging.listCardColor)
                         )
                 }
                 .buttonStyle(.plain)
@@ -71,14 +59,14 @@ struct MessagesView: View {
         .padding(6)
         .background(
             RoundedRectangle(cornerRadius: 14)
-                .fill(cardColor.opacity(0.8))
+                .fill(ViewHelper.Messaging.listCardColor.opacity(0.8))
         )
     }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
-                bgColor.ignoresSafeArea()
+                ViewHelper.Messaging.listBgColor.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     header
@@ -150,8 +138,8 @@ struct MessagesView: View {
         .sheet(isPresented: $showAddContact) {
             AddContactSheet(
                 contactsViewModel: contactsViewModel,
-                cardColor: cardColor,
-                buttonBlue: buttonBlue
+                cardColor: ViewHelper.Messaging.listCardColor,
+                buttonBlue: ViewHelper.Messaging.listButtonBlue
             )
         }
         .sheet(isPresented: $showSignIn) {
@@ -235,7 +223,7 @@ struct MessagesView: View {
                     .font(.system(size: 18, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 200, height: 50)
-                    .background(buttonBlue)
+                    .background(ViewHelper.Messaging.listButtonBlue)
                     .cornerRadius(12)
             }
 
@@ -283,7 +271,7 @@ struct MessagesView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 180, height: 44)
-                    .background(buttonBlue)
+                    .background(ViewHelper.Messaging.listButtonBlue)
                     .cornerRadius(10)
             }
 
@@ -330,7 +318,7 @@ struct MessagesView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(.white)
                     .frame(width: 180, height: 44)
-                    .background(buttonBlue)
+                    .background(ViewHelper.Messaging.listButtonBlue)
                     .cornerRadius(8)
             }
 
@@ -380,7 +368,7 @@ struct MessagesView: View {
     private func conversationRow(_ conversation: Conversation) -> some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2)
-                .fill(accentBar)
+                .fill(ViewHelper.Messaging.listAccentBar)
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -391,30 +379,19 @@ struct MessagesView: View {
                         .lineLimit(1)
 
                     if conversation.isGroup {
-                        HStack(spacing: pillIconTextSpacing) {
+                        HStack(spacing: ViewHelper.Messaging.pillIconTextSpacing) {
                             Image(systemName: "person.3.fill")
-                                .font(.system(size: pillIconSize, weight: .semibold))
-                            Text("Group")
-                                .font(.system(size: pillTextSize, weight: .semibold))
+                                .font(.system(size: ViewHelper.Messaging.pillIconSize, weight: .semibold))
+                            Text("Group +\(max(conversation.participantIds.count - 1, 0))")
+                                .font(.system(size: ViewHelper.Messaging.pillTextSize, weight: .semibold))
                         }
-                        .foregroundColor(accentBar)
-                        .padding(.horizontal, pillHorizontalPadding)
-                        .padding(.vertical, pillVerticalPadding)
+                        .foregroundColor(ViewHelper.Messaging.listAccentBar)
+                        .padding(.horizontal, ViewHelper.Messaging.pillHorizontalPadding)
+                        .padding(.vertical, ViewHelper.Messaging.pillVerticalPadding)
                         .background(
                             Capsule()
-                                .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
+                                .stroke(ViewHelper.Messaging.listAccentBar.opacity(ViewHelper.Messaging.pillStrokeOpacity), lineWidth: 1)
                         )
-                    } else if let directOtherId = conversation.otherParticipant?.id,
-                              contactsViewModel.isContact(studentId: directOtherId) {
-                        Text("Contact")
-                            .font(.system(size: pillTextSize, weight: .semibold))
-                            .foregroundColor(accentBar)
-                            .padding(.horizontal, pillHorizontalPadding)
-                            .padding(.vertical, pillVerticalPadding)
-                            .background(
-                                Capsule()
-                                    .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
-                            )
                     }
                 }
 
@@ -435,11 +412,11 @@ struct MessagesView: View {
 
                 if let count = conversation.unreadCount, count > 0 {
                     Text("\(count)")
-                        .font(.system(size: unreadBadgeTextSize, weight: .bold))
+                        .font(.system(size: ViewHelper.Messaging.unreadBadgeTextSize, weight: .bold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, pillHorizontalPadding)
+                        .padding(.horizontal, ViewHelper.Messaging.pillHorizontalPadding)
                         .padding(.vertical, 2)
-                        .background(Capsule().fill(buttonBlue))
+                        .background(Capsule().fill(ViewHelper.Messaging.listButtonBlue))
                 }
             }
         }
@@ -450,7 +427,7 @@ struct MessagesView: View {
     private func contactRow(_ contact: ContactStudent) -> some View {
         HStack(spacing: 12) {
             RoundedRectangle(cornerRadius: 2)
-                .fill(accentBar)
+                .fill(ViewHelper.Messaging.listAccentBar)
                 .frame(width: 4, height: 44)
 
             VStack(alignment: .leading, spacing: 4) {

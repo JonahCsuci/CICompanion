@@ -21,14 +21,6 @@ struct ChatView: View {
     // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
     @State private var pendingDismiss = false
 
-    private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
-    private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
-    private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
-
-    private let errorBannerTextSize: CGFloat = 13
-    private let errorBannerHorizontalPadding: CGFloat = 14
-    private let errorBannerVerticalPadding: CGFloat = 8
-    private let errorBannerBackgroundOpacity: Double = 0.85
     private let pollIntervalSeconds: Int = 5
 
     init(viewModel: ChatViewModel, conversation: Conversation, sessionManager: SessionManager, messagingRepository: MessagingRepositoryProtocol, contacts: [ContactStudent]) {
@@ -50,7 +42,7 @@ struct ChatView: View {
             errorBanner
             inputBar
         }
-        .background(bgColor)
+        .background(ViewHelper.Messaging.chatBgColor)
         .navigationTitle(activeConversation.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbarColorScheme(.dark, for: .navigationBar)
@@ -175,11 +167,11 @@ struct ChatView: View {
                 }
                 .foregroundColor(.white)
             }
-            .font(.system(size: errorBannerTextSize, weight: .medium))
+            .font(.system(size: ViewHelper.Messaging.errorBannerTextSize, weight: .medium))
             .foregroundColor(.white)
-            .padding(.horizontal, errorBannerHorizontalPadding)
-            .padding(.vertical, errorBannerVerticalPadding)
-            .background(Color.red.opacity(errorBannerBackgroundOpacity))
+            .padding(.horizontal, ViewHelper.Messaging.errorBannerHorizontalPadding)
+            .padding(.vertical, ViewHelper.Messaging.errorBannerVerticalPadding)
+            .background(Color.red.opacity(ViewHelper.Messaging.errorBannerBackgroundOpacity))
         }
     }
 
@@ -201,7 +193,7 @@ struct ChatView: View {
                 .font(.system(size: 16))
                 .padding(.horizontal, 14)
                 .padding(.vertical, 10)
-                .background(inputBgColor)
+                .background(ViewHelper.Messaging.chatInputBgColor)
                 .cornerRadius(20)
 
             Button {
@@ -209,7 +201,7 @@ struct ChatView: View {
             } label: {
                 Image(systemName: "arrow.up.circle.fill")
                     .font(.system(size: 32))
-                    .foregroundColor(sendButtonDisabled ? .gray : accentBlue)
+                    .foregroundColor(sendButtonDisabled ? .gray : ViewHelper.Messaging.chatAccentBlue)
             }
             .disabled(sendButtonDisabled)
         }

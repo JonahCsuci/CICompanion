@@ -664,3 +664,70 @@ class ViewHelper {
     public static let buttonTextSize = 18.0
     public static let logoSize = 120.0
 }
+
+// Styling tokens scoped to the messaging feature. Kept separate from the global ViewHelper API
+// so adding/changing messaging visuals doesn't bloat the shared surface other features depend on.
+// Behavioral constants (poll intervals, group size limits) intentionally stay in their view files —
+// those are domain policy, not visual styling.
+extension ViewHelper {
+    enum Messaging {
+        // Message bubble
+        static let metaTextSize: CGFloat = 12
+        static let metaHorizontalInset: CGFloat = 4
+        static let metaStackSpacing: CGFloat = 2
+        static let bubbleTextSize: CGFloat = 16
+        static let bubbleHorizontalPadding: CGFloat = 14
+        static let bubbleVerticalPadding: CGFloat = 10
+        static let bubbleCornerRadius: CGFloat = 16
+        static let bubbleSideInset: CGFloat = 60
+        static let currentUserBubbleColor = Color(red: 0.30, green: 0.50, blue: 0.85)
+        static let otherUserBubbleColor = Color(red: 0.55, green: 0.25, blue: 0.85)
+
+        // Chat screen (error banner + chat-specific palette)
+        static let chatBgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
+        static let chatInputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
+        static let chatAccentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
+        static let errorBannerTextSize: CGFloat = 13
+        static let errorBannerHorizontalPadding: CGFloat = 14
+        static let errorBannerVerticalPadding: CGFloat = 8
+        static let errorBannerBackgroundOpacity: Double = 0.85
+
+        // Conversation list (pills, unread badge, palette)
+        static let listBgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
+        static let listCardColor = Color(red: 0.12, green: 0.14, blue: 0.20)
+        static let listAccentBar = Color(red: 0.6, green: 0.8, blue: 1.0)
+        static let listButtonBlue = Color(red: 0.36, green: 0.55, blue: 0.90)
+        static let pillIconSize: CGFloat = 9
+        static let pillTextSize: CGFloat = 11
+        static let pillIconTextSpacing: CGFloat = 4
+        static let pillHorizontalPadding: CGFloat = 8
+        static let pillVerticalPadding: CGFloat = 3
+        static let pillStrokeOpacity: Double = 0.7
+        static let unreadBadgeTextSize: CGFloat = 11
+
+        // Group info
+        static let memberTitleSpacing: CGFloat = 6
+        static let memberContentSpacing: CGFloat = 3
+        static let adminBadgeTextSize: CGFloat = 10
+        static let adminBadgeHorizontalPadding: CGFloat = 7
+        static let adminBadgeVerticalPadding: CGFloat = 2
+        static let adminBadgeStrokeOpacity: Double = 0.6
+        static let removeButtonTextSize: CGFloat = 13
+        static let removeButtonHorizontalPadding: CGFloat = 12
+        static let removeButtonVerticalPadding: CGFloat = 6
+        static let removeButtonProgressWidth: CGFloat = 64
+        static let removeButtonProgressHeight: CGFloat = 28
+        static let removeButtonBackgroundOpacity: Double = 0.15
+        static let actionRowIconSize: CGFloat = 17
+        static let actionRowSpacing: CGFloat = ViewHelper.spacing + 2
+        static let cardRowVerticalPadding: CGFloat = ViewHelper.smallPadding + 4
+        static let hairlineOpacity: Double = 0.06
+        static let hairlineHeight: CGFloat = 0.5
+
+        // New group / new chat
+        static let contactRowSpacing: CGFloat = ViewHelper.spacing + 2
+        static let contactRowNameEmailSpacing: CGFloat = 3
+        static let contactEmailTextSize: CGFloat = 13
+        static let emptyStateTitleBoost: CGFloat = 2
+    }
+}

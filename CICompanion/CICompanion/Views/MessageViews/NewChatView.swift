@@ -17,9 +17,6 @@ struct NewChatView: View {
     @State private var searchText = ""
     @State private var errorMessage: String?
 
-    private let contactEmailTextSize: CGFloat = 13
-    private let emptyStateTitleBoost: CGFloat = 2
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -67,7 +64,7 @@ struct NewChatView: View {
                         .font(.system(size: ViewHelper.textSize, weight: .semibold))
                         .foregroundColor(.white)
                     Text(contact.email)
-                        .font(.system(size: contactEmailTextSize))
+                        .font(.system(size: ViewHelper.Messaging.contactEmailTextSize))
                         .foregroundColor(ViewHelper.text)
                 }
                 .padding(.vertical, 4)
@@ -96,7 +93,7 @@ struct NewChatView: View {
     private var emptyState: some View {
         VStack(spacing: ViewHelper.spacing * 2) {
             Text("No contacts yet")
-                .font(.system(size: ViewHelper.textSize + emptyStateTitleBoost, weight: .semibold))
+                .font(.system(size: ViewHelper.textSize + ViewHelper.Messaging.emptyStateTitleBoost, weight: .semibold))
                 .foregroundColor(.white)
             Text("Add contacts from the Contacts tab to start a chat.")
                 .font(.system(size: ViewHelper.textSize))

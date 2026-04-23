@@ -12,46 +12,35 @@ struct MessageBubbleView: View {
     var showSenderName: Bool = false
     var receiptText: String? = nil
 
-    private let currentUserColor = Color(red: 0.30, green: 0.50, blue: 0.85)
-    private let otherUserColor = Color(red: 0.55, green: 0.25, blue: 0.85)
-    private let metaTextSize: CGFloat = 12
-    private let metaHorizontalInset: CGFloat = 4
-    private let metaStackSpacing: CGFloat = 2
-    private let bubbleTextSize: CGFloat = 16
-    private let bubbleHorizontalPadding: CGFloat = 14
-    private let bubbleVerticalPadding: CGFloat = 10
-    private let bubbleCornerRadius: CGFloat = 16
-    private let bubbleSideInset: CGFloat = 60
-
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
-            if isCurrentUser { Spacer(minLength: bubbleSideInset) }
+            if isCurrentUser { Spacer(minLength: ViewHelper.Messaging.bubbleSideInset) }
 
-            VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: metaStackSpacing) {
+            VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: ViewHelper.Messaging.metaStackSpacing) {
                 if showSenderName, let senderName = message.senderName {
                     Text(senderName)
-                        .font(.system(size: metaTextSize))
+                        .font(.system(size: ViewHelper.Messaging.metaTextSize))
                         .foregroundColor(.gray)
-                        .padding(.horizontal, metaHorizontalInset)
+                        .padding(.horizontal, ViewHelper.Messaging.metaHorizontalInset)
                 }
 
                 Text(message.body)
-                    .font(.system(size: bubbleTextSize))
+                    .font(.system(size: ViewHelper.Messaging.bubbleTextSize))
                     .foregroundColor(.white)
-                    .padding(.horizontal, bubbleHorizontalPadding)
-                    .padding(.vertical, bubbleVerticalPadding)
-                    .background(isCurrentUser ? currentUserColor : otherUserColor)
-                    .cornerRadius(bubbleCornerRadius)
+                    .padding(.horizontal, ViewHelper.Messaging.bubbleHorizontalPadding)
+                    .padding(.vertical, ViewHelper.Messaging.bubbleVerticalPadding)
+                    .background(isCurrentUser ? ViewHelper.Messaging.currentUserBubbleColor : ViewHelper.Messaging.otherUserBubbleColor)
+                    .cornerRadius(ViewHelper.Messaging.bubbleCornerRadius)
 
                 if let receiptText {
                     Text(receiptText)
-                        .font(.system(size: metaTextSize))
+                        .font(.system(size: ViewHelper.Messaging.metaTextSize))
                         .foregroundColor(.gray)
-                        .padding(.horizontal, metaHorizontalInset)
+                        .padding(.horizontal, ViewHelper.Messaging.metaHorizontalInset)
                 }
             }
 
-            if !isCurrentUser { Spacer(minLength: bubbleSideInset) }
+            if !isCurrentUser { Spacer(minLength: ViewHelper.Messaging.bubbleSideInset) }
         }
     }
 }
