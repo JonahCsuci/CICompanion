@@ -638,4 +638,11 @@ class ViewHelper {
     public static let buttonHeight = 50.0
     public static let buttonTextSize = 18.0
     public static let logoSize = 120.0
+    public static let cardRowVerticalPadding = smallPadding + 4
+    public static let rowIconTextSpacing = spacing + 2
+    public static let hairlineOpacity = 0.06
+    public static let hairlineHeight = 0.5
+    public static let pollIntervalSeconds = 3
+    public static let pillTextSize = 11.0
+    public static let metaTextSize = 13.0
 }

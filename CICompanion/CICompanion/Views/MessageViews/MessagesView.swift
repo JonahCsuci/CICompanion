@@ -29,14 +29,11 @@ struct MessagesView: View {
     private let accentBar = ViewHelper.accentBlue
     private let buttonBlue = ViewHelper.accentBlue
 
-    private let pollIntervalSeconds: Int = 3
     private let pillIconSize: CGFloat = 9
-    private let pillTextSize: CGFloat = 11
     private let pillIconTextSpacing: CGFloat = 4
     private let pillHorizontalPadding: CGFloat = 8
     private let pillVerticalPadding: CGFloat = 3
     private let pillStrokeOpacity: Double = 0.7
-    private let unreadBadgeTextSize: CGFloat = 11
 
     init(
         viewModel: ConversationsViewModel,
@@ -139,7 +136,7 @@ struct MessagesView: View {
                 await contactsViewModel.loadContacts()
                 // Background poll so new groups, removals, and incoming messages appear without manual refresh.
                 while !Task.isCancelled {
-                    try? await Task.sleep(for: .seconds(pollIntervalSeconds))
+                    try? await Task.sleep(for: .seconds(ViewHelper.pollIntervalSeconds))
                     guard !Task.isCancelled, sessionManager.isSignedIn else { break }
                     await viewModel.refreshConversationsSilently()
                 }
@@ -517,11 +514,12 @@ struct MessagesView: View {
                         .lineLimit(1)
 
                     if conversation.isGroup {
+                        let others = max(conversation.participantIds.count - 1, 0)
                         HStack(spacing: pillIconTextSpacing) {
                             Image(systemName: "person.3.fill")
                                 .font(.system(size: pillIconSize, weight: .semibold))
-                            Text("Group")
-                                .font(.system(size: pillTextSize, weight: .semibold))
+                            Text("Group +\(others)")
+                                .font(.system(size: ViewHelper.pillTextSize, weight: .semibold))
                         }
                         .foregroundColor(accentBar)
                         .padding(.horizontal, pillHorizontalPadding)
@@ -530,17 +528,6 @@ struct MessagesView: View {
                             Capsule()
                                 .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
                         )
-                    } else if let directOtherId = conversation.otherParticipant?.id,
-                              contactsViewModel.isContact(studentId: directOtherId) {
-                        Text("Contact")
-                            .font(.system(size: pillTextSize, weight: .semibold))
-                            .foregroundColor(accentBar)
-                            .padding(.horizontal, pillHorizontalPadding)
-                            .padding(.vertical, pillVerticalPadding)
-                            .background(
-                                Capsule()
-                                    .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
-                            )
                     }
                 }
 
@@ -562,7 +549,7 @@ struct MessagesView: View {
                 let count = viewModel.unreadCount(for: conversation)
                 if count > 0 {
                     Text("\(count)")
-                        .font(.system(size: unreadBadgeTextSize, weight: .bold))
+                        .font(.system(size: ViewHelper.pillTextSize, weight: .bold))
                         .foregroundColor(.white)
                         .padding(.horizontal, pillHorizontalPadding)
                         .padding(.vertical, 2)

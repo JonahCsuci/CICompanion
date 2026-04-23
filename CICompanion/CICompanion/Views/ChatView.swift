@@ -29,7 +29,6 @@ struct ChatView: View {
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
     private let accentBlue = Color(red: 0.6, green: 0.8, blue: 1.0)
 
-    private let errorBannerTextSize: CGFloat = 13
     private let errorBannerHorizontalPadding: CGFloat = 14
     private let errorBannerVerticalPadding: CGFloat = 8
     private let errorBannerBackgroundOpacity: Double = 0.85
@@ -232,7 +231,7 @@ struct ChatView: View {
                 }
                 .foregroundColor(.white)
             }
-            .font(.system(size: errorBannerTextSize, weight: .medium))
+            .font(.system(size: ViewHelper.metaTextSize, weight: .medium))
             .foregroundColor(.white)
             .padding(.horizontal, errorBannerHorizontalPadding)
             .padding(.vertical, errorBannerVerticalPadding)
