@@ -675,6 +675,7 @@ private struct AddContactSheet: View {
     @State private var selectedSuggestedStudent: StudentSharedCourses?
     @State private var addingStudentId: String?
 
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -699,9 +700,21 @@ private struct AddContactSheet: View {
 
                     Button {
                         Task {
-                            let added = await contactsViewModel.addContact(email: email)
+                            let typedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                            let added = await contactsViewModel.addContact(email: typedEmail)
+
                             if added {
-                                dismiss()
+                                suggestedStudents.removeAll { student in
+                                    let suggestedEmail = student.email
+                                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                                        .lowercased()
+
+                                    return suggestedEmail == typedEmail.lowercased()
+                                }
+
+                                email = ""
+                                await loadSuggestedContacts()
                             }
                         }
                     } label: {
