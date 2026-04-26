@@ -10,6 +10,7 @@ import Foundation
 class StudentRepository: StudentRepositoryProtocol {
     
     // Stored student in memory (mock data)
+    private var studentSharedCourses: [StudentSharedCourses]?
     private var student: Student?
     private var contacts: [ContactStudent] = []
 
@@ -149,5 +150,9 @@ class StudentRepository: StudentRepositoryProtocol {
     
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws {
         return
+    }
+    
+    func loadStudentSharedCourses() async throws -> [StudentSharedCourses] {
+        return studentSharedCourses!
     }
 }

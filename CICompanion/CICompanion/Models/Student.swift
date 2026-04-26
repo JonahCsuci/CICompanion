@@ -37,3 +37,17 @@ struct Student: Codable, Identifiable {
         }
     }
 }
+
+struct StudentSharedCourses: Codable, Identifiable {
+    let id: String
+    let name: String
+    let email: String
+    let sharedCourseCount: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case email
+        case sharedCourseCount = "shared_course_count"
+    }
+}

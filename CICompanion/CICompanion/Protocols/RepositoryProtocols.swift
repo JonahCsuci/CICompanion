@@ -29,4 +29,5 @@ protocol StudentRepositoryProtocol {
     func deleteStudentContact(contactStudentId: String) async throws
     func hasStudentContact(contactStudentId: String) async throws -> Bool
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws
+    func loadStudentSharedCourses() async throws -> [StudentSharedCourses]
 }

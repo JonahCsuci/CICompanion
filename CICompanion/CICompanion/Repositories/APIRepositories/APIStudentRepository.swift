@@ -333,4 +333,32 @@ class APIStudentRepository: StudentRepositoryProtocol {
         print("updateScheduleTimes body: \(String(decoding: data, as: UTF8.self))")
         try handleErrorResponse(data: data, response: response)
     }
+    
+    func loadStudentSharedCourses() async throws -> [StudentSharedCourses] {
+        
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+        
+        // Build API endpoint for fetching all of current student's info
+        guard let url = URL(string: "\(baseURL)/contact/students/sharedCourses/\(studentId)") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        
+        // Use GET to retrieve student info from backend
+        request.httpMethod = "GET"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // Validate HTTP response and throw error if request failed
+        try handleErrorResponse(data: data, response: response)
+        
+        // Decode JSON into Student struct
+        let students = try JSONDecoder().decode([StudentSharedCourses].self, from: data)
+        
+        return students
+    }
 }
