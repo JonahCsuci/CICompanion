@@ -18,6 +18,7 @@ struct TodayView: View {
     /// Use `@StateObject` when a view is the *source of truth* for an object.
     /// Use `@ObservedObject` when a view *receives* an already-created object from a parent.
     @StateObject var viewModel: AcademicCalendarViewModel
+    @ObservedObject var tutorViewModel: TutorViewModel
     @ObservedObject var sessionManager: SessionManager
     @State private var showSignIn = false
     @State private var showSettings = false
@@ -29,12 +30,14 @@ struct TodayView: View {
         viewModel: AcademicCalendarViewModel,
         studentRepository: StudentRepositoryProtocol,
         courseRepository: CourseRepositoryProtocol,
-        sessionManager: SessionManager
+        sessionManager: SessionManager,
+        tutorViewModel: TutorViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.sessionManager = sessionManager
         self.studentRepository = studentRepository
         self.courseRepository = courseRepository
+        self.tutorViewModel = tutorViewModel
     }
     /// Tracks which course card is currently expanded (by its unique ID).
     /// `nil` means no card is expanded. Only one card can be expanded at a time.
@@ -146,6 +149,7 @@ struct TodayView: View {
             SettingsView(
                 courseRepository: courseRepository,
                 studentRepository: studentRepository,
+                tutorViewModel: tutorViewModel,
                 sessionManager: sessionManager
             )
         }
@@ -1155,7 +1159,7 @@ private struct SwipeToDeleteRow<Content: View>: View {
             studentRepository: StudentRepository()
         ), studentRepository: StudentRepository(),
         courseRepository: CourseRepository(studentRepository: StudentRepository()),
-        sessionManager: SessionManager()
+        sessionManager: SessionManager(), tutorViewModel: TutorViewModel(tutorRepository: TutorRepository())
     )
 }
 

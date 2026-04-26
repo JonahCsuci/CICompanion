@@ -9,6 +9,7 @@ struct MessagesView: View {
 
     @StateObject var viewModel: ConversationsViewModel
     @StateObject private var contactsViewModel: ContactsViewModel
+    @ObservedObject private var tutorViewModel: TutorViewModel
     @ObservedObject var sessionManager: SessionManager
     let messagingRepository: MessagingRepositoryProtocol
     let courseRepository: CourseRepositoryProtocol
@@ -40,7 +41,8 @@ struct MessagesView: View {
         studentRepository: StudentRepositoryProtocol,
         messagingRepository: MessagingRepositoryProtocol,
         courseRepository: CourseRepositoryProtocol,
-        sessionManager: SessionManager
+        sessionManager: SessionManager,
+        tutorViewModel: TutorViewModel
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         _contactsViewModel = StateObject(
@@ -50,6 +52,7 @@ struct MessagesView: View {
         self.sessionManager = sessionManager
         self.courseRepository = courseRepository
         self.studentRepository = studentRepository
+        self.tutorViewModel = tutorViewModel
     }
 
     private var searchBinding: Binding<String> {
@@ -193,6 +196,7 @@ struct MessagesView: View {
             SettingsView(
                 courseRepository: courseRepository,
                 studentRepository: studentRepository,
+                tutorViewModel: tutorViewModel,
                 sessionManager: sessionManager
             )
         }
