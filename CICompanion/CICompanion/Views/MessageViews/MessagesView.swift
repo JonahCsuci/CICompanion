@@ -134,7 +134,7 @@ struct MessagesView: View {
             if sessionManager.isSignedIn {
                 viewModel.loadConversations()
                 await contactsViewModel.loadContacts()
-                // Background poll so new groups, removals, and incoming messages appear without manual refresh.
+
                 while !Task.isCancelled {
                     try? await Task.sleep(for: .seconds(ViewHelper.pollIntervalSeconds))
                     guard !Task.isCancelled, sessionManager.isSignedIn else { break }
@@ -179,6 +179,9 @@ struct MessagesView: View {
         .sheet(isPresented: $showAddContact) {
             AddContactSheet(
                 contactsViewModel: contactsViewModel,
+                sessionManager: sessionManager,
+                studentRepository: studentRepository,
+                messagingRepository: messagingRepository,
                 cardColor: cardColor,
                 buttonBlue: buttonBlue
             )
@@ -197,7 +200,8 @@ struct MessagesView: View {
             ContactInformation(
                 messagingRepository: messagingRepository,
                 courseRepository: APICourseRepository(studentRepository: StudentRepository()),
-                participantId: participant.id
+                participantId: participant.id,
+                currentStudentId: sessionManager.userId
             )
         }
     }
@@ -591,13 +595,11 @@ struct MessagesView: View {
                 Task {
                     let removedId = contact.id
                     await contactsViewModel.removeContact(contactStudentId: removedId)
-                    // Optimistically drop any direct chat with this contact while the network refresh is in flight,
-                    // so the user can't tap a stale row and immediately hit a 403 from the archived conversation.
+
                     viewModel.conversations.removeAll {
                         $0.otherParticipant?.id == removedId
                     }
-                    // Backend also archives direct chats and drops the contact from any groups we admin,
-                    // so a full refresh is still needed for groups.
+
                     viewModel.loadConversations()
                 }
             }
@@ -657,11 +659,22 @@ private enum MessagesMode: String, CaseIterable, Identifiable {
 private struct AddContactSheet: View {
 
     @ObservedObject var contactsViewModel: ContactsViewModel
+    @ObservedObject var sessionManager: SessionManager
+
+    let studentRepository: StudentRepositoryProtocol
+    let messagingRepository: MessagingRepositoryProtocol
     let cardColor: Color
     let buttonBlue: Color
 
     @Environment(\.dismiss) private var dismiss
+
     @State private var email = ""
+    @State private var suggestedStudents: [StudentSharedCourses] = []
+    @State private var isLoadingSuggested = false
+    @State private var suggestedErrorMessage: String?
+    @State private var selectedSuggestedStudent: StudentSharedCourses?
+    @State private var addingStudentId: String?
+
 
     var body: some View {
         NavigationStack {
@@ -672,7 +685,7 @@ private struct AddContactSheet: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Add Contact")
                         .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(ViewHelper.textImportant)
 
                     CITextField(placeholder: "Email", text: $email, lines: 1)
                         .textInputAutocapitalization(.never)
@@ -687,9 +700,21 @@ private struct AddContactSheet: View {
 
                     Button {
                         Task {
-                            let added = await contactsViewModel.addContact(email: email)
+                            let typedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                            let added = await contactsViewModel.addContact(email: typedEmail)
+
                             if added {
-                                dismiss()
+                                suggestedStudents.removeAll { student in
+                                    let suggestedEmail = student.email
+                                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                                        .lowercased()
+
+                                    return suggestedEmail == typedEmail.lowercased()
+                                }
+
+                                email = ""
+                                await loadSuggestedContacts()
                             }
                         }
                     } label: {
@@ -710,6 +735,8 @@ private struct AddContactSheet: View {
                     .cornerRadius(ViewHelper.componentRounding)
                     .disabled(contactsViewModel.isMutating)
 
+                    suggestedContactsSection
+
                     Spacer()
                 }
                 .padding(20)
@@ -722,15 +749,135 @@ private struct AddContactSheet: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(ViewHelper.textImportant)
                 }
             }
             .onAppear {
                 contactsViewModel.clearError()
             }
+            .task {
+                await loadSuggestedContacts()
+            }
+            .sheet(item: $selectedSuggestedStudent) { student in
+                ContactInformation(
+                    messagingRepository: messagingRepository,
+                    courseRepository: APICourseRepository(studentRepository: StudentRepository()),
+                    participantId: student.id,
+                    currentStudentId: sessionManager.userId
+                )
+            }
         }
         .preferredColorScheme(.dark)
     }
+
+    private var suggestedContactsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Suggested Contacts")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+                .padding(.top, 10)
+
+            if isLoadingSuggested {
+                ProgressView()
+                    .tint(ViewHelper.textImportant)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+            } else if let suggestedErrorMessage {
+                Text(suggestedErrorMessage)
+                    .font(.system(size: 14))
+                    .foregroundColor(.red)
+            } else if suggestedStudents.isEmpty {
+                Text("No suggested contacts found")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(suggestedStudents) { student in
+                        suggestedContactRow(student)
+
+                        if student.id != suggestedStudents.last?.id {
+                            Divider()
+                                .background(Color.white.opacity(0.08))
+                                .padding(.leading, 12)
+                        }
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: ViewHelper.componentRounding)
+                        .fill(cardColor)
+                )
+            }
+        }
+    }
+
+    private func suggestedContactRow(_ student: StudentSharedCourses) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Button {
+                    selectedSuggestedStudent = student
+                } label: {
+                    Text(student.name)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(ViewHelper.textImportant)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+
+                Text("\(student.sharedCourseCount) shared \(student.sharedCourseCount == 1 ? "course" : "courses")")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            Button {
+                Task {
+                    addingStudentId = student.id
+
+                    let added = await contactsViewModel.addContact(email: student.email)
+
+                    if added {
+                        suggestedStudents.removeAll { $0.id == student.id }
+                    }
+
+                    addingStudentId = nil
+                }
+            } label: {
+                if addingStudentId == student.id {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(width: 70, height: 34)
+                } else {
+                    Text("+ Add")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 70, height: 34)
+                        .background(buttonBlue)
+                        .cornerRadius(ViewHelper.componentRounding)
+                }
+            }
+            .disabled(addingStudentId != nil || contactsViewModel.isMutating)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+    }
+    
+    private func loadSuggestedContacts() async {
+        isLoadingSuggested = true
+        suggestedErrorMessage = nil
+
+        do {
+            suggestedStudents = try await studentRepository.loadStudentSharedCourses()
+        } catch {
+            suggestedErrorMessage = "Could not load suggested contacts"
+        }
+
+        isLoadingSuggested = false
+    }
+    
 }
 
 private struct SelectedParticipant: Identifiable {

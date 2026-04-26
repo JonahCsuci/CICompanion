@@ -6,20 +6,24 @@ struct ContactInformation: View {
     let messagingRepository: MessagingRepositoryProtocol
     let courseRepository: CourseRepositoryProtocol
     let participantId: String
+    let currentStudentId: String?
 
     @State private var isLoading = false
     @State private var loadError: String?
     @State private var selectedStudent: Student?
     @State private var selectedStudentCourses: [Course] = []
+    @State private var sharedCourseIds: Set<Int> = []
     
     init(
         messagingRepository: MessagingRepositoryProtocol,
         courseRepository: CourseRepositoryProtocol,
-        participantId: String
+        participantId: String,
+        currentStudentId: String? = nil
     ) {
         self.messagingRepository = messagingRepository
         self.courseRepository = courseRepository
         self.participantId = participantId
+        self.currentStudentId = currentStudentId
     }
     
     var body: some View {
@@ -69,22 +73,17 @@ struct ContactInformation: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 
                                 HStack(alignment: .top, spacing: 34.4) {
-                                    
                                     TimeMarker(hour: "8", meridiem: "AM")
                                     TimeMarker(hour: "10", meridiem: "AM")
                                     TimeMarker(hour: "12", meridiem: "PM")
-                                        
                                     TimeMarker(hour: "2", meridiem: "PM")
                                     TimeMarker(hour: "4", meridiem: "PM")
                                     TimeMarker(hour: "6", meridiem: "PM")
                                     TimeMarker(hour: "8", meridiem: "PM")
-                                        
                                 }
                                 
                                 HStack(alignment: .center, spacing: 10) {
-                                    
                                     ForEach(Array(8...20), id: \.self) { hour in
-                                        
                                         RoundedRectangle(cornerRadius: 4)
                                             .fill(
                                                 isFreeOnWeekdays(hour: hour)
@@ -109,39 +108,49 @@ struct ContactInformation: View {
                         CIText("No courses found", color: ViewHelper.text)
                     } else {
                         ForEach(selectedStudentCourses, id: \.id) { course in
-                            CIDropDownCard(
-                                title: course.courseName,
-                                subtitle: course.location,
-                                before: {
-                                    if course.startTime == "N/A" {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Async")
-                                                .font(.system(size: ViewHelper.smallTextSize))
-                                            
-                                            Text("No times")
-                                                .font(.system(size: ViewHelper.smallTextSize))
+                            ZStack(alignment: .topTrailing) {
+                                CIDropDownCard(
+                                    title: course.courseName,
+                                    subtitle: course.location,
+                                    before: {
+                                        if course.startTime == "N/A" {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text("Async")
+                                                    .font(.system(size: ViewHelper.smallTextSize))
+                                                
+                                                Text("No times")
+                                                    .font(.system(size: ViewHelper.smallTextSize))
+                                            }
+                                            .foregroundColor(ViewHelper.text)
+                                            .frame(width: 70, alignment: .leading)
+                                        } else {
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(course.startTime)
+                                                    .font(.system(size: ViewHelper.smallTextSize))
+                                                
+                                                Text(course.endTime)
+                                                    .font(.system(size: ViewHelper.smallTextSize))
+                                            }
+                                            .foregroundColor(ViewHelper.text)
+                                            .frame(width: 70, alignment: .leading)
                                         }
-                                        .foregroundColor(ViewHelper.text)
-                                        .frame(width: 70, alignment: .leading)
-                                    } else {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text(course.startTime)
-                                                .font(.system(size: ViewHelper.smallTextSize))
-                                            
-                                            Text(course.endTime)
-                                                .font(.system(size: ViewHelper.smallTextSize))
-                                        }
-                                        .foregroundColor(ViewHelper.text)
-                                        .frame(width: 70, alignment: .leading)
-                                    }
-                                },
-                                expandedContent: {
-                                    Text(course.courseDescription)
-                                        .foregroundColor(ViewHelper.text)
-                                        .lineLimit(10)
-                                },
-                                color: ViewHelper.accentBlue
-                            )
+                                    },
+                                    expandedContent: {
+                                        Text(course.courseDescription)
+                                            .foregroundColor(ViewHelper.text)
+                                            .lineLimit(10)
+                                    },
+                                    color: ViewHelper.accentBlue
+                                )
+                                
+                                if sharedCourseIds.contains(course.id) {
+                                    Image(systemName: "person.2.fill")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(ViewHelper.accentBlue)
+                                        .padding(.top, 14)
+                                        .padding(.trailing, 14)
+                                }
+                            }
                         }
                     }
                 }
@@ -160,7 +169,6 @@ struct ContactInformation: View {
         
         var freeHours: [Int] = []
         
-        // every free hour from 8 AM to 8 PM
         for hour in 8...20 {
             if isFreeOnWeekdays(hour: hour) {
                 freeHours.append(hour)
@@ -171,7 +179,6 @@ struct ContactInformation: View {
             return "Limited"
         }
         
-        // group consecutive free hours into time ranges
         var ranges: [(startHour: Int, endHour: Int)] = []
         
         var rangeStart = freeHours[0]
@@ -187,10 +194,8 @@ struct ContactInformation: View {
             }
         }
         
-        // add the final range
         ranges.append((startHour: rangeStart, endHour: rangeEnd))
         
-        // sort by longest range first
         ranges.sort { first, second in
             let firstSize = first.endHour - first.startHour
             let secondSize = second.endHour - second.startHour
@@ -202,7 +207,6 @@ struct ContactInformation: View {
             return firstSize > secondSize
         }
         
-        // turn best 1 or 2 ranges into display text
         if ranges.count == 1 {
             let range = ranges[0]
             return "\(formatHour(range.startHour)) - \(formatHour(range.endHour + 1))"
@@ -216,7 +220,6 @@ struct ContactInformation: View {
         } else {
             return "\(formatHour(secondRange.startHour)) - \(formatHour(secondRange.endHour + 1))      \(formatHour(firstRange.startHour)) - \(formatHour(firstRange.endHour + 1))"
         }
-        
     }
 
     private func formatHour(_ hour: Int) -> String {
@@ -283,6 +286,7 @@ struct ContactInformation: View {
         loadError = nil
         selectedStudent = nil
         selectedStudentCourses = []
+        sharedCourseIds = []
         
         defer { isLoading = false }
         
@@ -293,6 +297,12 @@ struct ContactInformation: View {
             selectedStudent = contact
             selectedStudentCourses = allCourses.filter {
                 contact.courses.contains($0.id)
+            }
+            
+            if let currentStudentId {
+                let currentStudent = try await messagingRepository.loadContact(studentId: currentStudentId)
+                
+                sharedCourseIds = Set(currentStudent.courses).intersection(Set(contact.courses))
             }
             
         } catch {
