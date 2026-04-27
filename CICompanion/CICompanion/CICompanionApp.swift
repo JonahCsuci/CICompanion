@@ -115,7 +115,9 @@ private struct RootTabView: View {
                 viewModel: container.myAcademicCalendarViewModel,
                 studentRepository: container.studentRepository,
                 courseRepository: container.courseRepository,
-                sessionManager: container.sessionManager
+                sessionManager: container.sessionManager,
+                tutorViewModel: container.tutorViewModel
+                
             )
                 .tabItem {
                     Image(systemName: "calendar")
@@ -128,7 +130,8 @@ private struct RootTabView: View {
                 studentRepository: container.studentRepository,
                 messagingRepository: container.messagingRepository,
                 courseRepository: container.courseRepository,
-                sessionManager: container.sessionManager
+                sessionManager: container.sessionManager,
+                tutorViewModel: container.tutorViewModel
             )
                 .tabItem {
                     Image(systemName: "bubble.left.and.bubble.right.fill")

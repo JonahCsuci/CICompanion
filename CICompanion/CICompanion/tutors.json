@@ -1,0 +1,1840 @@
+[
+  {
+    "name": "Bautista, Gabby (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "11:00 - 2:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "2:30 PM - 5:30 PM / 11:00 AM - 2:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 211 - Human Anatomy & Physiology II (EPE Sec 1)",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "NRS 300 - Introduction to Professional Nursing",
+      "NRS 301 - Introduction to Professional Nursing Lab",
+      "NRS 304 - Pathophysiology & Pharmacology I",
+      "NRS 306 - Pathophysiology & Pharmacology 2",
+      "NRS 312 - Nursing Care of Adults",
+      "NRS 313 - Nursing Care of Adults lab",
+      "NRS HLTH 348 - Healthy Aging",
+      "NRS 350 - Evidence-based Nursing Practice"
+    ]
+  },
+  {
+    "name": "Blackwell, Connor (BioChem)",
+    "subject": "BioChem",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "1:30 - 3:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "12:30 - 2:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "1:30 - 3:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:30 - 5:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "12:00 - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 105 Intro to Chemistry (EPE Sec 2)",
+      "CHEM 311 Organic Chemistry I (EPE Sec 1)",
+      "CHEM 314 Organic Chemistry II (EPE Sec 2)",
+      "Excel Help",
+      "ASL 101 American Sign Language I",
+      "ASL 102 American Sign Language II",
+      "ECON 341 Drug Discovery & Development ( ECON/BUS 341",
+      "BIOL 200 Principles of Organismal & Population",
+      "BIOL 201 Principles of Cell & Molecular Bio",
+      "BIOL 203 Statistics for Biologists",
+      "BIOL 300 Cell Biology",
+      "BIOL 302 Genetics",
+      "BIOL 303 Evolutionary Biology",
+      "BIOL 304 - Comparative Animal Physiology",
+      "BIOL 310 - Vertebrate Biology",
+      "BIOL 312 Marine Biology",
+      "BIOL 320 Deep Sea Biology",
+      "BIOL 433 Ecology & The Environment",
+      "CHEM 105 Intro to Chemistry",
+      "CHEM 110 Chemistry of Life (organic section)",
+      "CHEM 121 Gen Chem I",
+      "CHEM 311 Organic Chemistry I",
+      "CHEM 312 Organic Chemistry I Lab",
+      "CHEM 313 Organic Chemistry I Problem Solving",
+      "CHEM 314 Organic Chemistry II",
+      "CHEM 315 Organic Chemistry II Lab",
+      "CHEM 316 Organic Chemistry II Problem Solving",
+      "CHEM 341 Drug Discovery & Development ( ECON/BUS 341)",
+      "ESRM 210 Physical Oceanography"
+    ]
+  },
+  {
+    "name": "Bohman, Morgan (Math)",
+    "subject": "Math",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "5:30 - 7:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:30 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "DATA 200 - Introduction to Data Sciences (EPE Sec 1)",
+      "MATH 352 - Probability & Statistics (EPE Sec 1)",
+      "R Help",
+      "MATH 98 Pre-Calculus Support",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 230 - Logic & Mathematical Reasoning",
+      "MATH 398 - Advanced Research Investigations",
+      "MATH 352 - Probability & Statistics",
+      "DATA 200 - Introduction to Data Sciences"
+    ]
+  },
+  {
+    "name": "Bonilla, Alex (Math)",
+    "subject": "Math",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Monday",
+        "time": "2:00 - 5:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "11:00 AM - 2:30 PM / 5:00 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 150 - Calculus (EPE Sec 3)",
+      "MATH 208 - Modern Mathematics for Elementary Teaching (EPE Sec 1)",
+      "Excel Help",
+      "MATH 98 - Pre-Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre-Calculus",
+      "MATH 104 - Stretch Pre-Calculus II",
+      "MATH 105 - Pre-Calculus",
+      "MATH 140 - Business Calculus",
+      "MATH 150 - Calculus",
+      "MATH 151 - Calculus II",
+      "MATH 208 - Modern Mathematics for Elementary Teaching",
+      "MATH 230 - Logical and Mathematical Reasoning",
+      "MATH 300 - Discrete Mathematics",
+      "MATH 308 - Foundational Geometry, Probability, and Statistics",
+      "MATH 310 - Transition to Higher Mathematics",
+      "MATH 318 - Mathematics for Secondary School Teachers",
+      "MATH 330 - Mathematics and Fine Arts",
+      "MATH 350 - Differential Equations",
+      "MATH 352 - Probability and Statistics",
+      "MATH 393 - Abstract Algebra",
+      "MATH 450 - Partial Differential Equations",
+      "MATH 451 - Complex Analysis",
+      "MATH 482 - Number Theory"
+    ]
+  },
+  {
+    "name": "Bortoloto Lebeis, Andre (Math)",
+    "subject": "Math",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "12:30 PM - 2:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30PM- 6PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "1:00 PM - 3:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:30 PM - 2:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 140 - Calculus for Business Applications (EPE Sec 1)",
+      "MATH 300 - Discrete Mathematics (EPE Sec 1 and 2)",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "MATH 140 - Calculus for Business Applications",
+      "MATH 150 - Calculus I",
+      "MATH 300 - Discrete Mathematics"
+    ]
+  },
+  {
+    "name": "Castro, Cristiann (Math)",
+    "subject": "Math",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "2:00 PM - 5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "3:00 PM - 5:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "2:00 PM - 5:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00 - 5:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 150 Calculus I (EPE Sec 2)",
+      "MATH 352 Probability & Statistics (EPE Sec 2)",
+      "MATH 97 Statistics Support",
+      "MATH 98 Pre-Calculus Support",
+      "MATH 101 College Algebra",
+      "MATH 103 Stretch Pre Calculus I",
+      "MATH 104 Stretch Pre-Calculus II",
+      "MATH 105 Pre Calculus",
+      "MATH 140 Calculus for Business Applications",
+      "MATH 150 Calculus I",
+      "MATH 151 Calculus II",
+      "MATH 190 Algebra through Ancient Mathematics",
+      "MATH 199 Stretch College Statistics",
+      "MATH 201 Elementary Statistics",
+      "MATH PSY 202 Biostatistics",
+      "MATH 250 Calculus III",
+      "MATH 352 Probability & Statistics",
+      "MATH 499 Senior Colloquium"
+    ]
+  },
+  {
+    "name": "Clark, Nicholas (Mechatronics)",
+    "subject": "Mechatronics",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "5:00 PM - 6:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "11:00 AM - 12:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 150 Calculus I (EPE Sec 1 and 3)",
+      "COMP 121 Introduction to Programming in C for STEAM",
+      "EMEC 221 Engineering Materials",
+      "EMEC 230 Dynamics",
+      "MATH 150 Calculus I"
+    ]
+  },
+  {
+    "name": "Datu, Erika (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "1:00 PM - 4:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "2:00 PM - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:00 PM - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 105 - Intro to Chemistry (EPE Sec 1)",
+      "Excel Help",
+      "(Graphing & Tabling, no Functions) BIOL/CHEM 150 - Critical Thinking for Science Majors",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "BIOL 300 - Cell Biology",
+      "BIOL 301 - Microbiology",
+      "BIOL 302 - Genetics",
+      "BIOL 303 - Evolutionary Biology",
+      "BIOL 304 - Comparative Animal Physiology",
+      "BIOL 432 - Principles of Epidemiology and Environmental Health",
+      "BIOL 433 - Ecology & The Environment",
+      "CHEM 105 - Intro to Chemistry",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 121 - Gen Chem I",
+      "CHEM 122 - Gen Chem II",
+      "CHEM 124 - Gen Chem II Problem Solving",
+      "CHEM 314 - Organic Chemistry II CHEM/ ECON/BUS 341 - Drug Discovery & Development",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "PSY 220 - Human Sexual Behavior"
+    ]
+  },
+  {
+    "name": "Duran, Daniela (Psychology)",
+    "subject": "Psychology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "11:00 AM - 1:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "4:30 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PSY 301 - Psychological Research & Statistical Methods II (EPE Sec 2 and 3L)",
+      "PSY 314 - Behavioral Neuroscience (EPE Sec 4)",
+      "SPSS Help",
+      "PSY 100 - Introduction to Psychology",
+      "PSY 213 - Developmental Psychology",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II",
+      "PSY 313 - Clinical & Abnormal Psychology *Note: Class is majority writing- specify with student if it is case analysis or course content. If course content then the LRC can help. If case analysis then send the student to the WMC*",
+      "PSY 314 - Behavioral Neuroscience"
+    ]
+  },
+  {
+    "name": "Davies-Mahaffey, Bryton (Health Science)",
+    "subject": "Health Science",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "11:00AM - 1:00PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00PM - 4:00PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00 - 5:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PSY 202 - Biostatistics (EPE Sec 1)",
+      "MATH 201 - Elementary Statistics MATH/",
+      "PSY 202 - Biostatistics"
+    ]
+  },
+  {
+    "name": "Desfosses, Amanda (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "11:00 AM - 2:00 PM (Online Only)"
+      },
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 2:00 PM (Online Only)"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00-5:00 PM (Online Only)"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 210 - Human Anatomy & Physiology I (EPE Sec 1)",
+      "BIOL 217 - Medical Microbiology (EPE Sec 1)",
+      "BIOL 203 - Statistics for Biologists",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 110 - Chemistry of Life"
+    ]
+  },
+  {
+    "name": "Diesmo, Anton (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "11:00 AM - 5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "12:00 - 2:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 1:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 110 - Chemistry of Life",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 111 - Chemistry of Life - Problem Solving",
+      "HLTH 100 - Medical Terminology",
+      "NRS HLTH 348 - Healthy Aging"
+    ]
+  },
+  {
+    "name": "Eddy, Chris (BioChem)",
+    "subject": "BioChem",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:15 - 5:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 121 - Gen Chem I (EPE Sec 1)",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "CHEM 121 - Gen Chem I",
+      "CHEM 122 - Gen Chem II",
+      "CHEM 122L - Gen Chem II Lab",
+      "CHEM 250 - Quantitative Analysis",
+      "CHEM 251 - Quantitative Analysis Lab",
+      "CHEM 311 - Organic Chemistry I",
+      "CHEM 460 - Biochemistry I",
+      "CHEM 461 - Biochemistry I Lab",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "PHYS 100 - Introduction to Physics I",
+      "PHYS 101 - Introduction to Physics II"
+    ]
+  },
+  {
+    "name": "Flores de Jesus, Vivian (Math)",
+    "subject": "Math",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "4:10 - 6:10 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:10 - 6:10 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "11:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 105 - Pre Calculus (EPE Sec 1)",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre Calculus I",
+      "MATH 104 - Stretch Pre Calculus II",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 208 - Modern Mathematics For Elementary Teaching I Numbers And Problem",
+      "MATH 250 - Calculus III"
+    ]
+  },
+  {
+    "name": "Galvan, Karen (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "4:00 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 211 - Human Anatomy & Physiology II (EPE Sec 2 and 3)",
+      "BIO 201- Principles of Cell & Molecular Biology",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 121 - General Chemistry I"
+    ]
+  },
+  {
+    "name": "Gates, Kevin (Applied Physics)",
+    "subject": "Applied Physics",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "6:00 PM - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:15 PM - 5:45 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:45 PM - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PHYS 100 - Physics (EPE Sec 1)",
+      "PHYS 100 - Physics",
+      "PHYS 200 - General Physics 1",
+      "PHYS 201 - General Physics 2"
+    ]
+  },
+  {
+    "name": "Gendy, Joy (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "2:00 - 5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 12:00 PM (Online Only)"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 121 - General Chemistry I (EPE Sec 1)",
+      "CHEM 314 - Organic Chemistry II (EPE Sec 1)",
+      "SPSS Help",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "BIOL 300 - Cell Biology",
+      "BIOL 301 - Microbiology",
+      "BIOL 332 - Cancer & Society",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 311 - Organic Chemistry I",
+      "CHEM 314 - Organic Chemistry II",
+      "MATH 105 - Pre Calculus",
+      "MATH PSY 202 - Biostatistics",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II",
+      "PSY 318 - Learning, Cognition, & Perception"
+    ]
+  },
+  {
+    "name": "Gonzalez, Emily (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "12:00 - 3:00 PM (Online Only)"
+      },
+      {
+        "day": "Tuesday",
+        "time": "12:00 - 2:00 PM (Nursing Workshop)"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:00 - 8:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "NRS 306 - Pathophysiology & Pharmacology II (CAT Sec 1)",
+      "NRS 312 - Nursing Care of Adults I (CAT Sec 1)",
+      "NRS 300 - Introduction to Professional Nursing",
+      "NRS 304 - Pathophysiology & Pharmacology I",
+      "NRS 306 - Pathophysiology & Pharmacology II",
+      "NRS 312 - Nursing Care of Adults I"
+    ]
+  },
+  {
+    "name": "Gonzalez, Juan Luis (Physics)",
+    "subject": "Physics",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "2:00 - 4:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "2:00 - 4:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "2:00 - 6:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 12:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PHYS 100 - Introduction to Physics (EPE Sec 1)",
+      "PHYS 201 - General Physics II (EPE Sec 1) BUS/ A RT/ A R TH 334 - The Business of Art",
+      "ESRM 335 - The Beach",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "PHYS 100 - Introduction to Physics",
+      "PHYS 101 - Introduction to Physics II",
+      "PHYS ASTR 105 - Introduction to the Solar System",
+      "PHYS ASTR 107 - The Stars and Beyond",
+      "PHYS 200 - General Physics I",
+      "PHYS 201 - General Physics II",
+      "PHYS EMEC 310 - Electronics",
+      "PHYS MATH",
+      "COMP 345 - Digital Image Processing",
+      "PHYS 351 - Mathematical Methods of Physics",
+      "PHYS ASTR 390 - Frontiers of Astronomy"
+    ]
+  },
+  {
+    "name": "Greer, Allison (Pre Nursing)",
+    "subject": "Pre Nursing",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "6:00 - 7:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "1:30 - 3:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "11:00 AM - 2:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "11:00 AM - 1:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH PSY 202 - Biostatistics (EPE Sec 2 and 3)",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "CHEM 110 - Chemistry of Life",
+      "HLTH 100 - Medical Terminology",
+      "HLTH 102 - Community",
+      "HLTH MATH 97 Statistics Support",
+      "MATH 201 - Elementary Statistics",
+      "MATH PSY 202 - Biostatistics",
+      "PHIL 130 - Logic & Philosophical Reasoning",
+      "POLS 150 - American Political Institutions",
+      "PSY 100 - Introduction to Psychology",
+      "SOC 201 - Social Problems"
+    ]
+  },
+  {
+    "name": "Guillen, Mary (Business)",
+    "subject": "Business",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:00 - 5:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "2:20 - 5:20 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00 - 5:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "ECON 110 - Principles of Microeconomics (EPE Sec2)",
+      "ECON 111 - Principles of Macroeconomics (EPE Sec 1)",
+      "R Help",
+      "Excel Help",
+      "ACCT 210 - Financial Accounting",
+      "ACCT 300 - Applied Managerial Accounting",
+      "BUS 309: Quantitative Foundations for Business",
+      "ECON 110 - Principles of Microeconomics",
+      "ECON 111 - Principles of Macroeconomics",
+      "MATH 140 - Calculus for Business Applications MGT 326 - Business Ethics"
+    ]
+  },
+  {
+    "name": "Heer, Louis (Political Science)",
+    "subject": "Political Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "12:00 AM - 3:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "11:00 AM - 1:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "11:00 AM - 1:00 PM"
+      }
+    ],
+    "supportedCourses": []
+  },
+  {
+    "name": "Hidalgo, Nathaniel (BioChem)",
+    "subject": "BioChem",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "1:30 - 5:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "1:30 - 2:45 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00 - 5:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "1:30 - 2:45 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 311 - Organic Chemistry I (EPE Sec 1)",
+      "CHEM 314 - Organic Chemistry II (EPE Sec 1)",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 122 - General Chemistry II",
+      "CHEM 311 - Organic Chemistry I",
+      "CHEM 312 - Organic Chemistry I Lab",
+      "CHEM 314 - Organic Chemistry II",
+      "CHEM 315 - Organic Chemistry II Lab"
+    ]
+  },
+  {
+    "name": "Holloway, Brenna (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "2:00 - 4:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 1:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "1:30 - 2:45 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "11:00 AM - 1:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 203 - Statistics for Biologists (EPE Sec 1 and 2)",
+      "SPSS Help",
+      "BIOL 200 - Organismal & Pop Biology",
+      "BIOL 203 - Statistics for Biologists",
+      "BIOL 303 - Evolutionary Biology",
+      "BIOL 310 - Vertebrate Biology",
+      "MATH 97 - Statistics Support",
+      "MATH 201 - Elementary Statistics MATH/",
+      "PSY 202 - Biostatistics",
+      "PSY 100 - Introduction to Psychology",
+      "PSY 213 - Developmental Psychology",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 312 - Social Psychology"
+    ]
+  },
+  {
+    "name": "Juarez, Aimee (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "11:00 AM - 3:00 PM (Online Only)"
+      },
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 4:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "12:00 - 2:00 PM (Nursing Workshop)"
+      }
+    ],
+    "supportedCourses": [
+      "NRS 306 - Pathophysiology & Pharmacology 2 (EPE Sec 1)",
+      "NRS 312 - Nursing Care of Adults (EPE Sec 1)",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "HLTH 100 - Medical Terminology",
+      "NRS 300 - Introduction to Professional Nursing",
+      "NRS 301 - Introduction to Professional Nursing Lab",
+      "NRS 304 - Pathophysiology & Pharmacology I",
+      "NRS 306 - Pathophysiology & Pharmacology 2",
+      "NRS 312 - Nursing Care of Adults",
+      "NRS 313 - Nursing Care of Adults lab",
+      "NRS HLTH 348 - Healthy Aging",
+      "NRS 350 - Evidence-based Nursing Practice"
+    ]
+  },
+  {
+    "name": "Khalaf, Salam (Mechatronics)",
+    "subject": "Mechatronics",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:00 - 4:15 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "2:00 - 4:00 PM (MATH 201 Drop in)"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 1:15 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 1:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 201- Elementary Statistics (w/ R) (EPE Sec 2)",
+      "PHYS 101 - Introduction to Physics II (EPE Sec 1)",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 103 - Stretch Pre-Calculus I",
+      "MATH 104 - Stretch Pre-Calculus II",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 201 - Elementary Statistics (w/ R)",
+      "MATH 230 - Logic & Mathematical Reasoning",
+      "MATH 240 - Linear Algebra",
+      "PHYS 100 - Introduction to Physics I",
+      "PHYS 101 - Introduction to Physics II",
+      "PHYS 200 - General Physics I",
+      "PHYS 201 - General Physics II"
+    ]
+  },
+  {
+    "name": "Llanos, Jessica (Spanish)",
+    "subject": "Spanish",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "4:00 PM - 6:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:00 PM - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "11:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "SPAN 101- Elementary Spanish 1 (CAT All Stateside Sections)",
+      "SPAN 102 - Elementary Spanish 2 (CAT Sec 1)",
+      "SPAN 201 - Intermediate Spanish 1",
+      "SPAN 202 - Intermediate Spanish 2",
+      "SPAN 211 - Spanish for Heritage Speakers 1",
+      "SPAN 212 - Spanish for Heritage Speakers 2",
+      "SPAN 301 - Advanced Spanish Grammar and Comp I",
+      "SPAN 320 - Intro to Spanish Translation",
+      "SPAN 410 - Civilizations and Cultures of Spain",
+      "SPAN 450 - Intro to Literary Translation EC",
+      "PSY 150 - Foundations of Children and Adolescents",
+      "EDML 416 - Foundations of Bilingual Education 1",
+      "SPED 345 - Individuals with Disabilities",
+      "SPED 410 - Typical Atypical Development"
+    ]
+  },
+  {
+    "name": "Lorber, Katrina (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "2:00 - 4:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00 - 6:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 12:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 210 - Human Anatomy & Physiology I (EPE Sec 1)",
+      "BIOL 211 - Human Anatomy & Physiology II (EPE Sec 3)",
+      "BIOL 210 - Human Anatomy & Physiology I (EPE)",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "PSY 314 - Behavioral Neuroscience"
+    ]
+  },
+  {
+    "name": "Magana, Bryan (Health Science)",
+    "subject": "Health Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "1:30 -3:30 PM"
+      },
+      {
+        "day": "Monday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00 - 6:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:00 - 6:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 110 - Chemistry of Life (EPE Sec 2)",
+      "CHEM 122 - General Chemistry II (EPE Sec 1)",
+      "SPSS Help",
+      "BIOL 203 - Statistics for Biologists",
+      "BIOL 217 - Medical Microbiology",
+      "BIOL 300 - Cell Biology",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 122 - General Chemistry II",
+      "HLTH 300 - Nutrition, Exercise, and Wellness",
+      "HLTH 302 - Health Care Informatives",
+      "HLTH 306 - Bioethics",
+      "HLTH 309 - Health Science Research Methods"
+    ]
+  },
+  {
+    "name": "Maggard, Sterling (BioChem)",
+    "subject": "BioChem",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "6:00 - 7:00 PM"
+      },
+      {
+        "day": "Monday",
+        "time": "11:00 AM - 12:45 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:00 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 122 - General Chemistry II (EPE Sec 1)",
+      "BIOL 201 - Principles of Cell and Molecular Biology",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy &you Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 122 - General Chemistry II",
+      "MATH 201 - Elementary Statistics",
+      "MATH PSY 202 - Biostatistics"
+    ]
+  },
+  {
+    "name": "Mason, Christian (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:00 - 6:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 1:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "11:00 AM - 1:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 151 - Data Structures And Program Design (EPE Sec 1)",
+      "MATH 150 - Calculus I (EPE Sec 4) Comp 101 - Computer Literacy",
+      "COMP IT 105 Introduction to Programming (Java)",
+      "COMP IT 105 Introduction to Programming (HTML & JavaScript)",
+      "COMP 105 Introduction to Programming (Python)",
+      "COMP 150 - Object-Oriented Programming",
+      "COMP 151 - Data Structures And Program Design",
+      "COMP 162 - Computer Architecture and Assembly Language (PEP/9)",
+      "COMP 162 - Computer Architecture and Assembly Language (X86)",
+      "COMP PHYS",
+      "MATH 345 - Digital Image Processing COMP/ PHYS/",
+      "MATH 445 - Image Analysis and Pattern Recognition",
+      "COMP 447 - Societal Issues in Computing",
+      "MATH 97 - Statistics Support",
+      "MATH 98 - Pre-Calculus Support",
+      "MATH 99 - Quantitative Reasoning Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre Calculus I",
+      "MATH 104 - Stretch Pre Calculus II",
+      "MATH 105 - Pre-Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 230 - Logic & Mathematical Reasoning",
+      "MATH 240 - LInear Algebra",
+      "MATH 300 - Discrete Mathematics",
+      "PHYS 100 - Introduction to Physics I",
+      "PHYS 101 - Introduction to Physics II",
+      "PHYS 200 - General Physics I",
+      "PHYS 201 - General Physics II"
+    ]
+  },
+  {
+    "name": "Mceachron, Robert (Psychology)",
+    "subject": "Psychology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "4:30 - 6:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:30 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "11:30 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PSY 300 EU - Psych Research & Stats Methods I (EPE Sec 1)",
+      "PSY 314 - Behavioral Neuroscience (EPE Sec 3)",
+      "R Help",
+      "SPSS Help",
+      "PSY 100 - Introduction to Psychology",
+      "PSY 202 - Biostatistics",
+      "PSY 213 - Developmental Psychology",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II",
+      "PSY 313 - Clinical & Abnormal Psychology *Note: Class is majority writing- specify with student if it is case analysis or course content. If course content then the LRC can help. If case analysis then send the student to the WMC*",
+      "PSY 314 - Behavioral Neuroscience",
+      "PSY 317 - Theories of Personality",
+      "PSY 318 - Learning Cognition & Perception",
+      "DATA 200 - Introduction to Data Science",
+      "MATH 398 - Advanced Research Investigations"
+    ]
+  },
+  {
+    "name": "McMurray, Morgan (Math & Computer Science)",
+    "subject": "Math & Computer Science",
+    "schedule": [
+      {
+        "day": "Wednesday",
+        "time": "2:30 - 5:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "2:30 - 5:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 232 - Programming Languages (EPE Sec 1, 1L & 2L)",
+      "R Help",
+      "Python Help",
+      "COMP 121 - Introduction to Programming in C for STEAM",
+      "COMP 122 - Data Structures & Algorithms for Engineers & Scientists",
+      "COMP 232 - Programming Languages",
+      "COMP 362 - Operating Systems",
+      "COMP IT 420 - Database Theory & Design",
+      "COMP 447 - Societal Issues in Computing",
+      "COMP 478 - Introduction To Data Mining",
+      "IT 380 - Web Programming",
+      "MATH 150 - Calculus I",
+      "MATH PHIL 230 - Logic & Mathematical Reasoning",
+      "MATH 310 - Transition to Higher Mathematics",
+      "MATH 398 - Advanced Research Investigations",
+      "MATH 430 - Statistical Modeling",
+      "PHIL 130 - Logic & Philosophical Reasoning"
+    ]
+  },
+  {
+    "name": "Medina, Raiden (BioChem)",
+    "subject": "BioChem",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "2:30 - 4:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "2:30 - 3:30 PM / 3:30 - 4:30 PM (Math 105 Drop in)"
+      },
+      {
+        "day": "Friday",
+        "time": "11:00 AM - 1:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 105 - Pre Calculus (EPE Sec 02)",
+      "Excel Help",
+      "(Basic Graphing & Tabling, NO Functions)",
+      "BIOL 201 - Principles of Cell & Molecular Biology Wednesday Friday 2:30 - 3:30 PM 3:30 - 4:30pm (Math 105 Drop in) 11:00 AM - 1:00 PM",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 110 - Chemistry of Life",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 122 - General Chemistry II",
+      "CHEM 150 - Critical Thinking for Chem Majors",
+      "CHEM 250 - Quantitative Analysis",
+      "CHEM 251 - Quantitative Analysis Lab",
+      "CHEM 305 - Computer Applications in Chem",
+      "CHEM 311 - Organic Chemistry I",
+      "CHEM 312 - Organic Chemistry I Lab",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre Calculus I",
+      "MATH 104 - Stretch Pre Calculus II",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "SOC 100 - Intro to Sociology"
+    ]
+  },
+  {
+    "name": "Moryosef, Noa (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "1:00 - 4:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "2:00-6:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 162 - Computer Architecture and Assembly Language (PEP/9) (EPE Sec 01 & 02 and Sec 1L, 2L, and 3L)",
+      "COMP IT 105 - Introduction to Programming (Java)",
+      "COMP IT 105 - (Python)",
+      "COMP 150 - Object-Oriented Programming",
+      "COMP 151 - Data Structures And Program Design",
+      "COMP 162 - Computer Architecture and Assembly Language (PEP/9)",
+      "MATH 98 - Pre-Calculus Support",
+      "MATH 105 - Pre-Calculus",
+      "MATH 150 - Calculus I"
+    ]
+  },
+  {
+    "name": "Moses, Ryan (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "4:30 PM - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 12:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 302 - Genetics (EPE Sec 01)",
+      "MATH 105 - Pre Calculus (Sec 03)",
+      "Excel Help",
+      "(Graphing & Tabling, no Functions)",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "BIOL 300 - Cell Biology",
+      "BIOL 302 - Genetics",
+      "BIOL 423 - Cell & Molecular Neurobiology",
+      "BIOL 476 - Apiculture & Bee Biology Lab",
+      "BIOL 499 - Senior Capstone Biology",
+      "CHEM 105 - Introduction to Chemistry Chem 341 - Drug Discovery and Development",
+      "MATH 98 - Pre-Calculus support",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I"
+    ]
+  },
+  {
+    "name": "Moultrie-Brown, Jamie (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "12:00 - 2:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30 - 6:30 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:00 - 6:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "1:30 - 3:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP IT 105 - Introduction to Programming (Java) (EPE Sec 01)",
+      "COMP IT 105 Introduction to Programming (Java)",
+      "COMP 150 - Object-Oriented Programming",
+      "COMP 151 - Data Structures and Program Design",
+      "COMP 162 - Computer Architecture and Assembly Language (x86)",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 230 - Logic & Mathematical Reasoning",
+      "MATH 240 - Linear Algebra",
+      "PHYS 100 - Introduction to Physics",
+      "PHYS 101 - Introduction to Physics II",
+      "PHYS 200 - General Physics I",
+      "PHYS 201 - General Physics II"
+    ]
+  },
+  {
+    "name": "Olague, Joseph (Physics)",
+    "subject": "Physics",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "3:30 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "1:00 - 5:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PHYS 200 - General Physics I (EPE Sec 1)",
+      "PHYS 202 - General Physics III (EPE Sec 1)",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "PHYS 100 - Introduction to Physics",
+      "PHYS 101 - Introduction to Physics II",
+      "PHYS 200 - General Physics I",
+      "PHYS 201 - General Physics II",
+      "PHYS 202 - General Physics III : Light, Relativity, & Modern Physics",
+      "PHYS 351 - Mathematic Methods of Physics"
+    ]
+  },
+  {
+    "name": "Owen, Davis (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "12:00 - 2:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "5:00 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 162 - Computer Architecture & Assembly Language (EPE Section 01 & 02 and Section 3L)",
+      "MATH 230 - Logic & Mathematical Reasoning (EPE Sec 01)",
+      "COMP IT 105 - Introduction to Programming (Java)",
+      "COMP IT 105 - Introduction to Programming (HTML & Javascript)",
+      "COMP 105 - Introduction to Programming (Python)",
+      "COMP 150 - Object Oriented Programming",
+      "COMP 162 - Computer Architecture & Assembly Language (EPE Sec 3L)",
+      "COMP 350 - Introduction to Software Engineering",
+      "COMP 405 - Mobile App Development",
+      "COMP 447 - Societal Issues in Computing",
+      "COMP 478 - Introduction to Data Mining",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre- Calculus I",
+      "MATH 104 - Stretch Pre-Calculus II",
+      "MATH 140 - Calculus for Business Applications",
+      "MATH 150 - Calculus I",
+      "MATH 230 - Logic & Mathematical Reasoning (EPE Sec 01)",
+      "MATH 300 - Discrete Mathematics"
+    ]
+  },
+  {
+    "name": "Paranick, Kendall (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Wednesday",
+        "time": "11 AM - 12 PM (Drop in for NRS 420)"
+      }
+    ],
+    "supportedCourses": [
+      "NRS 420 - Nursing Care of the Complex Patient (EPE Section 01)",
+      "NRS 452 - Community Public Health Nursing (EPE Section 01 & 02) NCLEX Studying & Support",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "HLTH 100 - Medical Terminology",
+      "HLTH 102 - Community Health",
+      "HLTH 300 - Nutrition Exercise & Wellness",
+      "HLTH 307 - Bioethics",
+      "NRS 300 - Introduction to Professional Nursing",
+      "NRS 301 - Introduction to Professional Nursing Lab",
+      "NRS 304 - Pathophysiology & Pharmacology I",
+      "NRS 350 - Evidence-based Nursing Practice",
+      "NRS 412 - Nursing Care of Adults II",
+      "NRS 414 - Nursing Care of Women & Childbearing Families",
+      "NRS 420 - Nursing Care of the Complex Patient",
+      "NRS 421 - Nursing Care of the Complex Patient Lab",
+      "NRS 452 - Community Public Health Nursing",
+      "PSY 100 - Introduction to Psychology",
+      "PSY 213 - Developmental Psychology",
+      "PSY 317 - Theories of Personality",
+      "PSY 346 - Human Motivation"
+    ]
+  },
+  {
+    "name": "Radwich, Samantha (Psychology)",
+    "subject": "Psychology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:15 - 6:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "3:15 - 5:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:15 - 5:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PSY 300 EU - Psych Research & Stats Methods I (EPE Sec 1)",
+      "PSY 301 EU - Psych Research & Stats Methods II (EPE Sec 1, 2L)",
+      "SPSS Help",
+      "MATH 97 - Statistics Support",
+      "MATH 101 - College Algebra",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II"
+    ]
+  },
+  {
+    "name": "Rank, Kieron (Comp Sci)",
+    "subject": "Comp Sci",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:30 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "1:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 232 - Programming Languages (EPE Section 01 and Section 1L & 2L)",
+      "Excel Help",
+      "COMP 101 - Computer Literacy",
+      "COMP 150 - Object-Oriented Program",
+      "COMP 151 - Data Struct&Pro Design",
+      "COMP 162 - Computer Arch&Assembly Lang",
+      "COMP 232 - Programing Languages",
+      "COMP 449 - Human Computer Interaction",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 101 - College Algebra",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 250 - Calculus III",
+      "MATH 240 - Linear Algebra PHSY 200 - General Physics 1 PHSY 201 - General Physics 2"
+    ]
+  },
+  {
+    "name": "Rogers, Jeremy (Psychology)",
+    "subject": "Psychology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "12:00 - 4:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 3:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "PSY 301 - Psych Research & Stats Methods II (EPE Sec 1, 1L, & 2L)",
+      "PSY 346 - Human Motivation (EPE Sec 1)",
+      "PSY 346 EU - Human Motivation (EPE Sec 1)",
+      "SPSS Help",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II",
+      "PSY 313 - Clinical & Abnormal Psychology *Note: Class is majority writing- specify with student if it is case analysis or course content. If course content then the LRC can help. If case analysis then send the student to the WMC*",
+      "PSY 314 - Behavioral Neuroscience",
+      "PSY 346 - Human Motivation"
+    ]
+  },
+  {
+    "name": "Romero, Jason (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "5:00 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "4:00 - 6:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 162 - Computer Arch & Assembly Languages (EPE Section 01 & 02 and Section 1L, 2L, and 3L)",
+      "COMP 162 - Computer Architecture & Assembly Language (PEP/9)",
+      "COMP 262 - Computer Organization & Architecture",
+      "MATH 98 - Pre- Calculus Support",
+      "MATH 101 - College Algebra Support",
+      "MATH 105 - Pre-Calculus",
+      "MATH 140 - Calculus for Business Applications"
+    ]
+  },
+  {
+    "name": "Ruiz, Fatima (Nursing)",
+    "subject": "Nursing",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "11:00 AM - 12:00 PM (Online Only)"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:30 - 5:30 PM (Weekly Critical Care Nursing Workshop)"
+      }
+    ],
+    "supportedCourses": [
+      "NRS 420 - Nursing Care of the Complex Patient (EPE Section 01)",
+      "NRS 452 - Community Public Health Nursing (EPE Section 01 & 02)",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 211 - Human Anatomy & Physiology II",
+      "BIOL 217 - Medical Microbiology",
+      "NRS 300 - Introduction to Professional Nursing",
+      "NRS 301 - Introduction to Professional Nursing Lab",
+      "NRS 304 - Pathophysiology & Pharmacology I",
+      "NRS HLTH 348 - Healthy Aging",
+      "NRS 350 - Evidence-based Nursing Practice",
+      "NRS 412 - Nursing Care of Adults II",
+      "NRS 414 - Nursing Care of Women & Childbearing Families",
+      "NRS 420 - Nursing Care of the Complex Patient",
+      "NRS 421 - Nursing Care of the Complex Patient Lab"
+    ]
+  },
+  {
+    "name": "Santos, Kaine (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "1:45 - 3:30 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "2:45 - 6:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00 - 5:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "1:30 - 2:30 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "12:00 - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "CHEM 314 - Organic Chemistry II (EPE Section 02)",
+      "MATH 150 - Calculus I (EPE Section 01)",
+      "BIOL 210 - Anatomy & Physiology I",
+      "BIOL 300 - Cell Biology",
+      "BIOL 303 - Evolutionary Biology",
+      "BIOL 423 - Cell & Molecular Neurobiology",
+      "BIOL 432 - Epidemiology&Environment",
+      "CHEM 105 - Intro to Chemistry",
+      "CHEM 121 - General Chem I",
+      "CHEM 311 - Organic Chemistry I",
+      "CHEM 312 Organic Chemistry I Lab",
+      "CHEM 314 - Organic Chemistry II",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II"
+    ]
+  },
+  {
+    "name": "Shumaker, Joseph (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "3:00 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:00 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 2:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 140 - Calculus For Business (EPE Section 02)",
+      "MATH 230 - Logic And Mathematical Reasoning (EPE Section 01)",
+      "ACCT 330 - Accounting Information Systems and Data",
+      "COMP 101 - Computer Literacy",
+      "COMP 102 - Web Development",
+      "COMP IT 105 - Intro to Programming (Java)",
+      "COMP IT 105 - Intro to Programming (HTML & Javascript)",
+      "COMP IT 105 - Intro to Programming (Python)",
+      "COMP 121 - Introduction to Programming C for STEAM",
+      "COMP 150 - Object Oriented Programming",
+      "MATH 101 - College Algebra",
+      "MATH 105 - Pre Calculus",
+      "MATH 140 - Calculus For Business",
+      "MATH 230 - Logic And Mathematical Reasoning"
+    ]
+  },
+  {
+    "name": "Stark, Ellie (Business)",
+    "subject": "Business",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "12:00 - 1:15"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:00 - 5:00 (Online Only)"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 1:15 PM"
+      }
+    ],
+    "supportedCourses": [
+      "ACCT 220 - Managerial Accounting (EPE Section 01)",
+      "ACCT 220 - Managerial Accounting (EPE Section 01)",
+      "ECON 110 - Principles of Microeconomics (EPE Section 01)",
+      "ECON 111 - Principles of Macroeconomics (EPE Section 01)",
+      "ACCT 210 - Financial Accounting",
+      "ACCT 220 - Managerial Accounting",
+      "BUS 110 - Business Law",
+      "ECON 110 - Principles of MicroeconomicsF",
+      "ECON 111 - Principles of Macroeconomics MGT 326 - Business Ethics",
+      "MATH 105 - Pre Calculus"
+    ]
+  },
+  {
+    "name": "Torres, Jasmine (Math & Computer Science)",
+    "subject": "Math & Computer Science",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "12:00 - 2:00 PM / 6:15 PM - 8 PM (BCC Tutoring)"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 1:15 PM (Math 105 EPE Hour) / 1:30 - 3:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "MATH 105S - Pre Calculus with Support (EPE Section 01)",
+      "MATH 201 - Elementary Statistics (with R) (EPE Section 01)",
+      "R Help",
+      "DATA 200 - Introduction to Data Science",
+      "COMP 105 Introduction to Programming (Java)",
+      "IT 105 Introduction to Programming (Java)",
+      "COMP 105 Introduction to Programming (HTML & Javascript)",
+      "IT Introduction to Programming (HTML & Javascript)",
+      "COMP 105 Introduction to Programming (Python) 1:30 - 3:00 PM",
+      "COMP 162 - Computer Architecture & Assembly Language (X86)",
+      "COMP 262 - Computer Organization & Architecture",
+      "DATA 200 - Introduction to Data Science",
+      "MATH 97 - Statistics Support",
+      "MATH 98 - Pre Calculus Support",
+      "MATH 99 - Quantitative Reasoning Support",
+      "MATH 101 - College Algebra",
+      "MATH 103 - Stretch Pre Calculus I",
+      "MATH 104 - Stretch Pre Calculus II",
+      "MATH 105 - Pre Calculus",
+      "MATH 140 - Calculus for Business Applications",
+      "MATH 150 - Calculus I",
+      "MATH 151 - Calculus II",
+      "MATH 240 - Linear Algebra",
+      "MATH 230 - Logic & Mathematical Reasoning",
+      "MATH 250 - Calculus III",
+      "MATH 300 - Discrete Mathematics",
+      "MATH 301 - Discrete Mathematics for",
+      "IT MATH 310 - Transition to Higher Math",
+      "MATH 331 - History of Mathematics",
+      "MATH 351 - Real Analysis",
+      "MATH 352 - Probability & Statistics",
+      "MATH 393 - Abstract Algebra I",
+      "MATH PHIL 438 - Philosophy of Mathematics",
+      "MATH PHIL",
+      "PHYS 439 - Philosophy of Science",
+      "MATH 450 - Partial Differential Equations",
+      "MATH 451 - Complex Analysis",
+      "PHIL 200 - Introduction to Philosophy",
+      "PHIL FJS 210 - Ethics for a Free World",
+      "PHIL 320 - Being & Knowing",
+      "PHYS 202 - General Physics III : Light, Relativity, & Modern Physics",
+      "PHYS 301 - Classical Mechanics",
+      "PHYS 351 - Mathematical Methods of Physics"
+    ]
+  },
+  {
+    "name": "Weissman, Oliviah (Computer Science)",
+    "subject": "Computer Science",
+    "schedule": [
+      {
+        "day": "Tuesday",
+        "time": "12:00 - 2:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "12:00 - 2:50 PM"
+      }
+    ],
+    "supportedCourses": [
+      "COMP 150 - Object Oriented Programming (EPE Section 01)",
+      "COMP IT 105 - Intro to Programming (Java)",
+      "COMP IT 105 - Intro to Programming (HTML & Javascript)",
+      "COMP IT 105 - Intro to Programming (Python)",
+      "COMP 150 - Object Oriented Programming (EPE)",
+      "COMP 151 - Data Structures & Program Design",
+      "MATH 137 - Strategies and Game Design"
+    ]
+  },
+  {
+    "name": "Wikel, Dylan (Psychology & Data Science)",
+    "subject": "Psychology & Data Science",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "11:30 AM - 1:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:30 - 7:00 PM"
+      }
+    ],
+    "supportedCourses": [
+      "DATA 200 - Introduction to Data Science (EPE Section 01)",
+      "PSY 314 - Behavioral Neuroscience (EPE Section 01 and 02)",
+      "R Help",
+      "SPSS Help",
+      "PSY 213 - Developmental Psychology",
+      "PSY 300 - Psychological Research & Statistical Methods I",
+      "PSY 301 - Psychological Research & Statistical Methods II",
+      "PSY 313 - Clinical & Abnormal Psychology *Note: Class is majority writing- specify with student if it is case analysis or course content. If course content, then the LRC can help. If case analysis, then send the student to the WMC*",
+      "PSY 314 - Behavioral Neuroscience",
+      "PSY 317 - Theories of Personality",
+      "PSY 318 - Learning Cognition & Perception",
+      "DATA 200 - Introduction to Data Science"
+    ]
+  },
+  {
+    "name": "Wilding, Korrin (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Monday",
+        "time": "12:00 - 2:45 PM"
+      },
+      {
+        "day": "Tuesday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Wednesday",
+        "time": "3:30 - 7:00 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "4:30 - 7:00 PM"
+      },
+      {
+        "day": "Friday",
+        "time": "10:00 AM - 11:30 AM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 203 - Statistics for Biologists (EPE Section 02 and 03)",
+      "SPSS Help",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "BIOL 203 - Statistics for Biologists",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 300 - Cell Biology",
+      "BIOL 302 - Genetics",
+      "BIOL 433 - Ecology and the Environment",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 121 - General Chemistry I",
+      "CHEM 122 - General Chemistry II",
+      "CHEM 312 - Organic Chemistry I Lab",
+      "CHEM 341 - Drug Discovery & Development ( ECON/BUS 341)",
+      "MATH 105 - Pre Calculus",
+      "MATH 150 - Calculus I"
+    ]
+  },
+  {
+    "name": "Yered, Lily (Biology)",
+    "subject": "Biology",
+    "schedule": [
+      {
+        "day": "Sunday",
+        "time": "5:00 - 7:00 PM (Online Only)"
+      },
+      {
+        "day": "Monday",
+        "time": "3:30 - 6:30 PM"
+      },
+      {
+        "day": "Thursday",
+        "time": "3:30 - 6:30 PM"
+      }
+    ],
+    "supportedCourses": [
+      "BIOL 300 - Cell Biology (EPE Section 01 & Section 02L)",
+      "BIOL 201 - Principles of Cell & Molecular Biology",
+      "BIOL 210 - Human Anatomy & Physiology I",
+      "BIOL 300 - Cell Biology (EPE)",
+      "BIOL 423 - Cellular and Molecular Neurobiology",
+      "CHEM 105 - Introduction to Chemistry",
+      "CHEM 121 - General Chemistry",
+      "CHEM 314 - Organic Chemistry II",
+      "CHEM 343 - Forensic Science",
+      "CHEM 460 - Biochemistry I",
+      "CHEM 461 - Biochemistry I Lab"
+    ]
+  }
+]
