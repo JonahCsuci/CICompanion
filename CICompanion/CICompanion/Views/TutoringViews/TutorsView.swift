@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Tutors: View {
     
-    @StateObject var viewModel: TutorViewModel
+    @ObservedObject var viewModel: TutorViewModel
     
     @State private var searchText = ""
     @State private var selectedSubject = "All"
