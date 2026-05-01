@@ -10,6 +10,13 @@ struct Participant: Codable, Identifiable, Hashable {
     let name: String
     let email: String
     let joinedAt: String?
+
+    init(id: String, name: String, email: String, joinedAt: String? = nil) {
+        self.id = id
+        self.name = name
+        self.email = email
+        self.joinedAt = joinedAt
+    }
 }
 
 // Skinny snapshot of the most recent message included on the conversation list endpoint.
@@ -36,6 +43,36 @@ struct Conversation: Codable, Identifiable, Hashable {
     let lastMessageAt: String?
     let createdAt: String
     let archivedAt: String?
+
+    init(
+        id: Int,
+        conversationType: String,
+        participantIds: [String],
+        otherParticipant: Participant? = nil,
+        groupName: String? = nil,
+        adminStudentId: String? = nil,
+        participants: [Participant]? = nil,
+        unreadCount: Int? = nil,
+        lastMessagePreview: String? = nil,
+        lastMessage: ConversationLastMessage? = nil,
+        lastMessageAt: String? = nil,
+        createdAt: String,
+        archivedAt: String? = nil
+    ) {
+        self.id = id
+        self.conversationType = conversationType
+        self.participantIds = participantIds
+        self.otherParticipant = otherParticipant
+        self.groupName = groupName
+        self.adminStudentId = adminStudentId
+        self.participants = participants
+        self.unreadCount = unreadCount
+        self.lastMessagePreview = lastMessagePreview
+        self.lastMessage = lastMessage
+        self.lastMessageAt = lastMessageAt
+        self.createdAt = createdAt
+        self.archivedAt = archivedAt
+    }
 }
 
 extension Conversation {
@@ -43,9 +80,16 @@ extension Conversation {
 
     var displayTitle: String {
         if isGroup {
-            return groupName ?? "Group"
+            if let groupName, !groupName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return groupName
+            }
+            return "Group Chat"
         }
         return otherParticipant?.name ?? "Conversation"
+    }
+
+    var isDirectConversation: Bool {
+        conversationType == "direct"
     }
 
     func isAdmin(currentUserId: String) -> Bool {

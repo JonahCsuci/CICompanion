@@ -26,6 +26,26 @@ struct Message: Codable, Identifiable {
     let deliveryStatus: String?
     // Group chats: list of readers excluding the sender. Null on a brand-new outgoing message.
     let readBy: [MessageReader]?
+
+    init(
+        id: Int,
+        conversationId: Int,
+        senderId: String,
+        senderName: String?,
+        body: String,
+        createdAt: String,
+        deliveryStatus: String? = nil,
+        readBy: [MessageReader]? = nil
+    ) {
+        self.id = id
+        self.conversationId = conversationId
+        self.senderId = senderId
+        self.senderName = senderName
+        self.body = body
+        self.createdAt = createdAt
+        self.deliveryStatus = deliveryStatus
+        self.readBy = readBy
+    }
 }
 
 struct ConversationDetail: Codable {
