@@ -536,6 +536,17 @@ struct MessagesView: View {
                             Capsule()
                                 .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
                         )
+                    } else if let otherParticipant = conversation.otherParticipant,
+                              contactsViewModel.isContact(studentId: otherParticipant.id) {
+                        Text("Contact")
+                            .font(.system(size: ViewHelper.pillTextSize, weight: .semibold))
+                            .foregroundColor(accentBar)
+                            .padding(.horizontal, pillHorizontalPadding)
+                            .padding(.vertical, pillVerticalPadding)
+                            .background(
+                                Capsule()
+                                    .stroke(accentBar.opacity(pillStrokeOpacity), lineWidth: 1)
+                            )
                     }
                 }
 

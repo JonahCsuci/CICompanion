@@ -14,6 +14,22 @@ struct Student: Codable, Identifiable {
     var courses: [Int]
     var events: [Int]
     var meetings: [MeetingProposal] = []
+
+    init(
+        id: String,
+        name: String,
+        email: String,
+        courses: [Int],
+        events: [Int],
+        meetings: [MeetingProposal] = []
+    ) {
+        self.id = id
+        self.name = name
+        self.email = email
+        self.courses = courses
+        self.events = events
+        self.meetings = meetings
+    }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)

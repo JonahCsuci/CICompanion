@@ -137,4 +137,8 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
     func hasStudentContact(contactStudentId: String) async throws -> Bool {
         storedContacts.contains { $0.id == contactStudentId }
     }
+
+    func updateScheduleTimes(meetings: [MeetingProposal]) async throws {}
+
+    func loadStudentSharedCourses() async throws -> [StudentSharedCourses] { [] }
 }

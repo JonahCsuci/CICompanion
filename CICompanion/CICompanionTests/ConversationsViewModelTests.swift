@@ -179,6 +179,19 @@ private final class MessagingRepositoryStub: MessagingRepositoryProtocol {
         makeFallbackConversation()
     }
 
+    func createGroupConversation(groupName: String, memberIds: [String], firstMessageBody: String) async throws -> Conversation {
+        Conversation(
+            id: 1000,
+            conversationType: "group",
+            participantIds: ["current-user"] + memberIds,
+            otherParticipant: nil,
+            groupName: groupName,
+            lastMessagePreview: firstMessageBody,
+            lastMessageAt: "2026-04-21T12:00:00Z",
+            createdAt: "2026-04-21T12:00:00Z"
+        )
+    }
+
     func loadMessages(conversationId: Int) async throws -> ConversationDetail {
         ConversationDetail(conversation: makeFallbackConversation(), messages: [])
     }
@@ -206,6 +219,30 @@ private final class MessagingRepositoryStub: MessagingRepositoryProtocol {
             createdAt: "2026-04-21T12:00:00Z"
         )
     }
+
+    func addParticipant(conversationId: Int, memberId: String) async throws {}
+
+    func removeParticipant(conversationId: Int, memberId: String) async throws {}
+
+    func leaveGroup(conversationId: Int) async throws -> LeaveGroupResult {
+        LeaveGroupResult(
+            conversationId: conversationId,
+            leftStudentId: "current-user",
+            wasAdmin: false,
+            newAdminStudentId: nil,
+            conversationDeleted: false
+        )
+    }
+
+    func renameGroup(conversationId: Int, groupName: String) async throws {}
+
+    func markRead(conversationId: Int) async throws {}
+
+    func getMeeting(body: String) -> MeetingScheduler? { nil }
+
+    func getMeetingProposal(body: String) -> MeetingProposal? { nil }
+
+    func fetchStudyRooms(start: Date, end: Date) async throws -> [Int: [TimeRange]] { [:] }
 
     private func makeFallbackConversation() -> Conversation {
         Conversation(
