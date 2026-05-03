@@ -74,6 +74,28 @@ final class ConversationsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.displayedConversations.map(\.id), [5, 4])
     }
 
+    func testSearchCombinesConversationAndMeetingResults() async {
+        let repository = MessagingRepositoryStub()
+        repository.conversations = [makeConversation(id: 1, name: "Default", timestamp: "2026-04-19T11:01:14Z")]
+        repository.searchResults["biology"] = [
+            makeConversation(id: 5, name: "Chat Match", timestamp: "2026-04-18T10:00:00Z", preview: "biology chat")
+        ]
+        repository.meetingSearchResults["biology"] = [
+            makeMeetingSearchResult(messageId: 90, title: "Biology Study Session")
+        ]
+
+        let viewModel = ConversationsViewModel(messagingRepository: repository)
+        viewModel.loadConversations()
+        await waitForAsyncWork()
+
+        viewModel.updateSearchQuery("biology")
+        await waitForSearchDebounce()
+
+        XCTAssertEqual(repository.searchQueries, ["biology"])
+        XCTAssertEqual(repository.meetingSearchQueries, ["biology"])
+        XCTAssertEqual(viewModel.displayedSearchResults.map(\.id), ["conversation-5", "meeting-90"])
+    }
+
     func testRapidSearchChangesCancelStaleResults() async {
         let repository = MessagingRepositoryStub()
         repository.searchDelays["hel"] = 900_000_000
@@ -146,14 +168,30 @@ final class ConversationsViewModelTests: XCTestCase {
             createdAt: "2026-04-01T12:00:00Z"
         )
     }
+
+    private func makeMeetingSearchResult(messageId: Int, title: String) -> MeetingSearchResult {
+        MeetingSearchResult(
+            messageId: messageId,
+            conversation: makeConversation(
+                id: 44,
+                name: "Meeting Chat",
+                timestamp: "2026-04-19T11:01:14Z"
+            ),
+            meetingSchedulerId: "8E5BDB1B-7536-4B57-9E5E-F8DCA28C7149",
+            title: title,
+            createdAt: "2026-04-19T11:01:14Z"
+        )
+    }
 }
 
 private final class MessagingRepositoryStub: MessagingRepositoryProtocol {
 
     var conversations: [Conversation] = []
     var searchResults: [String: [Conversation]] = [:]
+    var meetingSearchResults: [String: [MeetingSearchResult]] = [:]
     var searchDelays: [String: UInt64] = [:]
     var searchQueries: [String] = []
+    var meetingSearchQueries: [String] = []
 
     func loadAllStudents() async throws -> [Participant] { [] }
 
@@ -173,6 +211,11 @@ private final class MessagingRepositoryStub: MessagingRepositoryProtocol {
         }
 
         return searchResults[query] ?? []
+    }
+
+    func searchMeetingSchedulers(query: String) async throws -> [MeetingSearchResult] {
+        meetingSearchQueries.append(query)
+        return meetingSearchResults[query] ?? []
     }
 
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {

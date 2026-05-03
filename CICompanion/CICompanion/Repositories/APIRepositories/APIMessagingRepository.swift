@@ -83,6 +83,32 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         }
         return try decoder.decode(ConversationsResponse.self, from: data).conversations
     }
+
+    func searchMeetingSchedulers(query: String) async throws -> [MeetingSearchResult] {
+        let studentId = try authenticatedUserId()
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/meetings/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery)
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+
+        let decoder = JSONDecoder()
+        if let array = try? decoder.decode([MeetingSearchResult].self, from: data) {
+            return array
+        }
+        return try decoder.decode(MeetingSearchResultsResponse.self, from: data).meetings
+    }
     
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
         let studentId = try authenticatedUserId()

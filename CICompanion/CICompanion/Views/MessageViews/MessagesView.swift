@@ -132,6 +132,24 @@ struct MessagesView: View {
                     }
                 )
             }
+            .navigationDestination(for: MeetingNavigationTarget.self) { target in
+                ChatView(
+                    viewModel: ChatViewModel(
+                        messagingRepository: messagingRepository,
+                        currentUserId: sessionManager.userId ?? ""
+                    ),
+                    conversation: target.conversation,
+                    sessionManager: sessionManager,
+                    messagingRepository: messagingRepository,
+                    courseRepository: courseRepository,
+                    contacts: contactsViewModel.contacts,
+                    studentRepository: studentRepository,
+                    targetMessageId: target.messageId,
+                    onConversationUpdated: {
+                        viewModel.loadConversations()
+                    }
+                )
+            }
         }
         .task(id: sessionManager.isSignedIn) {
             if sessionManager.isSignedIn {
@@ -340,17 +358,17 @@ struct MessagesView: View {
 
     private var conversationContent: some View {
         Group {
-            if viewModel.isLoading && viewModel.displayedConversations.isEmpty && viewModel.trimmedSearchQuery.isEmpty {
+            if viewModel.isLoading && !viewModel.hasDisplayedResults && viewModel.trimmedSearchQuery.isEmpty {
                 Spacer()
                 CILoadingPage()
                 Spacer()
-            } else if viewModel.isSearchActive && viewModel.isSearching && viewModel.displayedConversations.isEmpty {
+            } else if viewModel.isSearchActive && viewModel.isSearching && !viewModel.hasDisplayedResults {
                 Spacer()
                 CILoadingPage()
                 Spacer()
-            } else if viewModel.isSearchActive && viewModel.displayedConversations.isEmpty {
+            } else if viewModel.isSearchActive && !viewModel.hasDisplayedResults {
                 emptySearchState
-            } else if viewModel.displayedConversations.isEmpty {
+            } else if !viewModel.hasDisplayedResults {
                 emptyChatsState
             } else {
                 conversationList
@@ -404,7 +422,7 @@ struct MessagesView: View {
         VStack(spacing: 16) {
             Spacer()
 
-            Text("No matching conversations")
+            Text("No matching messages or meetings")
                 .font(.system(size: 18))
                 .foregroundColor(.gray)
 
@@ -467,12 +485,27 @@ struct MessagesView: View {
     private var conversationList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(viewModel.displayedConversations) { conversation in
-                    Button {
-                        viewModel.markConversationReadLocally(conversationId: conversation.id)
-                        navigationPath.append(conversation)
-                    } label: {
-                        conversationRow(conversation)
+                if let searchErrorMessage = viewModel.searchErrorMessage, viewModel.isSearchActive {
+                    Text(searchErrorMessage)
+                        .font(.system(size: 14))
+                        .foregroundColor(.red)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 12)
+                }
+
+                if viewModel.isSearchActive {
+                    ForEach(viewModel.displayedSearchResults) { result in
+                        searchResultRow(result)
+                    }
+                } else {
+                    ForEach(viewModel.displayedConversations) { conversation in
+                        Button {
+                            viewModel.markConversationReadLocally(conversationId: conversation.id)
+                            navigationPath.append(conversation)
+                        } label: {
+                            conversationRow(conversation)
+                        }
                     }
                 }
             }
@@ -482,6 +515,31 @@ struct MessagesView: View {
                 viewModel.updateSearchQuery(viewModel.searchQuery)
             } else {
                 viewModel.loadConversations()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func searchResultRow(_ result: MessageSearchResult) -> some View {
+        switch result {
+        case .conversation(let conversation):
+            Button {
+                viewModel.markConversationReadLocally(conversationId: conversation.id)
+                navigationPath.append(conversation)
+            } label: {
+                conversationRow(conversation)
+            }
+        case .meeting(let meeting):
+            Button {
+                viewModel.markConversationReadLocally(conversationId: meeting.conversation.id)
+                navigationPath.append(
+                    MeetingNavigationTarget(
+                        conversation: meeting.conversation,
+                        messageId: meeting.messageId
+                    )
+                )
+            } label: {
+                meetingResultRow(meeting)
             }
         }
     }
@@ -575,6 +633,46 @@ struct MessagesView: View {
                         .background(Capsule().fill(buttonBlue))
                 }
             }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    private func meetingResultRow(_ meeting: MeetingSearchResult) -> some View {
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(ViewHelper.accentPurple)
+                .frame(width: 4, height: 44)
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    Text(meeting.title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+
+                    Text("Meeting")
+                        .font(.system(size: ViewHelper.pillTextSize, weight: .semibold))
+                        .foregroundColor(ViewHelper.accentPurple)
+                        .padding(.horizontal, pillHorizontalPadding)
+                        .padding(.vertical, pillVerticalPadding)
+                        .background(
+                            Capsule()
+                                .stroke(ViewHelper.accentPurple.opacity(pillStrokeOpacity), lineWidth: 1)
+                        )
+                }
+
+                Text(meeting.conversation.displayTitle)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+
+            Text(relativeTime(from: meeting.createdAt))
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
@@ -897,4 +995,9 @@ private struct AddContactSheet: View {
 
 private struct SelectedParticipant: Identifiable {
     let id: String
+}
+
+private struct MeetingNavigationTarget: Hashable {
+    let conversation: Conversation
+    let messageId: Int
 }

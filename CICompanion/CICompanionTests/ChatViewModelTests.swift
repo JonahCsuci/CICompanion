@@ -42,6 +42,8 @@ private final class ChatMessagingRepositoryStub: MessagingRepositoryProtocol {
 
     func searchConversations(query: String) async throws -> [Conversation] { [] }
 
+    func searchMeetingSchedulers(query: String) async throws -> [MeetingSearchResult] { [] }
+
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
         Conversation(
             id: 1,

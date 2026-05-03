@@ -145,4 +145,34 @@ final class ContactStudentTests: XCTestCase {
 
         XCTAssertEqual(conversation.displayTitle, "Group Chat")
     }
+
+    func testDecodesMeetingSearchResult() throws {
+        let data = Data("""
+        {
+          "messageId": 88,
+          "meetingSchedulerId": "8E5BDB1B-7536-4B57-9E5E-F8DCA28C7149",
+          "title": "Biology Study Session",
+          "createdAt": "2026-04-21T18:14:00Z",
+          "conversation": {
+            "id": 45,
+            "conversationType": "group",
+            "participantIds": [
+              "1909f9ee-b061-701e-1dc8-8453d8754204",
+              "b9d959de-9091-70c6-dc3b-cd0519f3a0c9"
+            ],
+            "otherParticipant": null,
+            "groupName": "Study Group",
+            "lastMessagePreview": "Scheduling a meeting: Biology Study Session",
+            "lastMessageAt": "2026-04-21T18:14:00Z",
+            "createdAt": "2026-04-01T12:00:00Z"
+          }
+        }
+        """.utf8)
+
+        let result = try JSONDecoder().decode(MeetingSearchResult.self, from: data)
+
+        XCTAssertEqual(result.id, 88)
+        XCTAssertEqual(result.title, "Biology Study Session")
+        XCTAssertEqual(result.conversation.displayTitle, "Study Group")
+    }
 }
