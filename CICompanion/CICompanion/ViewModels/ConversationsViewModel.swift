@@ -11,6 +11,7 @@ class ConversationsViewModel: ObservableObject {
 
     @Published var conversations: [Conversation] = []
     @Published var displayedConversations: [Conversation] = []
+    @Published var meetingSearchResults: [MeetingSearchResult] = []
     @Published var isLoading = false
     @Published var isSearching = false
     @Published var errorMessage: String?
@@ -60,6 +61,19 @@ class ConversationsViewModel: ObservableObject {
         return !trimmed.isEmpty && trimmed.count < minimumSearchLength
     }
 
+    var displayedSearchResults: [MessageSearchResult] {
+        guard isSearchActive else {
+            return conversations.map { .conversation($0) }
+        }
+
+        return displayedConversations.map { .conversation($0) }
+            + meetingSearchResults.map { .meeting($0) }
+    }
+
+    var hasDisplayedResults: Bool {
+        !displayedSearchResults.isEmpty
+    }
+
     func loadConversations() {
         searchTask?.cancel()
         isLoading = true
@@ -75,6 +89,7 @@ class ConversationsViewModel: ObservableObject {
             } catch {
                 conversations = []
                 displayedConversations = []
+                meetingSearchResults = []
                 errorMessage = "Unable to load conversations."
                 isLoading = false
                 print("Error loading conversations:", error)
@@ -92,12 +107,14 @@ class ConversationsViewModel: ObservableObject {
         guard !trimmed.isEmpty else {
             isSearching = false
             displayedConversations = conversations
+            meetingSearchResults = []
             return
         }
 
         guard trimmed.count >= minimumSearchLength else {
             isSearching = false
             displayedConversations = conversations
+            meetingSearchResults = []
             return
         }
 
@@ -108,22 +125,40 @@ class ConversationsViewModel: ObservableObject {
 
             isSearching = true
 
+            var nextConversationResults: [Conversation] = []
+            var nextMeetingResults: [MeetingSearchResult] = []
+            var failedSearches: [String] = []
+
             do {
-                let results = try await messagingRepository.searchConversations(query: trimmed)
-
-                guard !Task.isCancelled else { return }
-
-                displayedConversations = results
-                searchErrorMessage = nil
-                isSearching = false
+                nextConversationResults = try await messagingRepository.searchConversations(query: trimmed)
             } catch {
-                guard !Task.isCancelled else { return }
-
-                displayedConversations = []
-                searchErrorMessage = "Unable to search conversations."
-                isSearching = false
+                failedSearches.append("messages")
                 print("Error searching conversations:", error)
             }
+
+            guard !Task.isCancelled else { return }
+
+            do {
+                nextMeetingResults = try await messagingRepository.searchMeetingSchedulers(query: trimmed)
+            } catch {
+                failedSearches.append("meetings")
+                print("Error searching meeting schedulers:", error)
+            }
+
+            guard !Task.isCancelled else { return }
+
+            displayedConversations = nextConversationResults
+            meetingSearchResults = nextMeetingResults
+
+            if failedSearches.isEmpty {
+                searchErrorMessage = nil
+            } else if failedSearches.count == 2 {
+                searchErrorMessage = "Unable to search messages or meetings."
+            } else {
+                searchErrorMessage = "Unable to search \(failedSearches[0])."
+            }
+
+            isSearching = false
         }
     }
 
@@ -132,6 +167,7 @@ class ConversationsViewModel: ObservableObject {
         searchQuery = ""
         searchErrorMessage = nil
         isSearching = false
+        meetingSearchResults = []
         displayedConversations = conversations
     }
 
