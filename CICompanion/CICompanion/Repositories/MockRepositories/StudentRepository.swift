@@ -15,15 +15,23 @@ class StudentRepository: StudentRepositoryProtocol {
     private var contacts: [ContactStudent] = []
 
     private let contactDirectory = [
-        ContactStudent(
+        StudentSharedCourses(
             id: "b9d959de-9091-70c6-dc3b-cd0519f3a0c9",
             name: "Sergio",
-            email: "sergio.macias207@myci.csuci.edu"
+            email: "sergio.macias207@myci.csuci.edu",
+            sharedCourseCount: 2
         ),
-        ContactStudent(
+        StudentSharedCourses(
             id: "d9e9d9be-b021-703b-62f8-f1eef1eb72a2",
             name: "User",
-            email: "wummiez805@gmail.com"
+            email: "wummiez805@gmail.com",
+            sharedCourseCount: 1
+        ),
+        StudentSharedCourses(
+            id: "not-shared-contact",
+            name: "No Shared Class",
+            email: "not.shared@myci.csuci.edu",
+            sharedCourseCount: 0
         )
     ]
     private let mockStudentEmail = "student@email.com"
@@ -105,11 +113,15 @@ class StudentRepository: StudentRepositoryProtocol {
             throw apiError(statusCode: 404, message: "Contact student not found")
         }
 
+        guard contact.sharedCourseCount > 0 else {
+            throw apiError(statusCode: 403, message: "Contacts must share at least one course")
+        }
+
         guard !contacts.contains(where: { $0.id == contact.id }) else {
             throw apiError(statusCode: 409, message: "Contact already exists")
         }
 
-        contacts.append(contact)
+        contacts.append(ContactStudent(id: contact.id, name: contact.name, email: contact.email))
         contacts.sort {
             if $0.name == $1.name {
                 return $0.email < $1.email
@@ -135,6 +147,31 @@ class StudentRepository: StudentRepositoryProtocol {
         contacts.contains { $0.id == contactStudentId }
     }
 
+    func searchContactStudents(query: String) async throws -> [StudentSharedCourses] {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        guard trimmedQuery.count >= 3 else {
+            return []
+        }
+
+        return contactDirectory
+            .filter { student in
+                student.sharedCourseCount > 0
+                && student.email.lowercased() != mockStudentEmail
+                && !contacts.contains { $0.id == student.id }
+                && (
+                    student.name.lowercased().contains(trimmedQuery)
+                    || student.email.lowercased().contains(trimmedQuery)
+                )
+            }
+            .sorted {
+                if $0.sharedCourseCount == $1.sharedCourseCount {
+                    return $0.name < $1.name
+                }
+                return $0.sharedCourseCount > $1.sharedCourseCount
+            }
+    }
+
     func ensureStudentExists() async throws -> Student {
         //
         return student!
@@ -153,6 +190,12 @@ class StudentRepository: StudentRepositoryProtocol {
     }
     
     func loadStudentSharedCourses() async throws -> [StudentSharedCourses] {
-        return studentSharedCourses!
+        if let studentSharedCourses {
+            return studentSharedCourses
+        }
+
+        return contactDirectory.filter { student in
+            student.sharedCourseCount > 0 && !contacts.contains { contact in contact.id == student.id }
+        }
     }
 }

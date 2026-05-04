@@ -61,6 +61,60 @@ final class ContactsViewModelTests: XCTestCase {
         XCTAssertFalse(added)
         XCTAssertEqual(viewModel.errorMessage, "Enter a contact email.")
     }
+
+    func testShortSearchPublishesHintWithoutCallingRepository() async {
+        let repository = ContactStudentRepositoryStub()
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        await viewModel.searchContactStudents(query: "se")
+
+        XCTAssertTrue(viewModel.shouldShowShortSearchHint)
+        XCTAssertTrue(viewModel.searchResults.isEmpty)
+        XCTAssertEqual(repository.searchCallCount, 0)
+        XCTAssertNil(viewModel.searchErrorMessage)
+    }
+
+    func testPrepareSearchUpdatesStateWithoutCallingRepository() async {
+        let repository = ContactStudentRepositoryStub()
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        viewModel.prepareContactSearch(query: "ser")
+
+        XCTAssertEqual(viewModel.searchQuery, "ser")
+        XCTAssertTrue(viewModel.isSearchActive)
+        XCTAssertTrue(viewModel.isSearching)
+        XCTAssertEqual(repository.searchCallCount, 0)
+    }
+
+    func testSearchContactsPublishesNameAndEmailMatches() async {
+        let repository = ContactStudentRepositoryStub()
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        await viewModel.searchContactStudents(query: "ser")
+
+        XCTAssertEqual(viewModel.searchResults.map(\.id), ["search-1"])
+        XCTAssertFalse(viewModel.shouldShowShortSearchHint)
+        XCTAssertNil(viewModel.searchErrorMessage)
+
+        await viewModel.searchContactStudents(query: "maya@")
+
+        XCTAssertEqual(viewModel.searchResults.map(\.id), ["search-2"])
+    }
+
+    func testSearchContactsPublishesReadableError() async {
+        let repository = ContactStudentRepositoryStub()
+        repository.searchError = NSError(
+            domain: "APIError",
+            code: 403,
+            userInfo: [NSLocalizedDescriptionKey: "Unable to search contacts"]
+        )
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        await viewModel.searchContactStudents(query: "ser")
+
+        XCTAssertTrue(viewModel.searchResults.isEmpty)
+        XCTAssertEqual(viewModel.searchErrorMessage, "Unable to search contacts")
+    }
 }
 
 private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
@@ -79,6 +133,28 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
     ]
 
     var storedContacts: [ContactStudent]
+    var searchCallCount = 0
+    var searchError: Error?
+    var searchDirectory: [StudentSharedCourses] = [
+        StudentSharedCourses(
+            id: "search-1",
+            name: "Sergio Student",
+            email: "sergio.student@myci.csuci.edu",
+            sharedCourseCount: 2
+        ),
+        StudentSharedCourses(
+            id: "search-2",
+            name: "Maya Contact",
+            email: "maya@myci.csuci.edu",
+            sharedCourseCount: 1
+        ),
+        StudentSharedCourses(
+            id: "search-3",
+            name: "No Shared",
+            email: "not.shared@myci.csuci.edu",
+            sharedCourseCount: 0
+        )
+    ]
 
     init() {
         storedContacts = [
@@ -136,6 +212,25 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
 
     func hasStudentContact(contactStudentId: String) async throws -> Bool {
         storedContacts.contains { $0.id == contactStudentId }
+    }
+
+    func searchContactStudents(query: String) async throws -> [StudentSharedCourses] {
+        searchCallCount += 1
+
+        if let searchError {
+            throw searchError
+        }
+
+        let normalizedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        return searchDirectory.filter { student in
+            student.sharedCourseCount > 0
+            && !storedContacts.contains { contact in contact.id == student.id }
+            && (
+                student.name.lowercased().contains(normalizedQuery)
+                || student.email.lowercased().contains(normalizedQuery)
+            )
+        }
     }
 
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws {}
