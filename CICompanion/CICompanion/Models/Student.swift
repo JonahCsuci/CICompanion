@@ -67,3 +67,7 @@ struct StudentSharedCourses: Codable, Identifiable {
         case sharedCourseCount = "shared_course_count"
     }
 }
+
+struct ContactStudentSearchResponse: Codable {
+    let students: [StudentSharedCourses]
+}

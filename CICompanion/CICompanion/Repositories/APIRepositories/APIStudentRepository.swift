@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import Amplify
+import AWSCognitoAuthPlugin
+import AWSPluginsCore
 
 
 class APIStudentRepository: StudentRepositoryProtocol {
@@ -188,7 +191,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
             throw URLError(.badURL)
         }
         
-        var request = URLRequest(url: url)
+        var request = try await authenticatedRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
@@ -200,6 +203,39 @@ class APIStudentRepository: StudentRepositoryProtocol {
         try handleErrorResponse(data: data, response: response)
         
         contacts = nil
+    }
+
+    func searchContactStudents(query: String) async throws -> [StudentSharedCourses] {
+
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/contacts/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery),
+            URLQueryItem(name: "limit", value: "10")
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = try await authenticatedRequest(url: url)
+        request.httpMethod = "GET"
+
+        let(data, response) = try await URLSession.shared.data(for: request)
+
+        try handleErrorResponse(data: data, response: response)
+
+        let decoder = JSONDecoder()
+        if let wrapped = try? decoder.decode(ContactStudentSearchResponse.self, from: data) {
+            return wrapped.students
+        }
+
+        return try decoder.decode([StudentSharedCourses].self, from: data)
     }
     
     func loadStudentContacts() async throws -> [ContactStudent] {
@@ -360,5 +396,26 @@ class APIStudentRepository: StudentRepositoryProtocol {
         let students = try JSONDecoder().decode([StudentSharedCourses].self, from: data)
         
         return students
+    }
+
+    private func authenticatedRequest(url: URL) async throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(try await idToken())", forHTTPHeaderField: "Authorization")
+        return request
+    }
+
+    private func idToken() async throws -> String {
+        let session = try await Amplify.Auth.fetchAuthSession()
+
+        guard session.isSignedIn else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let tokenProvider = session as? AuthCognitoTokensProvider else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        let tokens = try tokenProvider.getCognitoTokens().get()
+        return tokens.idToken
     }
 }

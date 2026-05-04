@@ -781,12 +781,13 @@ private struct AddContactSheet: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var email = ""
+    @State private var searchText = ""
     @State private var suggestedStudents: [StudentSharedCourses] = []
     @State private var isLoadingSuggested = false
     @State private var suggestedErrorMessage: String?
     @State private var selectedSuggestedStudent: StudentSharedCourses?
     @State private var addingStudentId: String?
+    @State private var searchTask: Task<Void, Never>?
 
 
     var body: some View {
@@ -800,10 +801,9 @@ private struct AddContactSheet: View {
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(ViewHelper.textImportant)
 
-                    CITextField(placeholder: "Email", text: $email, lines: 1)
+                    CITextField(placeholder: "Search by name or email", text: $searchText, lines: 1)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                        .keyboardType(.emailAddress)
 
                     if let errorMessage = contactsViewModel.errorMessage {
                         Text(errorMessage)
@@ -811,24 +811,15 @@ private struct AddContactSheet: View {
                             .foregroundColor(.red)
                     }
 
+                    if contactsViewModel.shouldShowShortSearchHint {
+                        Text("Type at least 3 characters to search")
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray)
+                    }
+
                     Button {
                         Task {
-                            let typedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-
-                            let added = await contactsViewModel.addContact(email: typedEmail)
-
-                            if added {
-                                suggestedStudents.removeAll { student in
-                                    let suggestedEmail = student.email
-                                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                                        .lowercased()
-
-                                    return suggestedEmail == typedEmail.lowercased()
-                                }
-
-                                email = ""
-                                await loadSuggestedContacts()
-                            }
+                            await addExactEmail()
                         }
                     } label: {
                         if contactsViewModel.isMutating {
@@ -837,7 +828,7 @@ private struct AddContactSheet: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 44)
                         } else {
-                            Text("Add Contact")
+                            Text("Add Exact Email")
                                 .font(.system(size: 16, weight: .bold))
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
@@ -846,9 +837,9 @@ private struct AddContactSheet: View {
                     }
                     .background(buttonBlue)
                     .cornerRadius(ViewHelper.componentRounding)
-                    .disabled(contactsViewModel.isMutating)
+                    .disabled(contactsViewModel.isMutating || searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
 
-                    suggestedContactsSection
+                    contactDiscoveryContent
 
                     Spacer()
                 }
@@ -871,6 +862,27 @@ private struct AddContactSheet: View {
             .task {
                 await loadSuggestedContacts()
             }
+            .onChange(of: searchText) { _, newValue in
+                contactsViewModel.prepareContactSearch(query: newValue)
+                searchTask?.cancel()
+
+                let trimmedQuery = newValue.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard trimmedQuery.count >= ContactsViewModel.minimumSearchLength else {
+                    return
+                }
+
+                searchTask = Task {
+                    try? await Task.sleep(nanoseconds: ContactsViewModel.searchDebounceNanoseconds)
+                    guard !Task.isCancelled else {
+                        return
+                    }
+
+                    await contactsViewModel.searchContactStudents(query: newValue)
+                }
+            }
+            .onDisappear {
+                searchTask?.cancel()
+            }
             .sheet(item: $selectedSuggestedStudent) { student in
                 ContactInformation(
                     messagingRepository: messagingRepository,
@@ -881,6 +893,56 @@ private struct AddContactSheet: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    @ViewBuilder
+    private var contactDiscoveryContent: some View {
+        if contactsViewModel.isSearchActive {
+            searchResultsSection
+        } else {
+            suggestedContactsSection
+        }
+    }
+
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Search Results")
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(.gray)
+                .textCase(.uppercase)
+                .padding(.top, 10)
+
+            if contactsViewModel.isSearching {
+                ProgressView()
+                    .tint(ViewHelper.textImportant)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+            } else if let searchErrorMessage = contactsViewModel.searchErrorMessage {
+                Text(searchErrorMessage)
+                    .font(.system(size: 14))
+                    .foregroundColor(.red)
+            } else if contactsViewModel.searchResults.isEmpty {
+                Text("No matching shared-course contacts found")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(contactsViewModel.searchResults) { student in
+                        contactCandidateRow(student, opensProfile: false)
+
+                        if student.id != contactsViewModel.searchResults.last?.id {
+                            Divider()
+                                .background(Color.white.opacity(0.08))
+                                .padding(.leading, 12)
+                        }
+                    }
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: ViewHelper.componentRounding)
+                        .fill(cardColor)
+                )
+            }
+        }
     }
 
     private var suggestedContactsSection: some View {
@@ -907,7 +969,7 @@ private struct AddContactSheet: View {
             } else {
                 VStack(spacing: 0) {
                     ForEach(suggestedStudents) { student in
-                        suggestedContactRow(student)
+                        contactCandidateRow(student, opensProfile: true)
 
                         if student.id != suggestedStudents.last?.id {
                             Divider()
@@ -924,22 +986,28 @@ private struct AddContactSheet: View {
         }
     }
 
-    private func suggestedContactRow(_ student: StudentSharedCourses) -> some View {
+    private func contactCandidateRow(_ student: StudentSharedCourses, opensProfile: Bool) -> some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Button {
-                    selectedSuggestedStudent = student
-                } label: {
+                if opensProfile {
+                    Button {
+                        selectedSuggestedStudent = student
+                    } label: {
+                        candidateName(student.name)
+                    }
+                    .buttonStyle(.plain)
+                } else {
                     Text(student.name)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(ViewHelper.textImportant)
-                        .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .modifier(ContactCandidateNameStyle())
                 }
-                .buttonStyle(.plain)
+
+                Text(student.email)
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .lineLimit(1)
 
                 Text("\(student.sharedCourseCount) shared \(student.sharedCourseCount == 1 ? "course" : "courses")")
-                    .font(.system(size: 14))
+                    .font(.system(size: 13))
                     .foregroundColor(.gray)
                     .lineLimit(1)
             }
@@ -954,6 +1022,7 @@ private struct AddContactSheet: View {
 
                     if added {
                         suggestedStudents.removeAll { $0.id == student.id }
+                        contactsViewModel.removeSearchResult(studentId: student.id)
                     }
 
                     addingStudentId = nil
@@ -977,6 +1046,34 @@ private struct AddContactSheet: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 12)
     }
+
+    private func candidateName(_ name: String) -> some View {
+        Text(name)
+            .modifier(ContactCandidateNameStyle())
+    }
+
+    private func addExactEmail() async {
+        let typedEmail = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let added = await contactsViewModel.addContact(email: typedEmail)
+
+        if added {
+            suggestedStudents.removeAll { student in
+                let suggestedEmail = student.email
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .lowercased()
+
+                return suggestedEmail == typedEmail.lowercased()
+            }
+
+            contactsViewModel.searchResults.removeAll {
+                $0.email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == typedEmail.lowercased()
+            }
+            searchText = ""
+            await contactsViewModel.searchContactStudents(query: "")
+            await loadSuggestedContacts()
+        }
+    }
     
     private func loadSuggestedContacts() async {
         isLoadingSuggested = true
@@ -991,6 +1088,16 @@ private struct AddContactSheet: View {
         isLoadingSuggested = false
     }
     
+}
+
+private struct ContactCandidateNameStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.system(size: 16, weight: .bold))
+            .foregroundColor(ViewHelper.textImportant)
+            .lineLimit(1)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
 }
 
 private struct SelectedParticipant: Identifiable {

@@ -13,8 +13,14 @@ class ContactsViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var isMutating = false
     @Published var errorMessage: String?
+    @Published var searchQuery: String = ""
+    @Published var searchResults: [StudentSharedCourses] = []
+    @Published var isSearching = false
+    @Published var searchErrorMessage: String?
 
     private let studentRepository: StudentRepositoryProtocol
+    static let minimumSearchLength = 3
+    static let searchDebounceNanoseconds: UInt64 = 300_000_000
 
     init(studentRepository: StudentRepositoryProtocol) {
         self.studentRepository = studentRepository
@@ -22,6 +28,18 @@ class ContactsViewModel: ObservableObject {
 
     var contactIds: Set<String> {
         Set(contacts.map(\.id))
+    }
+
+    var trimmedSearchQuery: String {
+        searchQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var shouldShowShortSearchHint: Bool {
+        !trimmedSearchQuery.isEmpty && trimmedSearchQuery.count < Self.minimumSearchLength
+    }
+
+    var isSearchActive: Bool {
+        trimmedSearchQuery.count >= Self.minimumSearchLength
     }
 
     func loadContacts() async {
@@ -61,6 +79,66 @@ class ContactsViewModel: ObservableObject {
         }
     }
 
+    func prepareContactSearch(query: String) {
+        searchQuery = query
+        searchErrorMessage = nil
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedQuery.count >= Self.minimumSearchLength else {
+            searchResults = []
+            isSearching = false
+            return
+        }
+
+        isSearching = true
+    }
+
+    func searchContactStudents(query: String) async {
+        searchQuery = query
+        searchErrorMessage = nil
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmedQuery.isEmpty else {
+            searchResults = []
+            isSearching = false
+            return
+        }
+
+        guard trimmedQuery.count >= Self.minimumSearchLength else {
+            searchResults = []
+            isSearching = false
+            return
+        }
+
+        isSearching = true
+
+        do {
+            let results = try await studentRepository.searchContactStudents(query: trimmedQuery)
+
+            guard trimmedQuery == trimmedSearchQuery else {
+                return
+            }
+
+            searchResults = results
+        } catch {
+            guard trimmedQuery == trimmedSearchQuery else {
+                return
+            }
+
+            searchResults = []
+            searchErrorMessage = error.localizedDescription
+        }
+
+        if trimmedQuery == trimmedSearchQuery {
+            isSearching = false
+        }
+    }
+
+    func removeSearchResult(studentId: String) {
+        searchResults.removeAll { $0.id == studentId }
+    }
+
     func removeContact(contactStudentId: String) async {
         isMutating = true
         errorMessage = nil
@@ -81,6 +159,7 @@ class ContactsViewModel: ObservableObject {
 
     func clearError() {
         errorMessage = nil
+        searchErrorMessage = nil
     }
 
     func reset() {
@@ -88,5 +167,9 @@ class ContactsViewModel: ObservableObject {
         isLoading = false
         isMutating = false
         errorMessage = nil
+        searchQuery = ""
+        searchResults = []
+        isSearching = false
+        searchErrorMessage = nil
     }
 }
