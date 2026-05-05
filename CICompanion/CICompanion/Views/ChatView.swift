@@ -156,18 +156,7 @@ struct ChatView: View {
                 } else {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            if let prop = messagingRepository.getMeetingProposal(body: message.body) {
-                                MeetingProposalBubbleView(
-                                    message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    proposal: prop,
-                                    sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository,
-                                    courseRepository: courseRepository,
-                                    conversation: conversation,
-                                    studentRepository: studentRepository
-                                )
-                            } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+                            if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
                                 MeetingBubbleView(
                                     message: message,
                                     isCurrentUser: message.senderId == viewModel.currentUserId,
@@ -175,7 +164,8 @@ struct ChatView: View {
                                     sessionManager: sessionManager,
                                     messagingRepository: messagingRepository,
                                     courseRepository: courseRepository,
-                                    conversation: conversation
+                                    conversation: conversation,
+                                    studentRepository: studentRepository
                                 )
                             } else {
                                 MessageBubbleView(
@@ -203,7 +193,7 @@ struct ChatView: View {
                     CIPageTitle("Previous meetings")
                     ForEach(viewModel.messages) { message in
                         if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
-                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation)
+                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation, studentRepository: studentRepository)
                                 .onTapGesture {
                                     showMeetings = false
                                     proxy.scrollTo(meetingScheduler.id, anchor: .center)
