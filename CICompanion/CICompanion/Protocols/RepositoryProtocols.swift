@@ -22,8 +22,9 @@ protocol StudentRepositoryProtocol {
     func addStudentCourse(courseId: Int) async throws
     func deleteStudentCourse(courseId: Int) async throws
     func ensureStudentExists() async throws -> Student
-    func addStudentEvent(eventId: Int) async throws
-    func deleteStudentEvent(eventId: Int) async throws
+    func updateStudentEvents(events: [String]) async throws
+    func addStudentEvent(event: String) async throws
+    func deleteStudentEvent(event: String) async throws
     func addStudentContact(email: String) async throws
     func loadStudentContacts() async throws -> [ContactStudent]
     func deleteStudentContact(contactStudentId: String) async throws
