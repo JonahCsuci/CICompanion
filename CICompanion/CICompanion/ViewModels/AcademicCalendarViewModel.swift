@@ -72,7 +72,7 @@ class AcademicCalendarViewModel: ObservableObject {
                 let student = try await studentRepository.loadStudent()
                 let studentCourses = try await courseRepository.loadStudentCourses()
                 
-                buildSchedule(courses: studentCourses, meetings: student.meetings)
+                buildSchedule(courses: studentCourses, meetings: student.meetings, events: student.events)
                 isLoading = false
             } catch {
                 scheduleBlocks = []
@@ -85,7 +85,7 @@ class AcademicCalendarViewModel: ObservableObject {
         }
     }
     
-    private func buildSchedule(courses: [Course], meetings: [MeetingProposal]) {
+    private func buildSchedule(courses: [Course], meetings: [MeetingProposal], events: [String]) {
         var nextBlocks: [CalendarScheduleBlock] = []
         var nextLegendItems: [CalendarLegendItem] = []
         var nextAsyncCourses: [AsyncCourseItem] = []
@@ -174,6 +174,26 @@ class AcademicCalendarViewModel: ObservableObject {
                 isMeeting: true
             ))
         }
+
+        for (index, event) in events.enumerated() {
+            guard let parsed = parseDiscoveryEvent(event) else { continue }
+            nextBlocks.append(
+                CalendarScheduleBlock(
+                    id: "event-\(index)-\(parsed.day)-\(parsed.startMinutes)",
+                    courseId: -2,
+                    courseName: parsed.title,
+                    courseCode: "[EVENT]",
+                    location: parsed.location,
+                    startTime: parsed.startTime,
+                    endTime: parsed.endTime,
+                    day: parsed.day,
+                    startMinutes: parsed.startMinutes,
+                    endMinutes: parsed.endMinutes,
+                    colorIndex: 0,
+                    isMeeting: false
+                )
+            )
+        }
         
         scheduleBlocks = nextBlocks
         legendItems = nextLegendItems.sorted { $0.courseCode < $1.courseCode }
@@ -196,5 +216,34 @@ class AcademicCalendarViewModel: ObservableObject {
         }
         
         return hour * 60 + minute
+    }
+
+    private func parseDiscoveryEvent(_ value: String) -> (title: String, day: String, startTime: String, endTime: String, startMinutes: Int, endMinutes: Int, location: String)? {
+        let parts = value.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count == 4 else { return nil }
+
+        let title = parts[0]
+        let dayAndTime = parts[1]
+        let location = parts[2]
+        let fallbackDuration = max(Int(parts[3]) ?? 60, 30)
+
+        let chunks = dayAndTime.components(separatedBy: "•").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard chunks.count == 2 else { return nil }
+        let day = chunks[0]
+
+        let timeParts = chunks[1].components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+        guard let start = timeParts.first, let startMinutes = timeStringToMinutes(start) else { return nil }
+        let endMinutes = timeParts.count > 1 ? (timeStringToMinutes(timeParts[1]) ?? (startMinutes + fallbackDuration)) : (startMinutes + fallbackDuration)
+        let endTime = DateHelper.minutesToTimeString(endMinutes)
+
+        return (
+            title: title,
+            day: day,
+            startTime: start,
+            endTime: endTime,
+            startMinutes: startMinutes,
+            endMinutes: endMinutes,
+            location: location
+        )
     }
 }

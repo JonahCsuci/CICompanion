@@ -33,15 +33,9 @@ struct APITestView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     
-                    Button("Load Events") {
-                        viewModel.testLoadEvents()
-                    }
                     .buttonStyle(.borderedProminent)
                     
-                    Button("Load Student Events") {
-                        viewModel.testLoadStudentEvents()
-                    }
-                    .buttonStyle(.borderedProminent)
+                    
                     
                     HStack(spacing: 10) {
                         Button("Add Course 1") {
@@ -64,32 +58,6 @@ struct APITestView: View {
                         
                         Button("Delete Course 2") {
                             viewModel.testDeleteCourse(courseId: 2)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    
-                    HStack(spacing: 10) {
-                        
-                        Button("Add Event 1") {
-                            viewModel.testAddEvent(eventId: 1)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        
-                        Button("Add Event 2") {
-                            viewModel.testAddEvent(eventId: 2)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    
-                    HStack(spacing: 10) {
-                        
-                        Button("Delete Event 1") {
-                            viewModel.testDeleteEvent(eventId: 1)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        
-                        Button("Delete Event 2") {
-                            viewModel.testDeleteEvent(eventId: 2)
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -159,26 +127,6 @@ struct APITestView: View {
                     
                     ForEach(viewModel.studentCourses) { course in
                         Text("\(course.courseName): \(course.courseCode)")
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Events")
-                        .font(.headline)
-                    
-                    ForEach(viewModel.events) { event in
-                        Text("\(event.eventTitle): \(event.eventTime)")
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Student Events")
-                        .font(.headline)
-                    
-                    ForEach(viewModel.studentEvents) { event in
-                        Text("\(event.eventTitle): \(event.eventTime)")
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

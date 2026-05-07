@@ -119,67 +119,56 @@ class APIStudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    
-    // Add event to the student's event array
-    func addStudentEvent(eventId: Int) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
-        
-        // Build API endpoint to add an event for a student
-        guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
-            throw URLError(.badURL)
-        }
-        
-        var request = URLRequest(url: url)
-        
-        // Use POST to add an event to the student's enrolled events
-        request.httpMethod = "POST"
-        
-        // Send request to backend (API Gateway -> Lambda -> database)
-        let(data, response) = try await URLSession.shared.data(for: request)
-        
-        // Validate HTTP response and throw error if request failed
-        try handleErrorResponse(data: data, response: response)
-        
-        // Add event to cached student
-        if var student = student {
-            if !student.events.contains(eventId) {
-                student.events.append(eventId)
+    func updateStudentEvents(events: [String]) async throws {
+            if student != nil {
+                student!.events = events
             }
-            self.student = student
+
+            guard let studentId = sessionManager.userId else {
+                throw URLError(.userAuthenticationRequired)
+            }
+
+            guard let url = URL(string: "\(baseURL)/student/\(studentId)/events") else {
+                throw URLError(.badURL)
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            struct RequestBody: Codable {
+                let studentId: String
+                let events: [String]
+            }
+
+            let body = RequestBody(
+                studentId: studentId,
+                events: events
+            )
+
+            request.httpBody = try JSONEncoder().encode(body)
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            try handleErrorResponse(data: data, response: response)
         }
-    }
-    
-    func deleteStudentEvent(eventId: Int) async throws {
         
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
+        func addStudentEvent(event: String) async throws {
+            var events = student?.events ?? []
+
+            if !events.contains(event) {
+                events.append(event)
+            }
+
+            try await updateStudentEvents(events: events)
         }
         
-        // Build API endpoint to delete an event for a student
-        guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
-            throw URLError(.badURL)
+        func deleteStudentEvent(event: String) async throws {
+            var events = student?.events ?? []
+
+            events.removeAll { $0 == event }
+
+            try await updateStudentEvents(events: events)
         }
-        
-        var request = URLRequest(url: url)
-        
-        // Use DELETE to remove an event from the student's enrolled events
-        request.httpMethod = "DELETE"
-        
-        // Send request to backend (API Gateway -> Lambda -> database)
-        let(data, response) = try await URLSession.shared.data(for: request)
-        
-        // Validate HTTP response and throw error if request failed
-        try handleErrorResponse(data: data, response: response)
-        
-        // Remove event from cached student
-        if var student = student {
-            student.events.removeAll { $0 == eventId }
-            self.student = student
-        }
-    }
     
     func addStudentContact(email: String) async throws {
         

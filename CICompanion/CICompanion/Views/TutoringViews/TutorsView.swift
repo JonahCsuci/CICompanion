@@ -10,6 +10,7 @@ import SwiftUI
 struct Tutors: View {
     
     @ObservedObject var viewModel: TutorViewModel
+    var showsTitle: Bool = true
     
     @State private var searchText = ""
     @State private var selectedSubject = "All"
@@ -41,7 +42,9 @@ struct Tutors: View {
     var body: some View {
         CIView {
             CIHeader {
-                CIPageTitle("Tutors")
+                if showsTitle {
+                    CIPageTitle("Tutors")
+                }
                 
                 CITextField(
                     placeholder: "Search tutor or course",

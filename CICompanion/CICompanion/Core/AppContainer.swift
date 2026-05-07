@@ -21,8 +21,6 @@ class AppContainer {
     lazy var courseRepository: CourseRepositoryProtocol =
         APICourseRepository(studentRepository: studentRepository)
     
-    lazy var eventsRepository: EventsRepositoryProtocol =
-        APIEventsRepository(studentRepository: studentRepository)
     
     lazy var tutorRepository = TutorRepository()
     
@@ -30,7 +28,6 @@ class AppContainer {
     
     lazy var apiTestViewModel = APITestViewModel(
         courseRepository: courseRepository,
-        eventsRepository: eventsRepository,
         studentRepository: studentRepository
     )
     
@@ -51,11 +48,6 @@ class AppContainer {
     
     lazy var myAcademicCalendarViewModel = AcademicCalendarViewModel(
         courseRepository: courseRepository,
-        studentRepository: studentRepository
-    )
-    
-    lazy var eventsViewModel = EventsViewModel(
-        eventsRepository: eventsRepository,
         studentRepository: studentRepository
     )
 
