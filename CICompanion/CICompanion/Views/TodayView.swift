@@ -533,35 +533,28 @@ struct TodayView: View {
                 selectedDate = date
             }
         } label: {
-            ZStack(alignment: .topTrailing) {
-                VStack(spacing: 4) {
-                    if let date = cell.date {
-                        Text("\(Calendar.current.component(.day, from: date))")
-                            .font(.system(size: Layout.monthDayTextSize, weight: isToday ? .bold : .semibold))
-                            .foregroundColor(isSelected
-                                             ? ViewHelper.textImportant
-                                             : (cell.isCurrentMonth ? ViewHelper.textImportant : ViewHelper.text))
-                    } else {
-                        Text(" ")
-                            .font(.system(size: Layout.monthDayTextSize))
-                    }
-
-                    HStack(spacing: 2) {
-                        ForEach(Array(dayBlocks.prefix(Layout.monthDotsShown).enumerated()), id: \.offset) { _, block in
-                            Circle()
-                                .fill(courseColor(for: block))
-                                .frame(width: Layout.monthDotSize, height: Layout.monthDotSize)
-                        }
-                    }
-                    .frame(height: Layout.monthDotRowHeight)
+            VStack(spacing: 4) {
+                if let date = cell.date {
+                    Text("\(Calendar.current.component(.day, from: date))")
+                        .font(.system(size: Layout.monthDayTextSize, weight: isToday ? .bold : .semibold))
+                        .foregroundColor(isSelected
+                                         ? ViewHelper.textImportant
+                                         : (cell.isCurrentMonth ? ViewHelper.textImportant : ViewHelper.text))
+                } else {
+                    Text(" ")
+                        .font(.system(size: Layout.monthDayTextSize))
                 }
-                .frame(maxWidth: .infinity, minHeight: Layout.monthCellMinHeight)
 
-                if assignmentCount > 0 {
-                    assignmentBadge(count: assignmentCount)
-                        .padding(3)
+                HStack(spacing: 2) {
+                    if assignmentCount > 0 {
+                        Circle()
+                            .fill(ViewHelper.accentBlue)
+                            .frame(width: Layout.monthDotSize, height: Layout.monthDotSize)
+                    }
                 }
+                .frame(height: Layout.monthDotRowHeight)
             }
+            .frame(maxWidth: .infinity, minHeight: Layout.monthCellMinHeight)
             .background(
                 RoundedRectangle(cornerRadius: Layout.monthCellCornerRadius)
                     .fill(isSelected
@@ -633,10 +626,10 @@ struct TodayView: View {
         let firstWeekday = cal.component(.weekday, from: first) // 1 = Sun
         let leadingBlanks = firstWeekday - 1
 
-        var cells: [MonthCell] = Array(
-            repeating: MonthCell(date: nil, isCurrentMonth: false),
-            count: leadingBlanks
-        )
+        var cells: [MonthCell] = []
+        for _ in 0..<leadingBlanks {
+            cells.append(MonthCell(date: nil, isCurrentMonth: false))
+        }
         for day in range {
             if let d = cal.date(byAdding: .day, value: day - 1, to: first) {
                 cells.append(MonthCell(date: d, isCurrentMonth: true))

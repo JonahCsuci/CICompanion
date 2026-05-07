@@ -102,6 +102,15 @@ private struct RootTabView: View {
     // Matches the in-Messages-tab poll cadence so the badge feels equally responsive from any tab.
     private let badgePollIntervalSeconds: Int = 3
 
+    // Tab tags. The Map tab is special: selecting it presents a fullscreen
+    // map and immediately reverts the selection back to the previous tab so
+    // the back button returns the user where they came from.
+    private enum Tab: Int { case today = 0, discover = 1, messages = 2, map = 3 }
+
+    @State private var selectedTab: Int = Tab.today.rawValue
+    @State private var previousTab: Int = Tab.today.rawValue
+    @State private var showMap: Bool = false
+
     init(container: AppContainer) {
         self.container = container
         self.conversationsViewModel = container.conversationsViewModel
@@ -109,7 +118,7 @@ private struct RootTabView: View {
     }
 
     var body: some View {
-        TabView {
+        TabView(selection: tabSelection) {
             // Today tab (Day / Week / Month modes live inside)
             TodayView(
                 viewModel: container.myAcademicCalendarViewModel,
@@ -123,6 +132,7 @@ private struct RootTabView: View {
                     Image(systemName: "calendar")
                     Text("Today")
                 }
+                .tag(Tab.today.rawValue)
 
             DiscoveryView(
                 tutorViewModel: container.tutorViewModel
@@ -131,6 +141,7 @@ private struct RootTabView: View {
                 Image(systemName: "newspaper.fill")
                 Text("Discover")
             }
+            .tag(Tab.discover.rawValue)
             
             // Messages tab
             MessagesView(
@@ -147,13 +158,17 @@ private struct RootTabView: View {
                     Text("Messages")
                 }
                 .badge(conversationsViewModel.totalUnreadCount)
+                .tag(Tab.messages.rawValue)
 
-            // Remove the comments below to turn on the Map feature
-//            MapView()
-//                .tabItem {
-//                    Image(systemName: "map.fill")
-//                    Text("Map")
-//                }
+            // Map tab — selecting this tab triggers a fullscreen cover via
+            // the `tabSelection` binding below. The view body itself is never
+            // actually displayed because we revert the selection immediately.
+            Color.clear
+                .tabItem {
+                    Image(systemName: "map.fill")
+                    Text("Map")
+                }
+                .tag(Tab.map.rawValue)
 
             // Settings moved into a top-left gear button on each main view;
             // no longer a standalone tab.
@@ -165,6 +180,9 @@ private struct RootTabView: View {
                     Text("API Test")
                 }
             #endif**/
+        }
+        .fullScreenCover(isPresented: $showMap) {
+            MapView(onDismiss: { showMap = false })
         }
         .tint(ViewHelper.accentBlue)
         // Keep the unread badge live from any tab — MessagesView's own poll only runs while it's visible.
@@ -178,5 +196,24 @@ private struct RootTabView: View {
             }
         }
         .modifier(RealtimeBootstrap(container: container))
+    }
+
+    /// Binding that intercepts taps on the Map tab: it presents the fullscreen
+    /// map and reverts the tab selection so dismissing returns to the prior tab.
+    private var tabSelection: Binding<Int> {
+        Binding(
+            get: { selectedTab },
+            set: { newValue in
+                if newValue == Tab.map.rawValue {
+                    showMap = true
+                    // Keep the tab bar pointing at the previous tab so the
+                    // Back button visually "returns" to where the user was.
+                    selectedTab = previousTab
+                } else {
+                    previousTab = newValue
+                    selectedTab = newValue
+                }
+            }
+        )
     }
 }
