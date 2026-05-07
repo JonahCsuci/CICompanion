@@ -12,7 +12,7 @@ struct Student: Codable, Identifiable {
     let name: String
     let email: String
     var courses: [Int]
-    var events: [Int]
+    var events: [String]
     var meetings: [MeetingProposal] = []
 
     init(
@@ -20,7 +20,7 @@ struct Student: Codable, Identifiable {
         name: String,
         email: String,
         courses: [Int],
-        events: [Int],
+        events: [String],
         meetings: [MeetingProposal] = []
     ) {
         self.id = id
@@ -37,7 +37,7 @@ struct Student: Codable, Identifiable {
         name = try container.decode(String.self, forKey: .name)
         email = try container.decode(String.self, forKey: .email)
         courses = try container.decode([Int].self, forKey: .courses)
-        events = try container.decode([Int].self, forKey: .events)
+        events = try container.decode([String].self, forKey: .events)
 
         // `meetings` is stored server-side as a JSON string and may be missing, null, or empty
         // for students who have no proposals. Guard against all of those so a blank value

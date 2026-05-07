@@ -124,6 +124,14 @@ private struct RootTabView: View {
                     Text("Today")
                 }
 
+            DiscoveryView(
+                tutorViewModel: container.tutorViewModel
+            )
+            .tabItem {
+                Image(systemName: "newspaper.fill")
+                Text("Discover")
+            }
+            
             // Messages tab
             MessagesView(
                 viewModel: conversationsViewModel,

@@ -59,7 +59,8 @@ struct ProposeMeetingView: View {
                                 meet: meet,
                                 viewModel: viewModel,
                                 courseRepository: courseRepository,
-                                navigationsActive: navigationsActive
+                                navigationsActive: navigationsActive,
+                                messageId: messageId
                             )
                             .padding(ViewHelper.padding)
                         }
@@ -102,6 +103,7 @@ struct MeetingProposalCardView: View {
     let viewModel: ProposeMeetingViewModel
     let courseRepository: CourseRepositoryProtocol
     let navigationsActive: [Binding<Bool>]
+    let messageId: Int
     
     @State var startTime : Date = Date()
     @State var endTime : Date = Date()
@@ -193,7 +195,7 @@ struct MeetingProposalCardView: View {
                     
                     proposal.timeRange.endTime =  DateHelper.timeStringToMinutes(DateHelper.dateToTimeString(endTime)) ?? 0
                     
-                    viewModel.proposeMeeting(prop: proposal)
+                    viewModel.proposeMeeting(prop: proposal, messageId: messageId)
                     
                     for nav in navigationsActive {
                         nav.wrappedValue = false
