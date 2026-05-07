@@ -141,6 +141,7 @@ private struct RootTabView: View {
                 Image(systemName: "newspaper.fill")
                 Text("Discover")
             }
+            .tag(Tab.discover.rawValue)
             
             // Messages tab
             MessagesView(
