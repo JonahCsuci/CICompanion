@@ -83,6 +83,32 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         }
         return try decoder.decode(ConversationsResponse.self, from: data).conversations
     }
+
+    func searchMeetingSchedulers(query: String) async throws -> [MeetingSearchResult] {
+        let studentId = try authenticatedUserId()
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/meetings/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery)
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+
+        let decoder = JSONDecoder()
+        if let array = try? decoder.decode([MeetingSearchResult].self, from: data) {
+            return array
+        }
+        return try decoder.decode(MeetingSearchResultsResponse.self, from: data).meetings
+    }
     
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation {
         let studentId = try authenticatedUserId()
@@ -261,6 +287,25 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "groupName": groupName
         ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+    }
+
+    // Per-user soft hide of a 1-on-1 chat. Backend records hidden_at in
+    // conversation_user_state; messages are retained, the other user is unaffected,
+    // and a future incoming message unhides the chat for both users.
+    func hideDirectConversation(conversationId: Int) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/hide") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:] as [String: Any])
 
         let (data, response) = try await URLSession.shared.data(for: request)
         try handleErrorResponse(data: data, response: response)

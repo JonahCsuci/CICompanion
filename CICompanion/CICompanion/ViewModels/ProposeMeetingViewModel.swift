@@ -25,12 +25,14 @@ class ProposeMeetingViewModel: ObservableObject {
         self.messagingRepository = messagingRepository
     }
     
-    func proposeMeeting(prop: MeetingProposal) {
+    func proposeMeeting(prop: MeetingProposal, messageId: Int) {
+        meetingScheduler.proposals.insert(prop)
+        
         Task {
             do {
                 let encoder = JSONEncoder()
-                if let encoded = try? encoder.encode(prop) {
-                    var _ = try await messagingRepository.sendMessage(conversationId: self.meetingScheduler.conversationID, body: encoded.base64EncodedString())
+                if let encoded = try? encoder.encode(meetingScheduler) {
+                    try await messagingRepository.editMeetup(messageId: messageId, body: encoded.base64EncodedString())
                 }
             } catch {
                 print("There was an error updating/creating a meeting message: \(error)")

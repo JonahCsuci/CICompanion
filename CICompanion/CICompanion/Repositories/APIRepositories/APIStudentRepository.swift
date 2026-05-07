@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import Amplify
+import AWSCognitoAuthPlugin
+import AWSPluginsCore
 
 
 class APIStudentRepository: StudentRepositoryProtocol {
@@ -116,98 +119,226 @@ class APIStudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    
-    // Add event to the student's event array
-    func addStudentEvent(eventId: Int) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
-        
-        // Build API endpoint to add an event for a student
-        guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
-            throw URLError(.badURL)
-        }
-        
-        var request = URLRequest(url: url)
-        
-        // Use POST to add an event to the student's enrolled events
-        request.httpMethod = "POST"
-        
-        // Send request to backend (API Gateway -> Lambda -> database)
-        let(data, response) = try await URLSession.shared.data(for: request)
-        
-        // Validate HTTP response and throw error if request failed
-        try handleErrorResponse(data: data, response: response)
-        
-        // Add event to cached student
-        if var student = student {
-            if !student.events.contains(eventId) {
-                student.events.append(eventId)
+    func updateStudentEvents(events: [String]) async throws {
+            if student != nil {
+                student!.events = events
             }
-            self.student = student
+
+            guard let studentId = sessionManager.userId else {
+                throw URLError(.userAuthenticationRequired)
+            }
+
+            guard let url = URL(string: "\(baseURL)/student/\(studentId)/events") else {
+                throw URLError(.badURL)
+            }
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+            struct RequestBody: Codable {
+                let studentId: String
+                let events: [String]
+            }
+
+            let body = RequestBody(
+                studentId: studentId,
+                events: events
+            )
+
+            request.httpBody = try JSONEncoder().encode(body)
+
+            let (data, response) = try await URLSession.shared.data(for: request)
+            try handleErrorResponse(data: data, response: response)
         }
-    }
+        
+        func addStudentEvent(event: String) async throws {
+            var events = student?.events ?? []
+
+            if !events.contains(event) {
+                events.append(event)
+            }
+
+            try await updateStudentEvents(events: events)
+        }
+        
+        func deleteStudentEvent(event: String) async throws {
+            var events = student?.events ?? []
+
+            events.removeAll { $0 == event }
+
+            try await updateStudentEvents(events: events)
+        }
     
-    func deleteStudentEvent(eventId: Int) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
-        
-        // Build API endpoint to delete an event for a student
-        guard let url = URL(string: "\(baseURL)/student/\(studentId)/events/\(eventId)") else {
-            throw URLError(.badURL)
-        }
-        
-        var request = URLRequest(url: url)
-        
-        // Use DELETE to remove an event from the student's enrolled events
-        request.httpMethod = "DELETE"
-        
-        // Send request to backend (API Gateway -> Lambda -> database)
-        let(data, response) = try await URLSession.shared.data(for: request)
-        
-        // Validate HTTP response and throw error if request failed
-        try handleErrorResponse(data: data, response: response)
-        
-        // Remove event from cached student
-        if var student = student {
-            student.events.removeAll { $0 == eventId }
-            self.student = student
-        }
-    }
-    
+    // Legacy thin wrapper: existing call sites still call `addStudentContact`.
+    // Pass 2 migrates them to `sendContactRequest` directly so the
+    // AddContactOutcome cases can drive UI state for pending vs auto-accepted.
     func addStudentContact(email: String) async throws {
-        
+        _ = try await sendContactRequest(toEmail: email)
+    }
+
+    func sendContactRequest(toEmail email: String) async throws -> SendContactRequestResponse {
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
-        
+
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
             throw URLError(.badURL)
         }
-        
-        var request = URLRequest(url: url)
+
+        var request = try await authenticatedRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "email": email.trimmingCharacters(in: .whitespacesAndNewlines)
         ])
-        
-        let(data, response) = try await URLSession.shared.data(for: request)
-        
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw URLError(.badServerResponse)
+        }
+
+        if httpResponse.statusCode == 200 || httpResponse.statusCode == 201 {
+            let decoded = try JSONDecoder().decode(SendContactRequestResponse.self, from: data)
+            if decoded.status == KnownContactRequestStatus.accepted.rawValue {
+                // Auto-accept created a mutual contact server-side; refetch on next read.
+                contacts = nil
+            }
+            return decoded
+        }
+
+        // 409 with status="pending" means the request was already pending —
+        // idempotent success rather than an error.
+        if httpResponse.statusCode == 409,
+           let decoded = try? JSONDecoder().decode(SendContactRequestResponse.self, from: data),
+           decoded.status == KnownContactRequestStatus.pending.rawValue {
+            return decoded
+        }
+
         try handleErrorResponse(data: data, response: response)
-        
-        contacts = nil
+        throw URLError(.badServerResponse)
+    }
+
+    func loadContactRequests(status: String?, direction: String?, limit: Int?) async throws -> ContactRequestListResponse {
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/contact-requests")
+        var queryItems: [URLQueryItem] = []
+        if let status { queryItems.append(URLQueryItem(name: "status", value: status)) }
+        if let direction { queryItems.append(URLQueryItem(name: "direction", value: direction)) }
+        if let limit { queryItems.append(URLQueryItem(name: "limit", value: String(limit))) }
+        if !queryItems.isEmpty { components?.queryItems = queryItems }
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        do {
+            try handleErrorResponse(data: data, response: response)
+        } catch {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[APIStudentRepository.loadContactRequests] HTTP \(statusCode) at \(url) — body: \(String(decoding: data, as: UTF8.self))")
+            throw error
+        }
+
+        do {
+            return try JSONDecoder().decode(ContactRequestListResponse.self, from: data)
+        } catch {
+            print("[APIStudentRepository.loadContactRequests] Decode failed at \(url) — body: \(String(decoding: data, as: UTF8.self)) — error: \(error)")
+            throw error
+        }
+    }
+
+    func acceptContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        try await performContactRequestAction(requestId: requestId, action: "accept")
+    }
+
+    func declineContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        try await performContactRequestAction(requestId: requestId, action: "decline")
+    }
+
+    func cancelContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        try await performContactRequestAction(requestId: requestId, action: "cancel")
+    }
+
+    private func performContactRequestAction(requestId: Int, action: String) async throws -> ContactRequestActionResponse {
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/contact-requests/\(requestId)/\(action)") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:] as [String: Any])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        do {
+            try handleErrorResponse(data: data, response: response)
+        } catch {
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            print("[APIStudentRepository.performContactRequestAction action=\(action) requestId=\(requestId)] HTTP \(statusCode) — body: \(String(decoding: data, as: UTF8.self))")
+            throw error
+        }
+
+        if action == "accept" {
+            // Accept created a mutual contact server-side; refetch on next read.
+            contacts = nil
+        }
+
+        return try JSONDecoder().decode(ContactRequestActionResponse.self, from: data)
+    }
+
+    func searchContactStudents(query: String) async throws -> [StudentSharedCourses] {
+
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        var components = URLComponents(string: "\(baseURL)/student/\(studentId)/contacts/search")
+        components?.queryItems = [
+            URLQueryItem(name: "q", value: trimmedQuery),
+            URLQueryItem(name: "limit", value: "10")
+        ]
+
+        guard let url = components?.url else {
+            throw URLError(.badURL)
+        }
+
+        var request = try await authenticatedRequest(url: url)
+        request.httpMethod = "GET"
+
+        let(data, response) = try await URLSession.shared.data(for: request)
+
+        try handleErrorResponse(data: data, response: response)
+
+        let decoder = JSONDecoder()
+        if let wrapped = try? decoder.decode(ContactStudentSearchResponse.self, from: data) {
+            return wrapped.students
+        }
+
+        return try decoder.decode([StudentSharedCourses].self, from: data)
     }
     
     func loadStudentContacts() async throws -> [ContactStudent] {
-        
-        if let contacts {
-            return contacts
-        }
-        
+
+        // Always refetch. The in-memory cache has no invalidation path for
+        // server-side mutations driven by another user (e.g., the recipient
+        // accepting our pending request creates a contact row for us that no
+        // local code path touches). Returning the cached list there leaves
+        // the new contact invisible until the app is force-quit.
         guard let studentId = sessionManager.userId else {
             throw URLError(.userAuthenticationRequired)
         }
@@ -332,5 +463,54 @@ class APIStudentRepository: StudentRepositoryProtocol {
         print("updateScheduleTimes response: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
         print("updateScheduleTimes body: \(String(decoding: data, as: UTF8.self))")
         try handleErrorResponse(data: data, response: response)
+    }
+    
+    func loadStudentSharedCourses() async throws -> [StudentSharedCourses] {
+        
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+        
+        // Build API endpoint for fetching all of current student's info
+        guard let url = URL(string: "\(baseURL)/contact/students/sharedCourses/\(studentId)") else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        
+        // Use GET to retrieve student info from backend
+        request.httpMethod = "GET"
+        
+        // Send request to backend (API Gateway -> Lambda -> database)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        // Validate HTTP response and throw error if request failed
+        try handleErrorResponse(data: data, response: response)
+        
+        // Decode JSON into Student struct
+        let students = try JSONDecoder().decode([StudentSharedCourses].self, from: data)
+        
+        return students
+    }
+
+    private func authenticatedRequest(url: URL) async throws -> URLRequest {
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(try await idToken())", forHTTPHeaderField: "Authorization")
+        return request
+    }
+
+    private func idToken() async throws -> String {
+        let session = try await Amplify.Auth.fetchAuthSession()
+
+        guard session.isSignedIn else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        guard let tokenProvider = session as? AuthCognitoTokensProvider else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        let tokens = try tokenProvider.getCognitoTokens().get()
+        return tokens.idToken
     }
 }

@@ -14,6 +14,8 @@ struct SettingsView: View {
     let courseRepository: CourseRepositoryProtocol
     let studentRepository: StudentRepositoryProtocol
     
+    let tutorViewModel: TutorViewModel
+    
     @ObservedObject var sessionManager: SessionManager
     
     // MARK: - Local State
@@ -21,6 +23,7 @@ struct SettingsView: View {
     @State private var showAddClass = false
     @State private var showRemoveClass = false
     @State private var showSignOutToast = false
+    @State private var showTutors = false
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     
     // MARK: - Body
@@ -46,6 +49,16 @@ struct SettingsView: View {
                         }
                     } header: {
                         Text("My Classes")
+                    }
+                    
+                    Section {
+                        Button {
+                            showTutors = true
+                        } label: {
+                            Label("Tutoring Schedule", systemImage: "person.3.fill")
+                        }
+                    } header: {
+                        Text("Resources")
                     }
                     
                     Section {
@@ -123,6 +136,9 @@ struct SettingsView: View {
                     courseRepository: courseRepository,
                     studentRepository: studentRepository
                 )
+            }
+            .sheet(isPresented: $showTutors) {
+                Tutors(viewModel: tutorViewModel)
             }
         }
         .preferredColorScheme(.dark)
@@ -281,6 +297,7 @@ private struct RemoveClassSheet: View {
     SettingsView(
         courseRepository: CourseRepository(studentRepository: StudentRepository()),
         studentRepository: StudentRepository(),
+        tutorViewModel: TutorViewModel(tutorRepository: TutorRepository()),
         sessionManager: SessionManager()
     )
 }

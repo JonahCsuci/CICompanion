@@ -9,6 +9,7 @@ protocol MessagingRepositoryProtocol {
     func loadContact(studentId: String) async throws -> Student
     func loadConversations() async throws -> [Conversation]
     func searchConversations(query: String) async throws -> [Conversation]
+    func searchMeetingSchedulers(query: String) async throws -> [MeetingSearchResult]
     func createOrGetDirectConversation(otherStudentId: String) async throws -> Conversation
     func createGroupConversation(groupName: String, memberIds: [String], firstMessageBody: String) async throws -> Conversation
     func loadMessages(conversationId: Int) async throws -> ConversationDetail
@@ -23,4 +24,5 @@ protocol MessagingRepositoryProtocol {
     func getMeeting(body: String) -> MeetingScheduler?
     func getMeetingProposal(body: String) -> MeetingProposal?
     func fetchStudyRooms(start: Date, end: Date) async throws -> [Int: [TimeRange]]
+    func hideDirectConversation(conversationId: Int) async throws
 }

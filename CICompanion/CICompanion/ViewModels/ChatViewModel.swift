@@ -27,12 +27,18 @@ class ChatViewModel: ObservableObject {
     let messagingRepository: MessagingRepositoryProtocol
     let currentUserId: String
 
+    // Tracks which conversation the open ChatView is showing so realtime
+    // `new_message` events for OTHER conversations are ignored (the chat list
+    // handles them separately via ConversationsViewModel.handleRealtimeNewMessage).
+    private var currentConversationId: Int?
+
     init(messagingRepository: MessagingRepositoryProtocol, currentUserId: String) {
         self.messagingRepository = messagingRepository
         self.currentUserId = currentUserId
     }
-    
+
     func loadMessages(conversationId: Int) {
+        currentConversationId = conversationId
         isLoading = true
         errorMessage = nil
 
@@ -47,6 +53,22 @@ class ChatViewModel: ObservableObject {
                 isLoading = false
                 handleAccessError(error, label: "loading messages", userFacing: "Could not load messages.")
             }
+        }
+    }
+
+    // Realtime path: a WebSocket-delivered message destined for the conversation
+    // the user is currently viewing. Dedupe by server `Message.id` so the 1s poll
+    // and the WebSocket push can race without producing duplicates.
+    func ingest(_ message: Message) {
+        guard message.conversationId == currentConversationId else { return }
+        guard !messages.contains(where: { $0.id == message.id }) else { return }
+
+        messages.append(message)
+        messages.sort { lhs, rhs in
+            if lhs.createdAt == rhs.createdAt {
+                return lhs.id < rhs.id
+            }
+            return lhs.createdAt < rhs.createdAt
         }
     }
 

@@ -12,15 +12,22 @@ struct ChatView: View {
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
     let onConversationUpdated: () -> Void
+    // Called once after the user dismisses the access-revoked alert (403 from
+    // load/send). Lets the parent silently refresh the conversation list so
+    // a chat the user has lost access to disappears without flashing a spinner.
+    let onAccessRevokedDismiss: () -> Void
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
     let contacts: [ContactStudent]
     let studentRepository: StudentRepositoryProtocol
+    let targetMessageId: Int?
 
     @Environment(\.dismiss) private var dismiss
     @State private var showGroupInfo = false
     @State private var showMeetings = false
+    @State private var hasScrolledToTarget = false
+    @State private var highlightedMessageId: Int?
     // Set when we want ChatView itself to pop AFTER GroupInfoView's sheet finishes its dismiss animation.
     // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
     @State private var pendingDismiss = false
@@ -32,6 +39,10 @@ struct ChatView: View {
     private let errorBannerHorizontalPadding: CGFloat = 14
     private let errorBannerVerticalPadding: CGFloat = 8
     private let errorBannerBackgroundOpacity: Double = 0.85
+    // Fallback poll cadence per 04_IOS_TASK_PLAN.md Pass 6: WebSocket delivers
+    // realtime `new_message` events via NotificationCenter, but the poll stays
+    // as a safety net so a dropped socket never starves the chat. Plan to relax
+    // this cadence once the WebSocket has demonstrated stability in production.
     private let pollIntervalSeconds: Int = 1
 
     init(
@@ -42,7 +53,9 @@ struct ChatView: View {
         courseRepository: CourseRepositoryProtocol,
         contacts: [ContactStudent],
         studentRepository: StudentRepositoryProtocol,
-        onConversationUpdated: @escaping () -> Void = {}
+        targetMessageId: Int? = nil,
+        onConversationUpdated: @escaping () -> Void = {},
+        onAccessRevokedDismiss: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
@@ -51,7 +64,9 @@ struct ChatView: View {
         self.courseRepository = courseRepository
         self.contacts = contacts
         self.studentRepository = studentRepository
+        self.targetMessageId = targetMessageId
         self.onConversationUpdated = onConversationUpdated
+        self.onAccessRevokedDismiss = onAccessRevokedDismiss
     }
 
     // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
@@ -76,12 +91,21 @@ struct ChatView: View {
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .realtimeNewMessage)) { notification in
+            guard let message = notification.object as? Message else { return }
+            viewModel.ingest(message)
+        }
         .onChange(of: viewModel.successfulSendCount) { _, newValue in
             guard newValue > 0 else { return }
             onConversationUpdated()
         }
         .alert("Conversation unavailable", isPresented: $viewModel.accessRevoked) {
             Button("OK") {
+                // The chat row may now be hidden/archived server-side; ask the
+                // parent to silently refresh so the list reflects reality before
+                // we pop back to it.
+                onAccessRevokedDismiss()
+
                 // If GroupInfoView is open, close it first and let onDismiss pop the stack
                 // — popping while a sheet is presented would orphan the sheet.
                 if showGroupInfo {
@@ -156,36 +180,10 @@ struct ChatView: View {
                 } else {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            if let prop = messagingRepository.getMeetingProposal(body: message.body) {
-                                MeetingProposalBubbleView(
-                                    message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    proposal: prop,
-                                    sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository,
-                                    courseRepository: courseRepository,
-                                    conversation: conversation,
-                                    studentRepository: studentRepository
-                                )
-                            } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
-                                MeetingBubbleView(
-                                    message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    meetingScheduler: meetingScheduler,
-                                    sessionManager: sessionManager,
-                                    messagingRepository: messagingRepository,
-                                    courseRepository: courseRepository,
-                                    conversation: conversation
-                                )
-                            } else {
-                                MessageBubbleView(
-                                    message: message,
-                                    isCurrentUser: message.senderId == viewModel.currentUserId,
-                                    showSenderName: shouldShowSenderName(for: message),
-                                    receiptText: receiptText(for: message)
-                                )
+                            messageRow(message)
                                 .id(message.id)
-                            }
+                                .padding(.vertical, highlightedMessageId == message.id ? 3 : 0)
+                                .background(highlightBackground(for: message))
                         }
                     }
                     .padding(.horizontal, 12)
@@ -194,8 +192,10 @@ struct ChatView: View {
             }
             .refreshable {
                 await viewModel.refreshMessages(conversationId: conversation.id)
+                _ = scrollToTargetIfNeeded(proxy: proxy)
             }
             .onChange(of: viewModel.messages.count) { _ in
+                if scrollToTargetIfNeeded(proxy: proxy) { return }
                 scrollToBottom(proxy: proxy)
             }
             .sheet(isPresented: $showMeetings) {
@@ -203,16 +203,57 @@ struct ChatView: View {
                     CIPageTitle("Previous meetings")
                     ForEach(viewModel.messages) { message in
                         if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
-                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation)
+                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation, studentRepository: studentRepository)
                                 .onTapGesture {
                                     showMeetings = false
-                                    proxy.scrollTo(meetingScheduler.id, anchor: .center)
+                                    proxy.scrollTo(message.id, anchor: .center)
                                 }
                         }
                     }
                     Spacer()
                 }.padding(ViewHelper.padding)
             }
+        }
+    }
+
+    @ViewBuilder
+    private func messageRow(_ message: Message) -> some View {
+        if let prop = messagingRepository.getMeetingProposal(body: message.body) {
+            MeetingProposalBubbleView(
+                message: message,
+                isCurrentUser: message.senderId == viewModel.currentUserId,
+                proposal: prop,
+                sessionManager: sessionManager,
+                messagingRepository: messagingRepository,
+                courseRepository: courseRepository,
+                conversation: conversation,
+                studentRepository: studentRepository
+            )
+        } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+            MeetingBubbleView(
+                message: message,
+                isCurrentUser: message.senderId == viewModel.currentUserId,
+                meetingScheduler: meetingScheduler,
+                sessionManager: sessionManager,
+                messagingRepository: messagingRepository,
+                courseRepository: courseRepository,
+                conversation: conversation, studentRepository: studentRepository
+            )
+        } else {
+            MessageBubbleView(
+                message: message,
+                isCurrentUser: message.senderId == viewModel.currentUserId,
+                showSenderName: shouldShowSenderName(for: message),
+                receiptText: receiptText(for: message)
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func highlightBackground(for message: Message) -> some View {
+        if highlightedMessageId == message.id {
+            RoundedRectangle(cornerRadius: ViewHelper.componentRounding)
+                .fill(accentBlue.opacity(0.18))
         }
     }
 
@@ -285,6 +326,28 @@ struct ChatView: View {
         withAnimation(.easeOut(duration: 0.2)) {
             proxy.scrollTo(lastId, anchor: .bottom)
         }
+    }
+
+    private func scrollToTargetIfNeeded(proxy: ScrollViewProxy) -> Bool {
+        guard let targetMessageId, !hasScrolledToTarget else { return false }
+        guard viewModel.messages.contains(where: { $0.id == targetMessageId }) else { return false }
+
+        hasScrolledToTarget = true
+        highlightedMessageId = targetMessageId
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            withAnimation(.easeOut(duration: 0.25)) {
+                proxy.scrollTo(targetMessageId, anchor: .center)
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            if highlightedMessageId == targetMessageId {
+                highlightedMessageId = nil
+            }
+        }
+
+        return true
     }
 
     private func shouldShowSenderName(for message: Message) -> Bool {

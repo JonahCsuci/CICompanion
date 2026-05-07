@@ -21,12 +21,13 @@ class AppContainer {
     lazy var courseRepository: CourseRepositoryProtocol =
         APICourseRepository(studentRepository: studentRepository)
     
-    lazy var eventsRepository: EventsRepositoryProtocol =
-        APIEventsRepository(studentRepository: studentRepository)
+    
+    lazy var tutorRepository = TutorRepository()
+    
+    lazy var tutorViewModel = TutorViewModel(tutorRepository: tutorRepository)
     
     lazy var apiTestViewModel = APITestViewModel(
         courseRepository: courseRepository,
-        eventsRepository: eventsRepository,
         studentRepository: studentRepository
     )
     
@@ -49,11 +50,6 @@ class AppContainer {
         courseRepository: courseRepository,
         studentRepository: studentRepository
     )
-    
-    lazy var eventsViewModel = EventsViewModel(
-        eventsRepository: eventsRepository,
-        studentRepository: studentRepository
-    )
 
     lazy var messagingRepository: MessagingRepositoryProtocol =
         APIMessagingRepository(sessionManager: sessionManager)
@@ -61,4 +57,10 @@ class AppContainer {
     lazy var conversationsViewModel = ConversationsViewModel(
         messagingRepository: messagingRepository
     )
+
+    lazy var contactRequestsViewModel = ContactRequestsViewModel(
+        studentRepository: studentRepository
+    )
+
+    lazy var realtimeService = RealtimeService()
 }

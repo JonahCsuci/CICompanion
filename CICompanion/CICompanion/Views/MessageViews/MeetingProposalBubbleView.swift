@@ -24,8 +24,6 @@ struct MeetingProposalBubbleView: View {
     
     var body: some View {
         HStack {
-            if isCurrentUser { Spacer(minLength: 60) }
-            
             VStack {
                 CIText("[Proposed] · \(DateHelper.dateToDayString(proposal.timeRange.day))", color: ViewHelper.textImportant.opacity(0.75))
                 
@@ -117,13 +115,6 @@ struct MeetingProposalBubbleView: View {
                     }.padding(10)
                 }
             }
-            .foregroundColor(.white)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(isCurrentUser ? ViewHelper.currentUserColor : ViewHelper.otherUserColor)
-            .cornerRadius(16)
-
-            if !isCurrentUser { Spacer(minLength: 60) }
         }.task {
             do {
                 coursesBeforeAfter = try await ProposeMeetingViewModel.getCoursesBeforeAndAfter(
