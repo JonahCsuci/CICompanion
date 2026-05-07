@@ -292,6 +292,25 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         try handleErrorResponse(data: data, response: response)
     }
 
+    // Per-user soft hide of a 1-on-1 chat. Backend records hidden_at in
+    // conversation_user_state; messages are retained, the other user is unaffected,
+    // and a future incoming message unhides the chat for both users.
+    func hideDirectConversation(conversationId: Int) async throws {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/hide") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:] as [String: Any])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+    }
+
     // The /read endpoint also fills delivered_at when read_at is set, so we never need to call /delivered separately.
     func markRead(conversationId: Int) async throws {
         let studentId = try authenticatedUserId()

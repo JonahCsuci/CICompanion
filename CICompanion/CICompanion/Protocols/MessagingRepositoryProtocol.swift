@@ -24,4 +24,5 @@ protocol MessagingRepositoryProtocol {
     func getMeeting(body: String) -> MeetingScheduler?
     func getMeetingProposal(body: String) -> MeetingProposal?
     func fetchStudyRooms(start: Date, end: Date) async throws -> [Int: [TimeRange]]
+    func hideDirectConversation(conversationId: Int) async throws
 }

@@ -191,6 +191,38 @@ class ConversationsViewModel: ObservableObject {
         }
     }
 
+    // Realtime hook: a server-pushed `new_message` event arrived. The
+    // conversationId param is informational for now; we re-fetch the full chat
+    // list so reconcileOverrides stays consistent and the existing filter for
+    // hidden/empty direct chats keeps applying.
+    func handleRealtimeNewMessage(conversationId: Int) async {
+        await refreshConversationsSilently()
+    }
+
+    // Optimistic per-user hide of a 1-on-1 chat. The row disappears immediately
+    // along with any unread override; on server failure we revert by reloading.
+    // Sending a new message later unhides the chat for both users (server-driven),
+    // and reconcileOverrides drops stale overrides naturally on each refresh.
+    func hideConversation(conversationId: Int) {
+        conversations.removeAll { $0.id == conversationId }
+        displayedConversations.removeAll { $0.id == conversationId }
+        unreadOverrides.removeValue(forKey: conversationId)
+
+        Task {
+            do {
+                try await messagingRepository.hideDirectConversation(conversationId: conversationId)
+            } catch {
+                // `loadConversations()` clears `errorMessage` synchronously as part
+                // of its setup, so set the error AFTER calling it to ensure the
+                // user sees why the hide failed even though the row reappears.
+                loadConversations()
+                errorMessage = "Couldn't hide chat. Try again."
+                return
+            }
+            await refreshConversationsSilently()
+        }
+    }
+
     // Clear any override once the server has caught up (server count == our override).
     // Also drops overrides for conversations no longer in the list.
     private func reconcileOverrides() {

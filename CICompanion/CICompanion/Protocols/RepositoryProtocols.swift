@@ -28,4 +28,9 @@ protocol StudentRepositoryProtocol {
     func searchContactStudents(query: String) async throws -> [StudentSharedCourses]
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws
     func loadStudentSharedCourses() async throws -> [StudentSharedCourses]
+    func sendContactRequest(toEmail email: String) async throws -> SendContactRequestResponse
+    func loadContactRequests(status: String?, direction: String?, limit: Int?) async throws -> ContactRequestListResponse
+    func acceptContactRequest(requestId: Int) async throws -> ContactRequestActionResponse
+    func declineContactRequest(requestId: Int) async throws -> ContactRequestActionResponse
+    func cancelContactRequest(requestId: Int) async throws -> ContactRequestActionResponse
 }

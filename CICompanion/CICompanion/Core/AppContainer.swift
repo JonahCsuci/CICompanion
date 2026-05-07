@@ -57,4 +57,10 @@ class AppContainer {
     lazy var conversationsViewModel = ConversationsViewModel(
         messagingRepository: messagingRepository
     )
+
+    lazy var contactRequestsViewModel = ContactRequestsViewModel(
+        studentRepository: studentRepository
+    )
+
+    lazy var realtimeService = RealtimeService()
 }
