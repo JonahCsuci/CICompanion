@@ -21,7 +21,7 @@ final class ContactsViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
 
-    func testAddContactReloadsContacts() async {
+    func testAddContactPendingDoesNotReloadContacts() async {
         let repository = ContactStudentRepositoryStub()
         repository.availableContacts["new.student@myci.csuci.edu"] = ContactStudent(
             id: "contact-3",
@@ -31,13 +31,96 @@ final class ContactsViewModelTests: XCTestCase {
 
         let viewModel = ContactsViewModel(studentRepository: repository)
         await viewModel.loadContacts()
+        XCTAssertEqual(viewModel.contacts.count, 2)
 
-        let added = await viewModel.addContact(email: "new.student@myci.csuci.edu")
+        let outcome = await viewModel.addContact(email: "new.student@myci.csuci.edu")
 
-        XCTAssertTrue(added)
+        guard case let .pendingSent(requestId, contactStudentId) = outcome else {
+            XCTFail("Expected .pendingSent; got \(outcome)")
+            return
+        }
+        XCTAssertEqual(requestId, 1)
+        XCTAssertEqual(contactStudentId, "contact-3")
+        XCTAssertEqual(viewModel.contacts.count, 2)
+        XCTAssertFalse(viewModel.isContact(studentId: "contact-3"))
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    func testAddContactAutoAcceptedReloadsContacts() async {
+        let repository = ContactStudentRepositoryStub()
+        repository.availableContacts["new.student@myci.csuci.edu"] = ContactStudent(
+            id: "contact-3",
+            name: "New Student",
+            email: "new.student@myci.csuci.edu"
+        )
+        repository.autoAcceptOnSend = true
+
+        let viewModel = ContactsViewModel(studentRepository: repository)
+        await viewModel.loadContacts()
+        XCTAssertEqual(viewModel.contacts.count, 2)
+
+        let outcome = await viewModel.addContact(email: "new.student@myci.csuci.edu")
+
+        guard case let .autoAccepted(conversationId) = outcome else {
+            XCTFail("Expected .autoAccepted; got \(outcome)")
+            return
+        }
+        XCTAssertEqual(conversationId, 99)
         XCTAssertEqual(viewModel.contacts.count, 3)
         XCTAssertTrue(viewModel.isContact(studentId: "contact-3"))
         XCTAssertNil(viewModel.errorMessage)
+    }
+
+    func testAddContactAlreadyContactReturnsAlreadyContactCase() async {
+        let repository = ContactStudentRepositoryStub()
+        let viewModel = ContactsViewModel(studentRepository: repository)
+        await viewModel.loadContacts()
+
+        let outcome = await viewModel.addContact(email: "contact.one@myci.csuci.edu")
+
+        if case .alreadyContact = outcome {} else {
+            XCTFail("Expected .alreadyContact; got \(outcome)")
+        }
+    }
+
+    func testAddContactSharedCourseRequiredSetsCopyAndOutcome() async {
+        let repository = ContactStudentRepositoryStub()
+        repository.simulateSharedCourseRequiredFor = "blocked@myci.csuci.edu"
+
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        let outcome = await viewModel.addContact(email: "blocked@myci.csuci.edu")
+
+        if case .sharedCourseRequired = outcome {} else {
+            XCTFail("Expected .sharedCourseRequired; got \(outcome)")
+        }
+        XCTAssertEqual(viewModel.errorMessage, "You and this person need to share at least one course.")
+    }
+
+    func testAddContactStudentNotFoundSurfacesCopy() async {
+        let repository = ContactStudentRepositoryStub()
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        let outcome = await viewModel.addContact(email: "missing@myci.csuci.edu")
+
+        if case .studentNotFound = outcome {} else {
+            XCTFail("Expected .studentNotFound; got \(outcome)")
+        }
+        XCTAssertEqual(viewModel.errorMessage, "We couldn't find a CIApp account with that email.")
+    }
+
+    func testAddContactRateLimitedSurfacesCopy() async {
+        let repository = ContactStudentRepositoryStub()
+        repository.simulateRateLimit = true
+
+        let viewModel = ContactsViewModel(studentRepository: repository)
+
+        let outcome = await viewModel.addContact(email: "anyone@myci.csuci.edu")
+
+        if case .rateLimited = outcome {} else {
+            XCTFail("Expected .rateLimited; got \(outcome)")
+        }
+        XCTAssertEqual(viewModel.errorMessage, "Slow down a moment, then try again.")
     }
 
     func testRemoveContactUpdatesPublishedContacts() async {
@@ -52,13 +135,15 @@ final class ContactsViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
     }
 
-    func testAddContactPublishesReadableError() async {
+    func testAddContactWithEmptyEmailReturnsFailedOutcome() async {
         let repository = ContactStudentRepositoryStub()
         let viewModel = ContactsViewModel(studentRepository: repository)
 
-        let added = await viewModel.addContact(email: "")
+        let outcome = await viewModel.addContact(email: "")
 
-        XCTAssertFalse(added)
+        if case .failed = outcome {} else {
+            XCTFail("Expected .failed; got \(outcome)")
+        }
         XCTAssertEqual(viewModel.errorMessage, "Enter a contact email.")
     }
 
@@ -236,4 +321,123 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws {}
 
     func loadStudentSharedCourses() async throws -> [StudentSharedCourses] { [] }
+
+    var autoAcceptOnSend = false
+    var simulateRateLimit = false
+    var simulateSharedCourseRequiredFor: String?
+
+    func sendContactRequest(toEmail email: String) async throws -> SendContactRequestResponse {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        if simulateRateLimit {
+            throw NSError(
+                domain: "APIError",
+                code: 429,
+                userInfo: [NSLocalizedDescriptionKey: "Too many contact requests"]
+            )
+        }
+
+        if let blocked = simulateSharedCourseRequiredFor, blocked.lowercased() == normalizedEmail {
+            throw NSError(
+                domain: "APIError",
+                code: 403,
+                userInfo: [NSLocalizedDescriptionKey: "Contacts must share at least one course"]
+            )
+        }
+
+        guard let contact = availableContacts[normalizedEmail] else {
+            throw NSError(
+                domain: "APIError",
+                code: 404,
+                userInfo: [NSLocalizedDescriptionKey: "Contact student not found"]
+            )
+        }
+
+        if storedContacts.contains(where: { $0.id == contact.id }) {
+            throw NSError(
+                domain: "APIError",
+                code: 409,
+                userInfo: [NSLocalizedDescriptionKey: "Students are already contacts"]
+            )
+        }
+
+        if autoAcceptOnSend {
+            // Mimic the lambda's auto-accept path: server-side mutual contact
+            // is created, so the stub appends to storedContacts before returning.
+            storedContacts.append(contact)
+            storedContacts.sort { $0.name < $1.name }
+            return SendContactRequestResponse(
+                success: true,
+                status: "accepted",
+                autoAccepted: true,
+                requestId: 1,
+                contactStudentId: contact.id,
+                conversationId: 99
+            )
+        }
+
+        return SendContactRequestResponse(
+            success: true,
+            status: "pending",
+            autoAccepted: nil,
+            requestId: 1,
+            contactStudentId: contact.id,
+            conversationId: nil
+        )
+    }
+
+    func loadContactRequests(status: String?, direction: String?, limit: Int?) async throws -> ContactRequestListResponse {
+        ContactRequestListResponse(
+            success: true,
+            studentId: nil,
+            statusFilter: status,
+            directionFilter: direction,
+            incoming: [],
+            outgoing: [],
+            counts: ContactRequestListResponse.Counts(
+                incomingPending: 0,
+                outgoingPending: 0,
+                totalPending: 0
+            )
+        )
+    }
+
+    func acceptContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "accept",
+            status: "accepted",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: 1
+        )
+    }
+
+    func declineContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "decline",
+            status: "declined",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: nil
+        )
+    }
+
+    func cancelContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "cancel",
+            status: "canceled",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: nil
+        )
+    }
 }

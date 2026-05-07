@@ -12,6 +12,10 @@ struct ChatView: View {
     @StateObject var viewModel: ChatViewModel
     let conversation: Conversation
     let onConversationUpdated: () -> Void
+    // Called once after the user dismisses the access-revoked alert (403 from
+    // load/send). Lets the parent silently refresh the conversation list so
+    // a chat the user has lost access to disappears without flashing a spinner.
+    let onAccessRevokedDismiss: () -> Void
     var sessionManager : SessionManager
     var messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
@@ -35,6 +39,10 @@ struct ChatView: View {
     private let errorBannerHorizontalPadding: CGFloat = 14
     private let errorBannerVerticalPadding: CGFloat = 8
     private let errorBannerBackgroundOpacity: Double = 0.85
+    // Fallback poll cadence per 04_IOS_TASK_PLAN.md Pass 6: WebSocket delivers
+    // realtime `new_message` events via NotificationCenter, but the poll stays
+    // as a safety net so a dropped socket never starves the chat. Plan to relax
+    // this cadence once the WebSocket has demonstrated stability in production.
     private let pollIntervalSeconds: Int = 1
 
     init(
@@ -46,7 +54,8 @@ struct ChatView: View {
         contacts: [ContactStudent],
         studentRepository: StudentRepositoryProtocol,
         targetMessageId: Int? = nil,
-        onConversationUpdated: @escaping () -> Void = {}
+        onConversationUpdated: @escaping () -> Void = {},
+        onAccessRevokedDismiss: @escaping () -> Void = {}
     ) {
         _viewModel = StateObject(wrappedValue: viewModel)
         self.conversation = conversation
@@ -57,6 +66,7 @@ struct ChatView: View {
         self.studentRepository = studentRepository
         self.targetMessageId = targetMessageId
         self.onConversationUpdated = onConversationUpdated
+        self.onAccessRevokedDismiss = onAccessRevokedDismiss
     }
 
     // Prefer the freshest snapshot from loadMessages — it carries up-to-date participants/admin info.
@@ -81,12 +91,21 @@ struct ChatView: View {
         .task(id: "poll-\(conversation.id)") {
             await pollForNewMessages()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .realtimeNewMessage)) { notification in
+            guard let message = notification.object as? Message else { return }
+            viewModel.ingest(message)
+        }
         .onChange(of: viewModel.successfulSendCount) { _, newValue in
             guard newValue > 0 else { return }
             onConversationUpdated()
         }
         .alert("Conversation unavailable", isPresented: $viewModel.accessRevoked) {
             Button("OK") {
+                // The chat row may now be hidden/archived server-side; ask the
+                // parent to silently refresh so the list reflects reality before
+                // we pop back to it.
+                onAccessRevokedDismiss()
+
                 // If GroupInfoView is open, close it first and let onDismiss pop the stack
                 // — popping while a sheet is presented would orphan the sheet.
                 if showGroupInfo {

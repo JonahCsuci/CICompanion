@@ -198,4 +198,88 @@ class StudentRepository: StudentRepositoryProtocol {
             student.sharedCourseCount > 0 && !contacts.contains { contact in contact.id == student.id }
         }
     }
+
+    func sendContactRequest(toEmail email: String) async throws -> SendContactRequestResponse {
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        if normalizedEmail == mockStudentEmail {
+            throw apiError(statusCode: 400, message: "Cannot add yourself as a contact")
+        }
+
+        guard let candidate = contactDirectory.first(where: { $0.email.lowercased() == normalizedEmail }) else {
+            throw apiError(statusCode: 404, message: "Contact student not found")
+        }
+
+        guard candidate.sharedCourseCount > 0 else {
+            throw apiError(statusCode: 403, message: "Contacts must share at least one course")
+        }
+
+        if contacts.contains(where: { $0.id == candidate.id }) {
+            throw apiError(statusCode: 409, message: "Students are already contacts")
+        }
+
+        return SendContactRequestResponse(
+            success: true,
+            status: "pending",
+            autoAccepted: nil,
+            requestId: Int.random(in: 1...10_000),
+            contactStudentId: candidate.id,
+            conversationId: nil
+        )
+    }
+
+    func loadContactRequests(status: String?, direction: String?, limit: Int?) async throws -> ContactRequestListResponse {
+        ContactRequestListResponse(
+            success: true,
+            studentId: nil,
+            statusFilter: status,
+            directionFilter: direction,
+            incoming: [],
+            outgoing: [],
+            counts: ContactRequestListResponse.Counts(
+                incomingPending: 0,
+                outgoingPending: 0,
+                totalPending: 0
+            )
+        )
+    }
+
+    func acceptContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "accept",
+            status: "accepted",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: 1
+        )
+    }
+
+    func declineContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "decline",
+            status: "declined",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: nil
+        )
+    }
+
+    func cancelContactRequest(requestId: Int) async throws -> ContactRequestActionResponse {
+        ContactRequestActionResponse(
+            success: true,
+            action: "cancel",
+            status: "canceled",
+            requestId: requestId,
+            requesterId: nil,
+            recipientId: nil,
+            contactStudentId: nil,
+            conversationId: nil
+        )
+    }
 }

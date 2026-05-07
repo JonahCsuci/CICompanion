@@ -6,6 +6,19 @@
 import Foundation
 import Combine
 
+// Result of `ContactsViewModel.addContact(email:)`. The view layer switches on
+// this to drive per-row UI states without inspecting HTTP details. Error copy
+// for surfaced cases lives on `errorMessage`; this enum is the discriminator.
+enum AddContactOutcome {
+    case pendingSent(requestId: Int, contactStudentId: String)
+    case autoAccepted(conversationId: Int?)
+    case alreadyContact
+    case sharedCourseRequired
+    case studentNotFound
+    case rateLimited
+    case failed
+}
+
 @MainActor
 class ContactsViewModel: ObservableObject {
 
@@ -56,26 +69,79 @@ class ContactsViewModel: ObservableObject {
         isLoading = false
     }
 
-    func addContact(email: String) async -> Bool {
+    // Silent counterpart to loadContacts() — no spinner, no error banner. Used
+    // by the realtime catch-up path in `RealtimeBootstrap` so the contacts list
+    // refreshes without flickering UI on every WebSocket reconnect.
+    func refreshSilently() async {
+        do {
+            contacts = try await studentRepository.loadStudentContacts()
+        } catch {
+            // Best-effort background refresh; swallow errors.
+        }
+    }
+
+    func addContact(email: String) async -> AddContactOutcome {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard !trimmedEmail.isEmpty else {
             errorMessage = "Enter a contact email."
-            return false
+            return .failed
         }
 
         isMutating = true
         errorMessage = nil
+        defer { isMutating = false }
 
         do {
-            try await studentRepository.addStudentContact(email: trimmedEmail)
-            contacts = try await studentRepository.loadStudentContacts()
-            isMutating = false
-            return true
+            let response = try await studentRepository.sendContactRequest(toEmail: trimmedEmail)
+            return await mapSendResponse(response)
+        } catch let error as NSError {
+            return mapSendError(error)
         } catch {
             errorMessage = error.localizedDescription
-            isMutating = false
-            return false
+            return .failed
+        }
+    }
+
+    private func mapSendResponse(_ response: SendContactRequestResponse) async -> AddContactOutcome {
+        switch response.status {
+        case KnownContactRequestStatus.accepted.rawValue:
+            // Reciprocal pending request triggered auto-accept server-side; the
+            // backend created the mutual contact rows, so refetch to reflect them.
+            await refreshSilently()
+            return .autoAccepted(conversationId: response.conversationId)
+
+        case KnownContactRequestStatus.pending.rawValue:
+            guard let requestId = response.requestId,
+                  let contactStudentId = response.contactStudentId else {
+                errorMessage = "Couldn't send request. Try again."
+                return .failed
+            }
+            return .pendingSent(requestId: requestId, contactStudentId: contactStudentId)
+
+        default:
+            errorMessage = "Couldn't send request. Try again."
+            return .failed
+        }
+    }
+
+    private func mapSendError(_ error: NSError) -> AddContactOutcome {
+        switch error.code {
+        case 403:
+            errorMessage = "You and this person need to share at least one course."
+            return .sharedCourseRequired
+        case 404:
+            errorMessage = "We couldn't find a CIApp account with that email."
+            return .studentNotFound
+        case 409:
+            errorMessage = nil
+            return .alreadyContact
+        case 429:
+            errorMessage = "Slow down a moment, then try again."
+            return .rateLimited
+        default:
+            errorMessage = error.localizedDescription
+            return .failed
         }
     }
 

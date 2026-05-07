@@ -131,7 +131,8 @@ private struct RootTabView: View {
                 messagingRepository: container.messagingRepository,
                 courseRepository: container.courseRepository,
                 sessionManager: container.sessionManager,
-                tutorViewModel: container.tutorViewModel
+                tutorViewModel: container.tutorViewModel,
+                contactRequestsViewModel: container.contactRequestsViewModel
             )
                 .tabItem {
                     Image(systemName: "bubble.left.and.bubble.right.fill")
@@ -168,5 +169,6 @@ private struct RootTabView: View {
                 await conversationsViewModel.refreshConversationsSilently()
             }
         }
+        .modifier(RealtimeBootstrap(container: container))
     }
 }
