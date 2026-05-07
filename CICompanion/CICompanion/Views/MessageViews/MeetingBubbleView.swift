@@ -13,65 +13,10 @@ struct MeetingBubbleView: View {
     let messagingRepository : MessagingRepositoryProtocol
     let courseRepository : CourseRepositoryProtocol
     let conversation: Conversation
+    let studentRepository : StudentRepositoryProtocol
     
     @State var navigationActiveA = false
     @State var navigationActiveB = false
-
-    var alreadyResponded: some View {
-        VStack {
-            Divider()
-                .background(ViewHelper.textImportant)
-            CIText("You have responded already")
-            HStack {
-                NavigationLink(
-                    destination: MeetingDetailsView(
-                        navigationsActive: [$navigationActiveA],
-                        messageId: message.id,
-                        meetingScheduler: meetingScheduler,
-                        sessionManager: sessionManager,
-                        messagingRepository: messagingRepository,
-                        conversation: conversation
-                    ),
-                    isActive: $navigationActiveA
-                ) {
-                    HStack{
-                        Image(systemName: "text.page")
-                        CIText("Details", color: .black, fontWeight: .semibold)
-                    }
-                }
-                .foregroundColor(.black)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.white)
-                .cornerRadius(16)
-                NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveB], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActiveB) {
-                    HStack{
-                        Image(systemName: "calendar")
-                        CIText("Propose a time", color: .black, fontWeight: .semibold)
-                    }
-                }
-                .foregroundColor(.black)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(.white)
-                .cornerRadius(16)
-            }
-        }
-    }
-    
-    var noResponse: some View {
-        NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
-            HStack{
-                Image(systemName: "plus")
-                CIText("Add your availabilities", color: .black, fontWeight: .semibold)
-            }
-        }
-        .foregroundColor(.black)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(.white)
-        .cornerRadius(16)
-    }
     
     var body: some View {
         HStack {
@@ -87,9 +32,72 @@ struct MeetingBubbleView: View {
                 }
                 
                 if sessionManager.userId != nil && meetingScheduler.respondees.contains(sessionManager.userId!) {
-                    alreadyResponded
+                    Divider()
+                        .background(ViewHelper.textImportant)
+                    CIText("You have responded already")
+                    HStack {
+                        NavigationLink(
+                            destination: MeetingDetailsView(
+                                navigationsActive: [$navigationActiveA],
+                                messageId: message.id,
+                                meetingScheduler: meetingScheduler,
+                                sessionManager: sessionManager,
+                                messagingRepository: messagingRepository,
+                                conversation: conversation
+                            ),
+                            isActive: $navigationActiveA
+                        ) {
+                            HStack{
+                                Image(systemName: "text.page")
+                                CIText("Details", color: .black, fontWeight: .semibold)
+                            }
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(.white)
+                        .cornerRadius(16)
+                        
+                        NavigationLink(destination: ProposeMeetingView(viewModel: ProposeMeetingViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository), messageId: message.id, navigationActive: [$navigationActiveB], messagingRepository: messagingRepository, courseRepository: courseRepository), isActive: $navigationActiveB) {
+                            HStack{
+                                Image(systemName: "calendar")
+                                CIText("Propose a time", color: .black, fontWeight: .semibold)
+                            }
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(.white)
+                        .cornerRadius(16)
+                    }
+                    
+                    TabView {
+                        ForEach(Array(meetingScheduler.proposals), id: \.self) { proposal in
+                            MeetingProposalBubbleView(
+                                message: message,
+                                isCurrentUser: isCurrentUser,
+                                proposal: proposal,
+                                sessionManager: sessionManager,
+                                messagingRepository: messagingRepository,
+                                courseRepository: courseRepository,
+                                conversation: conversation,
+                                studentRepository: studentRepository
+                            )
+                        }
+                    }
+                    .tabViewStyle(.page)
                 } else {
-                    noResponse
+                    NavigationLink(destination: AddAvailabilityView(viewModel: AddAvailabilityViewModel(meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository), messageId: message.id, navigationActive: [$navigationActiveA]), isActive: $navigationActiveA) {
+                        HStack{
+                            Image(systemName: "plus")
+                            CIText("Add your availabilities", color: .black, fontWeight: .semibold)
+                        }
+                    }
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(.white)
+                    .cornerRadius(16)
                 }
             }
             .foregroundColor(.white)

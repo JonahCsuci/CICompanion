@@ -82,24 +82,17 @@ class StudentRepository: StudentRepositoryProtocol {
         return student.courses.contains(courseId)
     }
     
-    // Add event to the student's event array
-    func addStudentEvent(eventId: Int) async throws {
-        
-        if var student = student {
-            if !student.events.contains(eventId) {
-                student.events.append(eventId)
-            }
-            self.student = student
+    func updateStudentEvents(events: [String]) async throws {
+            return
         }
+        
+        
+    func addStudentEvent(event: String) async throws {
+        return
     }
-
-    // Remove event from the student's event array
-    func deleteStudentEvent(eventId: Int) async throws {
         
-        if var student = student {
-            student.events.removeAll { $0 == eventId }
-            self.student = student
-        }
+    func deleteStudentEvent(event: String) async throws {
+        return
     }
     
     func addStudentContact(email: String) async throws {

@@ -88,7 +88,7 @@ struct CreateMeetingView: View {
                             ),
                             isActive: $subNavActive
                         ) {
-                            Text("Send the Meeting Scheduler")
+                            Text("Continue")
                                 .font(.system(size: ViewHelper.textSize, weight: .bold))
                                 .foregroundColor(ViewHelper.textImportant)
                                 .padding(ViewHelper.padding * 1.5)

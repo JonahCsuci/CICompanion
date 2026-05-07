@@ -184,7 +184,7 @@ struct ChatView: View {
                     CIPageTitle("Previous meetings")
                     ForEach(viewModel.messages) { message in
                         if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
-                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation)
+                            MeetingBubbleView(message: message, isCurrentUser: message.senderId == viewModel.currentUserId, meetingScheduler: meetingScheduler, sessionManager: sessionManager, messagingRepository: messagingRepository, courseRepository: courseRepository, conversation: conversation, studentRepository: studentRepository)
                                 .onTapGesture {
                                     showMeetings = false
                                     proxy.scrollTo(message.id, anchor: .center)
@@ -218,7 +218,7 @@ struct ChatView: View {
                 sessionManager: sessionManager,
                 messagingRepository: messagingRepository,
                 courseRepository: courseRepository,
-                conversation: conversation
+                conversation: conversation, studentRepository: studentRepository
             )
         } else {
             MessageBubbleView(

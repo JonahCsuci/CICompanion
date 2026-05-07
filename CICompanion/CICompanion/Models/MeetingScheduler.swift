@@ -18,6 +18,7 @@ struct MeetingScheduler: Identifiable, Codable {
     var conversationID: Int
     var title: String
     var respondees: Set<String> = Set()
+    var proposals: Set<MeetingProposal> = Set()
     
     // other stuff, don't worry about this sergio
     private var calendar: Calendar { .current }
