@@ -134,6 +134,8 @@ struct AddAvailabilityView: View {
                                         .frame(minWidth: columnWidth, minHeight: rowHeight)
                                         .background(selectedBlocks.contains(block) ? ViewHelper.accentGreen : ViewHelper.fieldBgColor)
                                         .cornerRadius(ViewHelper.componentRounding)
+                                }.task {
+                                    selectedBlocks.insert(block)
                                 }
                             }
                         }

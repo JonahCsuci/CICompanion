@@ -17,6 +17,8 @@ struct MeetingProposalBubbleView: View {
     let conversation : Conversation
     let studentRepository: StudentRepositoryProtocol
     @State var responded = false
+    @State var meetingScheduler : MeetingScheduler
+    let messageID: Int
     
     @State var navigationActive = false
     
@@ -26,13 +28,17 @@ struct MeetingProposalBubbleView: View {
         VStack {
             CIText("[Proposed] · \(DateHelper.dateToDayString(proposal.timeRange.day))", color: ViewHelper.textImportant.opacity(0.75))
             
-            CIText("\(proposal.title)", fontSize: 20, fontWeight: .bold)
-            
             HStack(spacing: 0) {
                 CIText("\(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
             }
             
             HStack(spacing: ViewHelper.tinyPadding) {
+                HStack(spacing: ViewHelper.tinyPadding) {
+                    Image(systemName: "person.2.fill")
+                        .foregroundColor(ViewHelper.textImportant)
+                    CIText("\(proposal.respondees.count)/\(meetingScheduler.respondees.count) accepted", color: ViewHelper.textImportant)
+                }
+                
                 Image(systemName: "building.2.fill")
                     .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text)
                 CIText(proposal.studyRoomID != nil ? proposal.studyRoom() : "No room", color: (proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text), fontWeight: proposal.studyRoomID != nil ? .semibold : .regular)
@@ -92,6 +98,23 @@ struct MeetingProposalBubbleView: View {
                         responded = true
                         Task {
                             do {
+                                let studentID = try await studentRepository.loadStudent().id
+                                
+                                if var existing = meetingScheduler.proposals.first(where: { $0.hashValue == proposal.hashValue }) {
+                                    meetingScheduler.proposals.remove(existing)
+                                    
+                                    existing.respondees.insert(studentID)
+                                    
+                                    meetingScheduler.proposals.insert(existing)
+                                }
+                                
+                                meetingScheduler.respondees.insert(studentID)
+                                
+                                let encoder = JSONEncoder()
+                                if let encoded = try? encoder.encode(meetingScheduler) {
+                                    try await messagingRepository.editMeetup(messageId: messageID, body: encoded.base64EncodedString())
+                                }
+                                
                                 var meetings = try await studentRepository.loadStudent().meetings
                                 
                                 if !meetings.contains(proposal) {
@@ -99,6 +122,8 @@ struct MeetingProposalBubbleView: View {
                                 }
                                 
                                 try await studentRepository.updateScheduleTimes(meetings: meetings)
+                                
+                                
                             } catch {
                                 print("There was an error adding the student meeting: \(error)")
                             }

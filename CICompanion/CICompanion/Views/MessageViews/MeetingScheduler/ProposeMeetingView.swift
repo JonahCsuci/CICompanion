@@ -135,7 +135,7 @@ struct MeetingProposalCardView: View {
                 HStack(spacing: ViewHelper.padding) {
                     HStack(spacing: ViewHelper.tinyPadding) {
                         Image(systemName: "person.2.fill")
-                            .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.accentGreen : ViewHelper.text)
+                            .foregroundColor((time.peopleAvailable.count > 0) ? ViewHelper.accentGreen : ViewHelper.text)
                         CIText("\(time.peopleAvailable.count)/\(meet.respondees.count) available", color: ((time.peopleAvailable.count > 0) ? ViewHelper.accentGreen : ViewHelper.text))
                     }
                     
