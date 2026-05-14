@@ -338,6 +338,7 @@ struct NewAssignmentView: View {
             startTime: "09:00 AM",
             endTime: "10:00 AM",
             day: "Monday",
+            date: Date(),
             startMinutes: 540,
             endMinutes: 600,
             colorIndex: 0,

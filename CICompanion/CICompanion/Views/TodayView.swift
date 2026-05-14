@@ -969,7 +969,7 @@ struct TodayView: View {
     private func blocksForSelectedDate() -> [CalendarScheduleBlock] {
         let dayName = fullDayName(for: selectedDate)
         return viewModel.scheduleBlocks
-            .filter { $0.day == dayName }
+            .filter { $0.day == dayName && ($0.date == nil || Calendar.current.isDate($0.date!, inSameDayAs: selectedDate)) }
             .sorted { $0.startMinutes < $1.startMinutes }
     }
     

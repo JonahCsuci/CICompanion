@@ -82,16 +82,20 @@ class StudentRepository: StudentRepositoryProtocol {
         return student.courses.contains(courseId)
     }
     
-    func updateStudentEvents(events: [String]) async throws {
+    func updateStudentEvents(events: [Event]) async throws {
             return
         }
         
         
-    func addStudentEvent(event: String) async throws {
+    func addStudentEvent(event: Event) async throws {
         return
     }
+    
+    func hasStudentEvent(event: Event) async throws -> Bool {
+        return false
+    }
         
-    func deleteStudentEvent(event: String) async throws {
+    func deleteStudentEvent(event: Event) async throws {
         return
     }
     

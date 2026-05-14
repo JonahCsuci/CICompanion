@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+internal import ClientRuntime
 
 enum DiscoveryMode: String, CaseIterable {
     case card = "Card View"
@@ -13,9 +14,9 @@ enum DiscoveryMode: String, CaseIterable {
 }
 
 struct DiscoveryView: View {
-    @State private var selectedMode: DiscoveryMode = .list
-    @State private var items: [any DiscoveryItem] = []
-    @State private var isLoading = true
+    @State private var selectedMode: DiscoveryMode = .card
+    @State var items: [DiscoveryItem]
+    var studentRepository: StudentRepositoryProtocol
 
     @ObservedObject var tutorViewModel: TutorViewModel
 
@@ -29,82 +30,23 @@ struct DiscoveryView: View {
                         .padding(.bottom, ViewHelper.biggerSpacing)
                 }
 
-                if selectedMode == .card {
-                    if isLoading {
-                        VStack {
-                            Spacer()
-
-                            CILoadingPage()
-
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        DiscoveryCards(items: items, tutorViewModel: tutorViewModel)
+                
+                if (items.isEmpty) {
+                    VStack {
+                        Spacer()
+                        
+                        CILoadingPage()
+                        
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if selectedMode == .card {
+                    DiscoveryCards(items: items, tutorViewModel: tutorViewModel, studentRepository: studentRepository)
                 } else {
-                    DiscoveryList(items: items, tutorViewModel: tutorViewModel)
+                    DiscoveryList(items: items, tutorViewModel: tutorViewModel, studentRepository: studentRepository)
                 }
             }
         }
-        .task {
-            do {
-                items = try await fetchRSSFeedEvent(
-                    from: "https://25livepub.collegenet.com/calendars/csuci-calendar-of-events.rss"
-                )
-                items.append(contentsOf: try await fetchRSSFeedNews(from: "https://www.csuci.edu/news/rss.xml"))
-                
-                items.append(contentsOf: try await fetchRSSFeedJobs(from: "https://app.joinhandshake.com/external_feeds/17849/public.rss?token=ss6SQ8oINSf-Aj-BCHpRYrd6LWYPw4Fz01B2FwGp6A0BH93Y6VWXAQ"))
-                
-                let events = items
-                    .filter { $0.subtitle == "EVENT" }
-                    .sorted { $0.date < $1.date }
-
-                let news = items
-                    .filter { $0.subtitle == "NEWS" }
-                    .sorted { $0.date > $1.date }
-                
-                let jobs = items
-                    .filter { $0.subtitle == "JOB" }
-                    .sorted { $0.date < $1.date }
-
-                items = interweave(events: events, news: news, jobs: jobs)
-            } catch {
-                print(error)
-            }
-
-            isLoading = false
-        }
-    }
-    
-    func interweave(events: [any DiscoveryItem], news: [any DiscoveryItem], jobs: [any DiscoveryItem]) -> [any DiscoveryItem] {
-        var result: [any DiscoveryItem] = []
-        var eventIndex = 0
-        var newsIndex = 0
-        var jobsIndex = 0
-
-        while eventIndex < events.count || newsIndex < news.count || jobsIndex < jobs.count {
-            let option = Int.random(in: 0...2)
-
-            if option == 0, newsIndex < news.count {
-                result.append(news[newsIndex])
-                newsIndex += 1
-            } else if option == 1, eventIndex < events.count {
-                result.append(events[eventIndex])
-                eventIndex += 1
-            } else if jobsIndex < jobs.count {
-                result.append(jobs[jobsIndex])
-                jobsIndex += 1
-            } else if eventIndex < news.count {
-                result.append(events[jobsIndex])
-                eventIndex += 1
-            } else if newsIndex < news.count {
-                result.append(news[newsIndex])
-                newsIndex += 1
-            }
-        }
-         
-        return result
     }
 }
 
@@ -132,8 +74,9 @@ struct DiscoveryModePicker: View {
 }
 
 struct DiscoveryCards: View {
-    let items: [any DiscoveryItem]
+    let items: [DiscoveryItem]
     let tutorViewModel: TutorViewModel
+    let studentRepository: StudentRepositoryProtocol
 
     var body: some View {
         CIScrollView {
@@ -148,14 +91,12 @@ struct DiscoveryCards: View {
                 onOpen : {},
                 bigTitle : true
             )
-            VStack(spacing: 12) {
+            LazyVStack(spacing: 12) {
                 ForEach(0..<rows.count, id: \.self) { rowIndex in
                     HStack(spacing: 12) {
-                        ForEach(rows[rowIndex].indices, id: \.self) { colIndex in
-                            let item = rows[rowIndex][colIndex]
-
+                        ForEach(rows[rowIndex], id: \.self) { item in
                             NavigationLink {
-                                DiscoveryDetailView(item: item)
+                                DiscoveryDetailView(item: item, studentRepository: studentRepository)
                             } label: {
                                 Card(item: item)
                             }
@@ -172,7 +113,7 @@ struct DiscoveryCards: View {
         }
     }
 
-    private var rows: [[any DiscoveryItem]] {
+    private var rows: [[DiscoveryItem]] {
         stride(from: 0, to: items.count, by: 2).map {
             Array(items[$0..<min($0 + 2, items.count)])
         }
@@ -180,7 +121,7 @@ struct DiscoveryCards: View {
 }
 
 struct Card: View {
-    let item: any DiscoveryItem
+    let item: DiscoveryItem
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -227,8 +168,9 @@ struct Card: View {
 }
 
 struct DiscoveryList: View {
-    let items: [any DiscoveryItem]
+    let items: [DiscoveryItem]
     let tutorViewModel: TutorViewModel
+    let studentRepository: StudentRepositoryProtocol
     @State var search: String = ""
     @State var showEvents: Bool = true
     @State var showNews: Bool = true
@@ -273,7 +215,7 @@ struct DiscoveryList: View {
                 .cornerRadius(ViewHelper.componentRounding)
             }
             CIScrollView {
-                VStack {
+                LazyVStack {
                     ForEach(Array(items.filter({
                         if ($0.subtitle == "EVENT" && !showEvents) {return false}
                         
@@ -284,7 +226,7 @@ struct DiscoveryList: View {
                         return search == "" || $0.title.lowercased().contains(search.lowercased()) || $0.metaInfoLn3.lowercased().contains(search.lowercased())
                     }).enumerated()), id: \.offset) { _, item in
                         NavigationLink {
-                            DiscoveryDetailView(item: item)
+                            DiscoveryDetailView(item: item, studentRepository: studentRepository)
                         } label: {
                             ListCard(item: item)
                         }
@@ -300,7 +242,7 @@ struct DiscoveryList: View {
         }
     }
 
-    private var rows: [[any DiscoveryItem]] {
+    private var rows: [[DiscoveryItem]] {
         stride(from: 0, to: items.count, by: 2).map {
             Array(items[$0..<min($0 + 2, items.count)])
         }
@@ -308,7 +250,7 @@ struct DiscoveryList: View {
 }
 
 struct ListCard: View {
-    let item: any DiscoveryItem
+    let item: DiscoveryItem
 
     var body: some View {
         HStack {
@@ -365,8 +307,21 @@ struct ListCard: View {
 }
 
 struct DiscoveryDetailView: View {
-    let item: any DiscoveryItem
+    let item: DiscoveryItem
     @Environment(\.dismiss) private var dismiss
+    let studentRepository: StudentRepositoryProtocol
+    
+    @State private var hasEvent: Bool = false
+    var event : Event?
+    
+    init(item: DiscoveryItem, studentRepository: StudentRepositoryProtocol) {
+        self.item = item
+        self.studentRepository = studentRepository
+
+        if (item.timeRange != nil) {
+            self.event = Event(name: item.title, description: item.metaInfoLn3.substringAfter("\n"), location: item.metaInfoLn3.substringBefore("\n"), timeRange: item.timeRange!)
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -383,10 +338,8 @@ struct DiscoveryDetailView: View {
                         .foregroundColor(.white)
                         .fixedSize(horizontal: false, vertical: true)
                     
-                    if (item is NewsDI) {
-                        let news : NewsDI = item as! NewsDI
-                        
-                        if let imgURL = news.imageURL {
+                    if (item.subtitle == "NEWS") {
+                        if let imgURL = item.imageURL {
                             AsyncImage(url: URL(string: imgURL)) { image in
                                         image
                                             .resizable()
@@ -417,6 +370,56 @@ struct DiscoveryDetailView: View {
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
                     
+                    if (event != nil) {
+                        if (hasEvent) {
+                            Button {
+                                Task {
+                                    do {
+                                        try await studentRepository.deleteStudentEvent(event: event!)
+                                    } catch {
+                                        
+                                    }
+                                }
+                                
+                                hasEvent = !hasEvent
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "trash").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                        .foregroundColor(ViewHelper.textImportant)
+                                    CIText("Remove event from calendar", fontWeight: .bold)
+                                    Spacer()
+                                }
+                            }
+                            .padding(ViewHelper.padding)
+                            .background(ViewHelper.accentRed)
+                            .cornerRadius(ViewHelper.componentRounding)
+                        } else {
+                            Button {
+                                Task {
+                                    do {
+                                        try await studentRepository.addStudentEvent(event: event!)
+                                    } catch {
+                                        
+                                    }
+                                }
+                                
+                                hasEvent = !hasEvent
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "plus").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                        .foregroundColor(ViewHelper.textImportant)
+                                    CIText("Add event to calendar", fontWeight: .bold)
+                                    Spacer()
+                                }
+                            }
+                            .padding(ViewHelper.padding)
+                            .background(ViewHelper.accentBlue)
+                            .cornerRadius(ViewHelper.componentRounding)
+                        }
+                    }
+                    
                     Link(destination: URL(string: item.link)!) {
                         HStack {
                             Spacer()
@@ -444,6 +447,15 @@ struct DiscoveryDetailView: View {
                 }
             }
         }
+        .task {
+            do {
+                if (event != nil) {
+                    hasEvent = try await studentRepository.hasStudentEvent(event: event!)
+                }
+            } catch {
+                
+            }
+        }
     }
 }
 
@@ -459,10 +471,3 @@ func shortDate(_ raw: String) -> String {
     return formatter.string(from: date)
 }
 
-#Preview {
-    DiscoveryView(
-        tutorViewModel: TutorViewModel(
-            tutorRepository: TutorRepository()
-        )
-    )
-}

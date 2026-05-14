@@ -187,7 +187,7 @@ func cleanRSS(_ text: String) -> String {
         .trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-func makeEventDI(title: String, description: String, link: String) -> EventDI {
+func makeEventDI(title: String, description: String, link: String) -> DiscoveryItem {
     let lines = description
         .components(separatedBy: "\n")
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -200,7 +200,7 @@ func makeEventDI(title: String, description: String, link: String) -> EventDI {
         endTime: 0,
         day: Date()
     )
-
+    
     return EventDI(
         title: title,
         description: description,
@@ -217,7 +217,7 @@ func makeNewsDI(
     pubDate: Date?,
     imageURL: String?,
     categories: [String]
-) -> NewsDI {
+) -> DiscoveryItem {
     NewsDI(
         title: title,
         description: description,
@@ -236,7 +236,7 @@ func makeJobDI(
     employer: String,
     expires: String,
     pubDate: Date?
-) -> JobDI {
+) -> DiscoveryItem {
     JobDI(
         title: title,
         description: description,

@@ -98,17 +98,15 @@ struct MeetingProposalBubbleView: View {
                         responded = true
                         Task {
                             do {
-                                let studentID = try await studentRepository.loadStudent().id
-                                
                                 if var existing = meetingScheduler.proposals.first(where: { $0.hashValue == proposal.hashValue }) {
                                     meetingScheduler.proposals.remove(existing)
                                     
-                                    existing.respondees.insert(studentID)
+                                    existing.respondees.insert(sessionManager.userId!)
                                     
                                     meetingScheduler.proposals.insert(existing)
                                 }
                                 
-                                meetingScheduler.respondees.insert(studentID)
+                                meetingScheduler.respondees.insert(sessionManager.userId!)
                                 
                                 let encoder = JSONEncoder()
                                 if let encoded = try? encoder.encode(meetingScheduler) {
