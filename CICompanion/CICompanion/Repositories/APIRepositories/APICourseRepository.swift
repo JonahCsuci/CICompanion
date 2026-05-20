@@ -11,13 +11,13 @@ import Foundation
 class APICourseRepository: CourseRepositoryProtocol {
     
     let studentRepository: StudentRepositoryProtocol
+    private let bundle: Bundle
     
-    init(studentRepository: StudentRepositoryProtocol) {
+    init(studentRepository: StudentRepositoryProtocol, bundle: Bundle = .main) {
         self.studentRepository = studentRepository
+        self.bundle = bundle
     }
-    
-    let baseURL = "https://ibxw69g864.execute-api.us-west-1.amazonaws.com"
-    
+
     private var courses: [Course]?
     
     func loadAllCourses() async throws -> [Course] {
@@ -27,24 +27,7 @@ class APICourseRepository: CourseRepositoryProtocol {
             return courses
         }
         
-        // Build API endpoint for fetching all courses
-        guard let url = URL(string: "\(baseURL)/courses") else {
-            throw URLError(.badURL)
-        }
-            
-        var request = URLRequest(url: url)
-        
-        // Use GET to retrieve courses from backend
-        request.httpMethod = "GET"
-        
-        // Send request to backend (API Gateway -> Lambda -> database)
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        // Validate HTTP response and throw error if request failed
-        try handleErrorResponse(data: data, response: response)
-        
-        // Decode JSON into Course struct array
-        let courses = try JSONDecoder().decode([Course].self, from: data)
+        let courses = try LocalCourseCatalog.loadCourses(bundle: bundle)
         
         self.courses = courses
             

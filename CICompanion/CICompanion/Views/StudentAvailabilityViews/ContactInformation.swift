@@ -113,22 +113,22 @@ struct ContactInformation: View {
                                     title: course.courseName,
                                     subtitle: course.location,
                                     before: {
-                                        if course.startTime == "N/A" {
+                                        if let occurrence = course.firstScheduledOccurrence {
                                             VStack(alignment: .leading, spacing: 2) {
-                                                Text("Async")
+                                                Text(occurrence.startTime)
                                                     .font(.system(size: ViewHelper.smallTextSize))
-                                                
-                                                Text("No times")
+
+                                                Text(occurrence.endTime)
                                                     .font(.system(size: ViewHelper.smallTextSize))
                                             }
                                             .foregroundColor(ViewHelper.text)
                                             .frame(width: 70, alignment: .leading)
                                         } else {
                                             VStack(alignment: .leading, spacing: 2) {
-                                                Text(course.startTime)
+                                                Text("Arranged")
                                                     .font(.system(size: ViewHelper.smallTextSize))
                                                 
-                                                Text(course.endTime)
+                                                Text("No times")
                                                     .font(.system(size: ViewHelper.smallTextSize))
                                             }
                                             .foregroundColor(ViewHelper.text)
@@ -242,27 +242,28 @@ struct ContactInformation: View {
     private func isFreeOnWeekdays(hour: Int) -> Bool {
         
         for course in selectedStudentCourses {
-            
-            let isWeekdayCourse =
-                course.days.contains("Monday") ||
-                course.days.contains("Tuesday") ||
-                course.days.contains("Wednesday") ||
-                course.days.contains("Thursday") ||
-                course.days.contains("Friday")
-            
-            if !isWeekdayCourse {
-                continue
-            }
-            
-            let startHour = parseHour(course.startTime)
-            let endHour = parseHour(course.endTime)
-            
-            if startHour == -1 || endHour == -1 {
-                continue
-            }
-            
-            if hour >= startHour && hour < endHour {
-                return false
+            for occurrence in course.scheduledOccurrences {
+                let isWeekdayCourse =
+                    occurrence.days.contains("Monday") ||
+                    occurrence.days.contains("Tuesday") ||
+                    occurrence.days.contains("Wednesday") ||
+                    occurrence.days.contains("Thursday") ||
+                    occurrence.days.contains("Friday")
+
+                if !isWeekdayCourse {
+                    continue
+                }
+
+                let startHour = parseHour(occurrence.startTime)
+                let endHour = parseHour(occurrence.endTime)
+
+                if startHour == -1 || endHour == -1 {
+                    continue
+                }
+
+                if hour >= startHour && hour < endHour {
+                    return false
+                }
             }
         }
         
@@ -270,15 +271,11 @@ struct ContactInformation: View {
     }
 
     private func parseHour(_ time: String) -> Int {
-        
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        
-        guard let date = formatter.date(from: time) else {
+        guard let minutes = DateHelper.timeStringToMinutes(time) else {
             return -1
         }
-        
-        return Calendar.current.component(.hour, from: date)
+
+        return minutes / 60
     }
     
     private func loadContact() async {
