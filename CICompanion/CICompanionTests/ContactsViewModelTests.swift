@@ -260,6 +260,14 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
         try await loadStudent()
     }
 
+    func updateStudentEvents(events: [Event]) async throws {}
+
+    func addStudentEvent(event: Event) async throws {}
+
+    func hasStudentEvent(event: Event) async throws -> Bool { false }
+
+    func deleteStudentEvent(event: Event) async throws {}
+
     func addStudentEvent(eventId: Int) async throws {}
 
     func deleteStudentEvent(eventId: Int) async throws {}
