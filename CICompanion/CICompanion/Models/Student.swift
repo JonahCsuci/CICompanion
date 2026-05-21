@@ -15,6 +15,15 @@ struct Student: Codable, Identifiable {
     var events: [Event]
     var meetings: [MeetingProposal] = []
 
+    private enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case email
+        case courses
+        case events
+        case meetings
+    }
+
     init(
         id: String,
         name: String,
@@ -36,28 +45,64 @@ struct Student: Codable, Identifiable {
         id = try container.decode(String.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         email = try container.decode(String.self, forKey: .email)
-        courses = try container.decode([Int].self, forKey: .courses)
-        if let eventsString = try? container.decode(String.self, forKey: .events),
-           let data = eventsString.data(using: .utf8),
-           !data.isEmpty,
-           let decoded = try? JSONDecoder().decode([Event].self, from: data) {
-            events = decoded
-        } else {
-            events = []
-        }
+        courses = Self.decodeCourseIDs(from: container, forKey: .courses)
+        events = Self.decodeArray([Event].self, from: container, forKey: .events)
 
         // `meetings` is stored server-side as a JSON string and may be missing, null, or empty
         // for students who have no proposals. Guard against all of those so a blank value
         // doesn't throw and break the whole Student decode (which silently empties the
         // Add Class list, student courses, etc.).
-        if let meetingsString = try? container.decode(String.self, forKey: .meetings),
-           let data = meetingsString.data(using: .utf8),
-           !data.isEmpty,
-           let decoded = try? JSONDecoder().decode([MeetingProposal].self, from: data) {
-            meetings = decoded
-        } else {
-            meetings = []
+        meetings = Self.decodeArray([MeetingProposal].self, from: container, forKey: .meetings)
+    }
+
+    private static func decodeCourseIDs(
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) -> [Int] {
+        if let ids = try? container.decode([Int].self, forKey: key) {
+            return ids
         }
+
+        if let stringIDs = try? container.decode([String].self, forKey: key) {
+            return stringIDs.compactMap(Int.init)
+        }
+
+        guard let jsonString = try? container.decode(String.self, forKey: key),
+              let data = jsonString.data(using: .utf8),
+              !data.isEmpty
+        else {
+            return []
+        }
+
+        if let ids = try? JSONDecoder().decode([Int].self, from: data) {
+            return ids
+        }
+
+        if let stringIDs = try? JSONDecoder().decode([String].self, from: data) {
+            return stringIDs.compactMap(Int.init)
+        }
+
+        return []
+    }
+
+    private static func decodeArray<T: Decodable>(
+        _ type: [T].Type,
+        from container: KeyedDecodingContainer<CodingKeys>,
+        forKey key: CodingKeys
+    ) -> [T] {
+        if let array = try? container.decode(type, forKey: key) {
+            return array
+        }
+
+        guard let jsonString = try? container.decode(String.self, forKey: key),
+              let data = jsonString.data(using: .utf8),
+              !data.isEmpty,
+              let decoded = try? JSONDecoder().decode(type, from: data)
+        else {
+            return []
+        }
+
+        return decoded
     }
 }
 

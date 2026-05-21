@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/aws-amplify/amplify-swift",
       "state" : {
-        "revision" : "6e4345bb7146e2f4d12111891cb03367013c9902",
-        "version" : "2.54.1"
+        "revision" : "47c9ed63e04574bcb932b25b81f45d236838b81b",
+        "version" : "2.58.1"
       }
     },
     {
@@ -69,8 +69,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/stephencelis/SQLite.swift.git",
       "state" : {
-        "revision" : "a95fc6df17d108bd99210db5e8a9bac90fe984b8",
-        "version" : "0.15.3"
+        "revision" : "392dd6058624d9f6c5b4c769d165ddd8c7293394",
+        "version" : "0.15.4"
       }
     },
     {
@@ -260,6 +260,15 @@
       "state" : {
         "revision" : "7c6ad0fc39d0763e0b699210e4124afd5041c5df",
         "version" : "1.6.4"
+      }
+    },
+    {
+      "identity" : "swift-toolchain-sqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/swiftlang/swift-toolchain-sqlite",
+      "state" : {
+        "revision" : "b626d3002773b1a1304166643e7f118f724b2132",
+        "version" : "1.0.4"
       }
     }
   ],

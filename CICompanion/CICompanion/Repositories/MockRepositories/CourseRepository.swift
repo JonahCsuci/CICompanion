@@ -13,17 +13,15 @@ import Foundation
 class CourseRepository: CourseRepositoryProtocol {
     
     let studentRepository: StudentRepositoryProtocol
+    private let bundle: Bundle
     
-    init(studentRepository: StudentRepositoryProtocol) {
+    init(studentRepository: StudentRepositoryProtocol, bundle: Bundle = .main) {
         self.studentRepository = studentRepository
+        self.bundle = bundle
     }
     
     func loadAllCourses() async throws -> [Course] {
-        let url = Bundle.main.url(forResource: "courses", withExtension: "json")!
-        let data = try Data(contentsOf: url)
-        let courses = try JSONDecoder().decode([Course].self, from: data)
-        
-        return courses
+        try LocalCourseCatalog.loadCourses(bundle: bundle)
     }
      
     func loadStudentCourses() async throws -> [Course] {

@@ -21,6 +21,7 @@ struct CalendarScheduleBlock: Identifiable {
     let endMinutes: Int
     let colorIndex: Int
     let isMeeting: Bool
+    let course: Course?
 }
 
 struct CalendarLegendItem: Identifiable {
@@ -38,6 +39,7 @@ struct AsyncCourseItem: Identifiable {
     let courseCode: String
     let location: String
     let description: String
+    let course: Course
 }
 
 @MainActor
@@ -86,22 +88,24 @@ class AcademicCalendarViewModel: ObservableObject {
         }
     }
     
-    private func buildSchedule(courses: [Course], meetings: [MeetingProposal], events: [Event]) {
+    func buildSchedule(courses: [Course], meetings: [MeetingProposal], events: [Event]) {
         var nextBlocks: [CalendarScheduleBlock] = []
         var nextLegendItems: [CalendarLegendItem] = []
         var nextAsyncCourses: [AsyncCourseItem] = []
         
         for course in courses {
             let colorIndex = course.id % colorCount
+            let scheduledOccurrences = course.scheduledOccurrences
             
-            if course.isAsynchronous {
+            if scheduledOccurrences.isEmpty {
                 nextAsyncCourses.append(
                     AsyncCourseItem(
                         id: course.id,
                         courseName: course.courseName,
                         courseCode: course.courseCode,
                         location: course.location,
-                        description: course.courseDescription
+                        description: course.courseDescription,
+                        course: course
                     )
                 )
                 nextLegendItems.append(
@@ -116,43 +120,46 @@ class AcademicCalendarViewModel: ObservableObject {
                 )
                 continue
             }
-            
-            guard
-                let startMinutes = timeStringToMinutes(course.startTime),
-                let endMinutes = timeStringToMinutes(course.endTime)
-            else {
-                continue
-            }
-            
+
             nextLegendItems.append(
                 CalendarLegendItem(
                     id: course.id,
                     courseName: course.courseName,
                     courseCode: course.courseCode,
                     location: course.location,
-                    timeDisplay: "\(course.startTime) - \(course.endTime)",
+                    timeDisplay: course.scheduleSummary,
                     colorIndex: colorIndex
                 )
             )
             
-            for day in course.days {
-                nextBlocks.append(
-                    CalendarScheduleBlock(
-                        id: "\(course.id)-\(day)",
-                        courseId: course.id,
-                        courseName: course.courseName,
-                        courseCode: course.courseCode,
-                        location: course.location,
-                        startTime: course.startTime,
-                        endTime: course.endTime,
-                        day: day,
-                        date: nil,
-                        startMinutes: startMinutes,
-                        endMinutes: endMinutes,
-                        colorIndex: colorIndex,
-                        isMeeting: false
+            for occurrence in scheduledOccurrences {
+                guard
+                    let startMinutes = DateHelper.timeStringToMinutes(occurrence.startTime),
+                    let endMinutes = DateHelper.timeStringToMinutes(occurrence.endTime)
+                else {
+                    continue
+                }
+
+                for day in occurrence.days {
+                    nextBlocks.append(
+                        CalendarScheduleBlock(
+                            id: "\(occurrence.id)-\(day)",
+                            courseId: course.id,
+                            courseName: course.courseName,
+                            courseCode: course.courseCode,
+                            location: occurrence.location,
+                            startTime: occurrence.startTime,
+                            endTime: occurrence.endTime,
+                            day: day,
+                            date: nil,
+                            startMinutes: startMinutes,
+                            endMinutes: endMinutes,
+                            colorIndex: colorIndex,
+                            isMeeting: false,
+                            course: course
+                        )
                     )
-                )
+                }
             }
         }
         
@@ -171,11 +178,12 @@ class AcademicCalendarViewModel: ObservableObject {
                 endTime: DateHelper.minutesToTimeString(proposal.timeRange.endTime),
                 day: dayName,
                 date: proposal.timeRange.day,
-                startMinutes: proposal.timeRange.startTime,
-                endMinutes: proposal.timeRange.endTime,
-                colorIndex: -1,
-                isMeeting: true
-            ))
+            startMinutes: proposal.timeRange.startTime,
+            endMinutes: proposal.timeRange.endTime,
+            colorIndex: -1,
+            isMeeting: true,
+            course: nil
+        ))
         }
 
         for (index, event) in events.enumerated() {
@@ -194,7 +202,8 @@ class AcademicCalendarViewModel: ObservableObject {
                     startMinutes: event.timeRange.startTime,
                     endMinutes: event.timeRange.endTime,
                     colorIndex: 0,
-                    isMeeting: false
+                    isMeeting: false,
+                    course: nil
                 )
             )
         }
@@ -204,21 +213,4 @@ class AcademicCalendarViewModel: ObservableObject {
         asyncCourses = nextAsyncCourses.sorted { $0.courseCode < $1.courseCode }
     }
     
-    private func timeStringToMinutes(_ timeString: String) -> Int? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "h:mm a"
-        
-        guard let date = formatter.date(from: timeString) else {
-            return nil
-        }
-        
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: date)
-        guard let hour = components.hour, let minute = components.minute else {
-            return nil
-        }
-        
-        return hour * 60 + minute
-    }
 }
