@@ -120,7 +120,7 @@ struct ForgotPasswordView: View {
                                         }
                                         
                                         if newPassword != confirmPassword {
-                                            message = "Passwords do no match"
+                                            message = "Passwords do not match"
                                             return
                                         }
                                         
@@ -141,7 +141,7 @@ struct ForgotPasswordView: View {
                                     
                                 } catch {
                                     successMessage = ""
-                                    message = "Incorrect Code"
+                                    message = AuthErrorMessage.text(for: error)
                                 }
                             }
                         } label: {

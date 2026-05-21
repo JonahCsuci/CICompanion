@@ -66,6 +66,17 @@ struct SignInView: View {
                         Button {
                             Task {
                                 do {
+                                    // A session may already be active (e.g. resumed from a
+                                    // previous launch). Signing in over it throws
+                                    // AuthError.invalidState, so keep the valid session and
+                                    // continue instead of failing a correct login.
+                                    if let activeSession = try? await Amplify.Auth.fetchAuthSession(),
+                                       activeSession.isSignedIn {
+                                        await sessionManager.loadCurrentUser()
+                                        dismiss()
+                                        return
+                                    }
+
                                     let result = try await Amplify.Auth.signIn(
                                         username: email,
                                         password: password
@@ -92,7 +103,7 @@ struct SignInView: View {
                                         }
                                     }
                                 } catch {
-                                    message = "Email and Password required"
+                                    message = AuthErrorMessage.text(for: error)
                                 }
                             }
                         } label: {
