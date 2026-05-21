@@ -43,7 +43,7 @@ struct CoursesListView: View {
                     HStack(spacing: ViewHelper.spacing) {
                         settingsButton
 
-                        CIPageTitle("myCourses")
+                        CIPageTitle("Courses")
 
                         Spacer()
 

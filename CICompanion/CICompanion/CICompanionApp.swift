@@ -201,7 +201,7 @@ private struct RootTabView: View {
             )
             .tabItem {
                 Image(systemName: "list.bullet.rectangle.fill")
-                Text("myCourses")
+                Text("Courses")
             }
             .tag(Tab.myCourses.rawValue)
 
