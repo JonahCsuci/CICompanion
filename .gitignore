@@ -71,3 +71,6 @@ node_modules
 .amplify
 amplify_outputs*
 amplifyconfiguration*
+
+# create_image_upload_url Lambda source — kept local, deployed via AWS
+aws/lambdas/create_image_upload_url/
