@@ -112,7 +112,11 @@ struct TodayView: View {
                             sessionManager: sessionManager,
                             weekAnchor: selectedDate,
                             showsTitle: false,
-                            assignmentCountForDate: { assignmentCountForDate($0) }
+                            assignmentCountForDate: { assignmentCountForDate($0) },
+                            assignments: $assignments,
+                            onAddAsyncAssignment: { course in
+                                selectedCourse = asyncAssignmentBlock(for: course)
+                            }
                         )
                     case .month:
                         monthContent
@@ -335,7 +339,7 @@ struct TodayView: View {
                     let extraDueItems = offDayAssignments(for: selectedDate,
                                                           todayBlockIds: Set(todayBlocks.map { $0.id }))
                     
-                    if todayBlocks.isEmpty && extraDueItems.isEmpty {
+                    if todayBlocks.isEmpty && extraDueItems.isEmpty && viewModel.asyncCourses.isEmpty {
                         Text("No classes today")
                             .foregroundColor(ViewHelper.text)
                             .frame(maxWidth: .infinity)
@@ -348,6 +352,8 @@ struct TodayView: View {
                         if !extraDueItems.isEmpty {
                             otherDueSection(items: extraDueItems)
                         }
+
+                        asyncCoursesSection
                     }
                 }
             }
@@ -479,7 +485,7 @@ struct TodayView: View {
                         if !dayBlocks.isEmpty {
                             VStack(spacing: ViewHelper.smallPadding) {
                                 ForEach(dayBlocks) { block in
-                                    monthDayClassRow(block)
+                                    courseCard(for: block)
                                 }
                             }
                             .padding(.horizontal, ViewHelper.biggerSpacing)
@@ -492,9 +498,41 @@ struct TodayView: View {
                     }
                     .padding(.top, ViewHelper.tinyPadding)
                 }
+
+                asyncCoursesSection
+                    .padding(.horizontal, ViewHelper.biggerSpacing)
             }
             .padding(.bottom, ViewHelper.biggerSpacing + 4)
         }
+    }
+
+    private var asyncCoursesSection: some View {
+        AsyncCoursesSectionView(
+            courses: viewModel.asyncCourses,
+            assignments: $assignments,
+            onAddAssignment: { course in
+                selectedCourse = asyncAssignmentBlock(for: course)
+            }
+        )
+    }
+
+    private func asyncAssignmentBlock(for course: AsyncCourseItem) -> CalendarScheduleBlock {
+        CalendarScheduleBlock(
+            id: AsyncCoursesSectionView.assignmentKey(for: course),
+            courseId: course.id,
+            courseName: course.courseName,
+            courseCode: course.courseCode,
+            location: course.location,
+            startTime: "Arranged",
+            endTime: "",
+            day: fullDayName(for: selectedDate),
+            date: selectedDate,
+            startMinutes: 0,
+            endMinutes: 0,
+            colorIndex: course.id % Self.courseColors.count,
+            isMeeting: false,
+            course: course.course
+        )
     }
 
     private var monthGrid: some View {
@@ -822,23 +860,12 @@ struct TodayView: View {
                 
                 Spacer()
                 
-                if isExpanded {
-                    Button {
-                        selectedCourse = block
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: Layout.cardGearIconSize))
-                            .foregroundColor(ViewHelper.accentBlue)
-                    }
-                    .padding(.top, 2)
-                } else {
-                    let timeLabel = timeUntilClass(for: block)
-                    if !timeLabel.isEmpty {
-                        Text(timeLabel)
-                            .font(.system(size: Layout.cardTimeUntilTextSize, weight: .medium))
-                            .foregroundColor(timeLabel == "Now" ? Layout.nowAccent : ViewHelper.text)
-                            .padding(.top, 2)
-                    }
+                let timeLabel = timeUntilClass(for: block)
+                if !isExpanded && !timeLabel.isEmpty {
+                    Text(timeLabel)
+                        .font(.system(size: Layout.cardTimeUntilTextSize, weight: .medium))
+                        .foregroundColor(timeLabel == "Now" ? Layout.nowAccent : ViewHelper.text)
+                        .padding(.top, 2)
                 }
             }
             .padding(Layout.cardPadding)
@@ -882,6 +909,18 @@ struct TodayView: View {
                         .background(ViewHelper.accentBlue)
                         .clipShape(Circle())
                 }
+
+                Spacer()
+
+                Button {
+                    selectedCourse = block
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                        .foregroundColor(ViewHelper.accentBlue)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add assignment")
             }
             
             // Assignment list — each row is wrapped in SwipeToDeleteRow for swipe gesture
@@ -939,6 +978,16 @@ struct TodayView: View {
                         }
                     }
                 }
+            }
+
+            if let course = block.course {
+                Divider()
+                    .background(Layout.dividerColor)
+                    .padding(.horizontal, -Layout.cardPadding)
+                    .padding(.top, ViewHelper.smallPadding)
+
+                CourseDetailsDropDown(course: course)
+                    .padding(.top, ViewHelper.smallPadding)
             }
         }
         .padding(.horizontal, Layout.cardPadding)
@@ -1155,4 +1204,3 @@ private struct SwipeToDeleteRow<Content: View>: View {
         sessionManager: SessionManager(), tutorViewModel: TutorViewModel(tutorRepository: TutorRepository())
     )
 }
-

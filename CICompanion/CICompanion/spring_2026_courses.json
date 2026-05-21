@@ -28607,5 +28607,180 @@
         "end_time": null
       }
     ]
+  },
+  {
+    "class_number": 1761,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "02",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Brian Thoms",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1762,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "03",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Michael Soltys",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1763,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "04",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Scott Feister",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1764,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "05",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Puneet Sharma",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1765,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "06",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Bahareh Abbasi",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1766,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "07",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Vedang Chauhan",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
+  },
+  {
+    "class_number": 1767,
+    "subject": "COMP",
+    "course_number": "499",
+    "section": "08",
+    "component": "IND",
+    "title": "Capstone Project",
+    "units": "3 units",
+    "instructor": "Vida Vakilian",
+    "instruction_mode": "In Person",
+    "room": "By Arrangement",
+    "campus": "Channel Islands Main Campus",
+    "location": "Channel Islands",
+    "description": "Design and implement a capstone project under faculty supervision, and present the results in a poster/demo session at the end of semester.",
+    "enrollment_requirements": "Pre-requisite: COMP 491",
+    "class_notes": null,
+    "meeting_times": [
+      {
+        "type": "arranged",
+        "days": null,
+        "start_time": null,
+        "end_time": null
+      }
+    ]
   }
 ]

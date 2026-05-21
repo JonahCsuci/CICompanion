@@ -21,6 +21,7 @@ struct CalendarScheduleBlock: Identifiable {
     let endMinutes: Int
     let colorIndex: Int
     let isMeeting: Bool
+    let course: Course?
 }
 
 struct CalendarLegendItem: Identifiable {
@@ -38,6 +39,7 @@ struct AsyncCourseItem: Identifiable {
     let courseCode: String
     let location: String
     let description: String
+    let course: Course
 }
 
 @MainActor
@@ -102,7 +104,8 @@ class AcademicCalendarViewModel: ObservableObject {
                         courseName: course.courseName,
                         courseCode: course.courseCode,
                         location: course.location,
-                        description: course.courseDescription
+                        description: course.courseDescription,
+                        course: course
                     )
                 )
                 nextLegendItems.append(
@@ -152,7 +155,8 @@ class AcademicCalendarViewModel: ObservableObject {
                             startMinutes: startMinutes,
                             endMinutes: endMinutes,
                             colorIndex: colorIndex,
-                            isMeeting: false
+                            isMeeting: false,
+                            course: course
                         )
                     )
                 }
@@ -174,11 +178,12 @@ class AcademicCalendarViewModel: ObservableObject {
                 endTime: DateHelper.minutesToTimeString(proposal.timeRange.endTime),
                 day: dayName,
                 date: proposal.timeRange.day,
-                startMinutes: proposal.timeRange.startTime,
-                endMinutes: proposal.timeRange.endTime,
-                colorIndex: -1,
-                isMeeting: true
-            ))
+            startMinutes: proposal.timeRange.startTime,
+            endMinutes: proposal.timeRange.endTime,
+            colorIndex: -1,
+            isMeeting: true,
+            course: nil
+        ))
         }
 
         for (index, event) in events.enumerated() {
@@ -197,7 +202,8 @@ class AcademicCalendarViewModel: ObservableObject {
                     startMinutes: event.timeRange.startTime,
                     endMinutes: event.timeRange.endTime,
                     colorIndex: 0,
-                    isMeeting: false
+                    isMeeting: false,
+                    course: nil
                 )
             )
         }

@@ -110,8 +110,8 @@ struct ContactInformation: View {
                         ForEach(selectedStudentCourses, id: \.id) { course in
                             ZStack(alignment: .topTrailing) {
                                 CIDropDownCard(
-                                    title: course.courseName,
-                                    subtitle: course.location,
+                                    title: "\(course.courseCode) - \(course.courseName)",
+                                    subtitle: sharedCourseIds.contains(course.id) ? "Shared course • \(course.location)" : course.location,
                                     before: {
                                         if let occurrence = course.firstScheduledOccurrence {
                                             VStack(alignment: .leading, spacing: 2) {
@@ -136,9 +136,8 @@ struct ContactInformation: View {
                                         }
                                     },
                                     expandedContent: {
-                                        Text(course.courseDescription)
-                                            .foregroundColor(ViewHelper.text)
-                                            .lineLimit(10)
+                                        CourseDetailsDropDown(course: course)
+                                            .padding(ViewHelper.padding)
                                     },
                                     color: ViewHelper.accentBlue
                                 )

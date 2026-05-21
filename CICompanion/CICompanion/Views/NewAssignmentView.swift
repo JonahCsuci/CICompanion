@@ -342,7 +342,8 @@ struct NewAssignmentView: View {
             startMinutes: 540,
             endMinutes: 600,
             colorIndex: 0,
-            isMeeting: false
+            isMeeting: false,
+            course: nil
         ),
         isPresented: .constant(true),
         assignments: .constant([:])

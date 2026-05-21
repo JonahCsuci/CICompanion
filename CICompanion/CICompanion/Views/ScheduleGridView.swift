@@ -16,6 +16,26 @@ struct ScheduleGridView: View {
     /// Optional callback that returns the count of pending assignments for a given day.
     /// When provided, a red badge is rendered on the day header.
     var assignmentCountForDate: ((Date) -> Int)? = nil
+    @Binding var assignments: [String: [Assignment]]
+    var onAddAsyncAssignment: ((AsyncCourseItem) -> Void)? = nil
+
+    init(
+        viewModel: AcademicCalendarViewModel,
+        sessionManager: SessionManager,
+        weekAnchor: Date = Date(),
+        showsTitle: Bool = true,
+        assignmentCountForDate: ((Date) -> Int)? = nil,
+        assignments: Binding<[String: [Assignment]]> = .constant([:]),
+        onAddAsyncAssignment: ((AsyncCourseItem) -> Void)? = nil
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
+        self.weekAnchor = weekAnchor
+        self.showsTitle = showsTitle
+        self.assignmentCountForDate = assignmentCountForDate
+        self._assignments = assignments
+        self.onAddAsyncAssignment = onAddAsyncAssignment
+    }
 
     // MARK: - Layout
 
@@ -95,9 +115,18 @@ struct ScheduleGridView: View {
                         .padding(.bottom, ViewHelper.tinyPadding)
                     
                     ScrollView(.vertical, showsIndicators: false) {
-                        gridContent()
-                            .padding(.horizontal, Layout.gridHorizontalPadding)
-                            .padding(.bottom, Layout.gridBottomPadding)
+                        VStack(spacing: ViewHelper.biggerSpacing) {
+                            gridContent()
+                                .padding(.horizontal, Layout.gridHorizontalPadding)
+
+                            AsyncCoursesSectionView(
+                                courses: viewModel.asyncCourses,
+                                assignments: $assignments,
+                                onAddAssignment: onAddAsyncAssignment
+                            )
+                                .padding(.horizontal, ViewHelper.biggerSpacing)
+                        }
+                        .padding(.bottom, Layout.gridBottomPadding)
                     }
                 }
             }
