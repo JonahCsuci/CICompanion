@@ -170,6 +170,61 @@ class APIMessagingRepository: MessagingRepositoryProtocol {
         return message
     }
     
+    func requestImageUpload(conversationId: Int) async throws -> ImageUpload {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/uploads") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [:] as [String: Any])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleErrorResponse(data: data, response: response)
+
+        return try JSONDecoder().decode(ImageUpload.self, from: data)
+    }
+
+    func uploadImage(_ data: Data, to uploadURL: String) async throws {
+        guard let url = URL(string: uploadURL) else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("image/jpeg", forHTTPHeaderField: "Content-Type")
+
+        let (_, response) = try await URLSession.shared.upload(for: request, from: data)
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw URLError(.badServerResponse)
+        }
+    }
+
+    func sendImageMessage(conversationId: Int, imageKey: String) async throws -> Message {
+        let studentId = try authenticatedUserId()
+
+        guard let url = URL(string: "\(baseURL)/student/\(studentId)/conversations/\(conversationId)/messages") else {
+            throw URLError(.badURL)
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: [
+            "imageKey": imageKey
+        ])
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        try handleMessagingResponse(data: data, response: response)
+
+        return try JSONDecoder().decode(Message.self, from: data)
+    }
+
     func editMeetup(messageId: Int, body: String) async throws {
         guard let url = URL(string: "\(baseURL)/meeting/\(messageId)/conversations") else {
             throw URLError(.badURL)

@@ -334,6 +334,25 @@ private final class MessagingRepositoryStub: MessagingRepositoryProtocol {
         )
     }
 
+    func requestImageUpload(conversationId: Int) async throws -> ImageUpload {
+        ImageUpload(uploadURL: "https://example.com/upload", objectKey: "conversations/\(conversationId)/test.jpg")
+    }
+
+    func uploadImage(_ data: Data, to uploadURL: String) async throws {}
+
+    func sendImageMessage(conversationId: Int, imageKey: String) async throws -> Message {
+        Message(
+            id: 1,
+            conversationId: conversationId,
+            senderId: "current-user",
+            senderName: "Student",
+            body: "",
+            createdAt: "2026-04-21T12:00:00Z",
+            imageKey: imageKey,
+            imageURL: "https://example.com/image.jpg"
+        )
+    }
+
     func editMeetup(messageId: Int, body: String) async throws {}
 
     func loadMeetup(messageId: Int) async throws -> Message {

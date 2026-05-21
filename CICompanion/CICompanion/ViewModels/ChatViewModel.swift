@@ -110,6 +110,40 @@ class ChatViewModel: ObservableObject {
         }
     }
 
+    func sendImage(conversationId: Int, imageData: Data) {
+        isSending = true
+        errorMessage = nil
+
+        Task {
+            do {
+                // Resize off the main actor — compressing a full-size photo is CPU-heavy.
+                let payload = await Task.detached(priority: .userInitiated) {
+                    ImageCompressor.compressedJPEG(from: imageData)
+                }.value
+
+                guard let payload else {
+                    isSending = false
+                    errorMessage = "Could not prepare that image."
+                    return
+                }
+
+                let upload = try await messagingRepository.requestImageUpload(conversationId: conversationId)
+                try await messagingRepository.uploadImage(payload, to: upload.uploadURL)
+                let sent = try await messagingRepository.sendImageMessage(
+                    conversationId: conversationId,
+                    imageKey: upload.objectKey
+                )
+
+                messages.append(sent)
+                successfulSendCount += 1
+                isSending = false
+            } catch {
+                isSending = false
+                handleAccessError(error, label: "sending image", userFacing: "Could not send image. Tap to retry.")
+            }
+        }
+    }
+
     // Fire-and-forget — receipt failures should never block the UI or surface errors.
     private func markReadSilently(conversationId: Int) async {
         do {
