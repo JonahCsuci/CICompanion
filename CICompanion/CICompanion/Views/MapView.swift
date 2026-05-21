@@ -88,7 +88,20 @@ private struct RouteInfo {
 
 // MARK: - Campus Center
 
-private let campusCenter = CLLocationCoordinate2D(latitude: 34.1620, longitude: -119.0437)
+private let campusCenter = CampusMapBounds.center
+
+/// Geo-lock: the camera is constrained so users can pan/zoom only
+/// around the CSUCI campus footprint.
+private let campusBoundsRegion = MKCoordinateRegion(
+    center: CLLocationCoordinate2D(
+        latitude: (CampusMapBounds.northLatitude + CampusMapBounds.southLatitude) / 2,
+        longitude: (CampusMapBounds.eastLongitude + CampusMapBounds.westLongitude) / 2
+    ),
+    span: MKCoordinateSpan(
+        latitudeDelta: CampusMapBounds.northLatitude - CampusMapBounds.southLatitude,
+        longitudeDelta: CampusMapBounds.eastLongitude - CampusMapBounds.westLongitude
+    )
+)
 
 // MARK: - Fullscreen Map View
 
@@ -128,7 +141,15 @@ struct MapView: View {
 
     var body: some View {
         ZStack(alignment: .bottomTrailing) {
-            Map(position: $cameraPosition, scope: mapScope) {
+            Map(
+                position: $cameraPosition,
+                bounds: MapCameraBounds(
+                    centerCoordinateBounds: campusBoundsRegion,
+                    minimumDistance: 250,
+                    maximumDistance: 3500
+                ),
+                scope: mapScope
+            ) {
                 UserAnnotation()
 
                 if let destination {
@@ -390,16 +411,19 @@ struct MapView: View {
 
         let search = MKLocalSearch(request: request)
         search.start { response, _ in
-            guard let items = response?.mapItems else { return }
-            let mapped: [SearchResult] = items.map { item in
-                SearchResult(
+            let poiResults: [SearchResult] = (response?.mapItems ?? []).compactMap { item in
+                let coord = item.location.coordinate
+                // Bound POI results to the campus footprint so they
+                // don't pull the user off-campus.
+                guard Self.isWithinCampus(coord) else { return nil }
+                return SearchResult(
                     title: item.name ?? "Unnamed",
                     subtitle: Self.formatAddress(for: item.address),
-                    coordinate: item.location.coordinate
+                    coordinate: coord
                 )
             }
             DispatchQueue.main.async {
-                self.searchResults = mapped
+                self.searchResults = poiResults
             }
         }
     }
@@ -615,6 +639,15 @@ struct MapView: View {
         let item = MKMapItem(location: location, address: nil)
         if let name { item.name = name }
         return item
+    }
+
+    /// Returns true if the given coordinate falls inside the campus
+    /// bounding box (used to filter POI search results).
+    private static func isWithinCampus(_ coord: CLLocationCoordinate2D) -> Bool {
+        coord.latitude  <= CampusMapBounds.northLatitude &&
+        coord.latitude  >= CampusMapBounds.southLatitude &&
+        coord.longitude >= CampusMapBounds.westLongitude &&
+        coord.longitude <= CampusMapBounds.eastLongitude
     }
 }
 
