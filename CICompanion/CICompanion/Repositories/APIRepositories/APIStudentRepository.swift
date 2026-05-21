@@ -15,6 +15,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     
     // Stored student in memory
     private var student: Student?
+    private var cachedStudentId: String?
     private var contacts: [ContactStudent]?
     private let sessionManager: SessionManager
     
@@ -23,18 +24,31 @@ class APIStudentRepository: StudentRepositoryProtocol {
     init(sessionManager: SessionManager) {
         self.sessionManager = sessionManager
     }
+
+    private func authenticatedStudentId() throws -> String {
+        guard let studentId = sessionManager.userId else {
+            throw URLError(.userAuthenticationRequired)
+        }
+
+        invalidateUserScopedCacheIfNeeded(for: studentId)
+        return studentId
+    }
+
+    private func invalidateUserScopedCacheIfNeeded(for studentId: String) {
+        guard cachedStudentId != studentId else { return }
+        student = nil
+        contacts = nil
+        cachedStudentId = studentId
+    }
     
     func loadStudent() async throws -> Student {
-        
+        let studentId = try authenticatedStudentId()
+
         // If student previously loaded, immediately return
         if let student {
             return student
         }
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
-        
+
         // Build API endpoint for fetching all of current student's info
         guard let url = URL(string: "\(baseURL)/student/\(studentId)") else {
             throw URLError(.badURL)
@@ -55,15 +69,13 @@ class APIStudentRepository: StudentRepositoryProtocol {
         let student = try JSONDecoder().decode(Student.self, from: data)
         
         self.student = student
+        cachedStudentId = student.id
         
         return student
     }
     
     func addStudentCourse(courseId: Int) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         // Build API endpoint to add a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
@@ -91,10 +103,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
     
     func deleteStudentCourse(courseId: Int) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         // Build API endpoint to delete a course for a student
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/courses/\(courseId)") else {
@@ -119,13 +128,11 @@ class APIStudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    func updateStudentEvents(events: [String]) async throws {
+    func updateStudentEvents(events: [Event]) async throws {
+            let studentId = try authenticatedStudentId()
+
             if student != nil {
                 student!.events = events
-            }
-
-            guard let studentId = sessionManager.userId else {
-                throw URLError(.userAuthenticationRequired)
             }
 
             guard let url = URL(string: "\(baseURL)/student/\(studentId)/events") else {
@@ -138,7 +145,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
 
             struct RequestBody: Codable {
                 let studentId: String
-                let events: [String]
+                let events: [Event]
             }
 
             let body = RequestBody(
@@ -152,7 +159,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
             try handleErrorResponse(data: data, response: response)
         }
         
-        func addStudentEvent(event: String) async throws {
+        func addStudentEvent(event: Event) async throws {
             var events = student?.events ?? []
 
             if !events.contains(event) {
@@ -161,8 +168,14 @@ class APIStudentRepository: StudentRepositoryProtocol {
 
             try await updateStudentEvents(events: events)
         }
+    
+        func hasStudentEvent(event: Event) async throws -> Bool {
+            var events = student?.events ?? []
+            
+            return events.contains(event);
+        }
         
-        func deleteStudentEvent(event: String) async throws {
+        func deleteStudentEvent(event: Event) async throws {
             var events = student?.events ?? []
 
             events.removeAll { $0 == event }
@@ -178,9 +191,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
 
     func sendContactRequest(toEmail email: String) async throws -> SendContactRequestResponse {
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
 
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
             throw URLError(.badURL)
@@ -221,9 +232,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
 
     func loadContactRequests(status: String?, direction: String?, limit: Int?) async throws -> ContactRequestListResponse {
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
 
         var components = URLComponents(string: "\(baseURL)/student/\(studentId)/contact-requests")
         var queryItems: [URLQueryItem] = []
@@ -269,9 +278,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
 
     private func performContactRequestAction(requestId: Int, action: String) async throws -> ContactRequestActionResponse {
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
 
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contact-requests/\(requestId)/\(action)") else {
             throw URLError(.badURL)
@@ -300,10 +307,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
 
     func searchContactStudents(query: String) async throws -> [StudentSharedCourses] {
-
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
 
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -339,9 +343,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
         // accepting our pending request creates a contact row for us that no
         // local code path touches). Returning the cached list there leaves
         // the new contact invisible until the app is force-quit.
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/contacts") else {
             throw URLError(.badURL)
@@ -361,10 +363,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
     
     func deleteStudentContact(contactStudentId: String) async throws {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         guard let encodedContactStudentId = contactStudentId.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
               let url = URL(string: "\(baseURL)/student/\(studentId)/contacts/\(encodedContactStudentId)") else {
@@ -392,9 +391,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     func ensureStudentExists() async throws -> Student {
         
         // Authenticates user exists in user pool
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         let name = sessionManager.name ?? "User"
         
@@ -425,18 +422,17 @@ class APIStudentRepository: StudentRepositoryProtocol {
         
         let student = try JSONDecoder().decode(Student.self, from: data)
         self.student = student
+        cachedStudentId = student.id
         
         return student
         
     }
     
     func updateScheduleTimes(meetings: [MeetingProposal]) async throws {
+        let studentId = try authenticatedStudentId()
+
         if student != nil {
             student!.meetings = meetings
-        }
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
         }
         
         guard let url = URL(string: "\(baseURL)/student/\(studentId)/meeting-proposal") else {
@@ -466,10 +462,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
     }
     
     func loadStudentSharedCourses() async throws -> [StudentSharedCourses] {
-        
-        guard let studentId = sessionManager.userId else {
-            throw URLError(.userAuthenticationRequired)
-        }
+        let studentId = try authenticatedStudentId()
         
         // Build API endpoint for fetching all of current student's info
         guard let url = URL(string: "\(baseURL)/contact/students/sharedCourses/\(studentId)") else {

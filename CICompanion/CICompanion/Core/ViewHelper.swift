@@ -520,13 +520,16 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
     
     @State var isExpanded : Bool = false
     
+    let bigTitle: Bool
+    
     init(
         title: String,
         subtitle: String,
         @ViewBuilder before: () -> Before = { EmptyView() },
         @ViewBuilder expandedContent: () -> ExpandedContent = { EmptyView() },
         color : Color = ViewHelper.fieldBgColor,
-        onOpen : @escaping () -> Void = {}
+        onOpen : @escaping () -> Void = {},
+        bigTitle : Bool = false
         
     ) {
         self.title = title
@@ -535,6 +538,7 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
         self.expandedContent = expandedContent()
         self.color = color
         self.onOpen = onOpen
+        self.bigTitle = bigTitle
     }
     
     var body : some View {
@@ -557,7 +561,7 @@ struct CIDropDownCard<Before: View, ExpandedContent: View>: View {
                 
                 VStack(alignment: .leading, spacing: ViewHelper.spacing / 2) {
                     CIText(title, color: color)
-                        .font(.system(size: ViewHelper.textSize * 1.5, weight: .bold))
+                        .font(.system(size: (bigTitle) ? ViewHelper.textSize*3 : ViewHelper.textSize * 1.5, weight: .bold))
                     
                     HStack(spacing: ViewHelper.spacing) {
                         CIText(subtitle, color: ViewHelper.text)
@@ -616,6 +620,7 @@ class ViewHelper {
     public static let accentRed = Color(red: 0.9, green: 0.325, blue: 0.325)
     public static let accentPink = Color(red: 0.969, green: 0.761, blue: 0.839)
     public static let accentPurple = Color(red: 0.29, green: 0.424, blue: 0.902)
+    public static let accentOrange = Color(red: 1.0, green: 0.65, blue: 0.0)
     public static let otherUserColor = fieldBgColor
     public static let currentUserColor = accentPurple
     public static let accentMeeting = Color(red: 0.34, green: 0.76, blue: 0.56)

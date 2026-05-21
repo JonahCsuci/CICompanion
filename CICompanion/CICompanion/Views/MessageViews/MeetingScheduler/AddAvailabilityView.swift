@@ -100,9 +100,11 @@ struct AddAvailabilityView: View {
                             )
                             
                             let blockedByCourse = viewModel.courses.first {
-                                $0.days.contains(dayName) &&
-                                (DateHelper.timeStringToMinutes($0.startTime) ?? 0) < range + viewModel.meetingScheduler.timeBlockMinutes &&
-                                (DateHelper.timeStringToMinutes($0.endTime) ?? 0) > range
+                                $0.scheduledOccurrences.contains { occurrence in
+                                    occurrence.days.contains(dayName) &&
+                                    (DateHelper.timeStringToMinutes(occurrence.startTime) ?? 0) < range + viewModel.meetingScheduler.timeBlockMinutes &&
+                                    (DateHelper.timeStringToMinutes(occurrence.endTime) ?? 0) > range
+                                }
                             }
                             
                             if let _ = blockedByCourse {
@@ -134,6 +136,8 @@ struct AddAvailabilityView: View {
                                         .frame(minWidth: columnWidth, minHeight: rowHeight)
                                         .background(selectedBlocks.contains(block) ? ViewHelper.accentGreen : ViewHelper.fieldBgColor)
                                         .cornerRadius(ViewHelper.componentRounding)
+                                }.task {
+                                    selectedBlocks.insert(block)
                                 }
                             }
                         }

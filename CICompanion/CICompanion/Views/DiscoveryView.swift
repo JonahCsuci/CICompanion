@@ -6,58 +6,91 @@
 //
 
 import SwiftUI
+internal import ClientRuntime
 
 enum DiscoveryMode: String, CaseIterable {
-    case news = "Feed"
-    case tutoring = "Tutoring"
+    case card = "Card View"
+    case list = "List View"
 }
 
 struct DiscoveryView: View {
-    @State private var selectedMode: DiscoveryMode = .news
-    @State private var items: [EventDI] = []
-    @State private var isLoading = true
+    @State private var selectedMode: DiscoveryMode = .card
+    @State var items: [DiscoveryItem]
+    let courseRepository: CourseRepositoryProtocol
+    var studentRepository: StudentRepositoryProtocol
+    @ObservedObject var sessionManager: SessionManager
 
     @ObservedObject var tutorViewModel: TutorViewModel
+    @State private var showSettings = false
 
     var body: some View {
         NavigationStack {
             CIView {
                 CIHeader {
-                    CIPageTitle("Discover")
+                    HStack(spacing: ViewHelper.spacing) {
+                        settingsButton
+                        CIPageTitle("Discover")
+                        Spacer()
+                        busScheduleButton
+                    }
 
                     DiscoveryModePicker(selectedMode: $selectedMode)
                         .padding(.bottom, ViewHelper.biggerSpacing)
                 }
 
-                if selectedMode == .news {
-                    if isLoading {
-                        VStack {
-                            Spacer()
 
-                            CILoadingPage()
+                if (items.isEmpty) {
+                    VStack {
+                        Spacer()
 
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        DiscoveryNewsList(items: items)
+                        CILoadingPage()
+
+                        Spacer()
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if selectedMode == .card {
+                    DiscoveryCards(items: items, tutorViewModel: tutorViewModel, studentRepository: studentRepository)
                 } else {
-                    Tutors(viewModel: tutorViewModel, showsTitle: false)
+                    DiscoveryList(items: items, tutorViewModel: tutorViewModel, studentRepository: studentRepository)
                 }
             }
-        }
-        .task {
-            do {
-                items = try await fetchRSSFeed(
-                    from: "https://civiewnews.com/feed/"
+            .sheet(isPresented: $showSettings) {
+                SettingsView(
+                    courseRepository: courseRepository,
+                    studentRepository: studentRepository,
+                    tutorViewModel: tutorViewModel,
+                    sessionManager: sessionManager
                 )
-            } catch {
-                print(error)
             }
-
-            isLoading = false
         }
+    }
+
+    private var settingsButton: some View {
+        Button {
+            showSettings = true
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                .foregroundColor(ViewHelper.textImportant)
+                .frame(width: ViewHelper.navButtonSize, height: ViewHelper.navButtonSize)
+                .background(Circle().fill(ViewHelper.fieldBgColor))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Settings")
+    }
+
+    private var busScheduleButton: some View {
+        NavigationLink {
+            BusScheduleView()
+        } label: {
+            Image(systemName: "bus.fill")
+                .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                .foregroundColor(ViewHelper.textImportant)
+                .frame(width: ViewHelper.navButtonSize, height: ViewHelper.navButtonSize)
+                .background(Circle().fill(ViewHelper.fieldBgColor))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Bus Schedule")
     }
 }
 
@@ -84,44 +117,92 @@ struct DiscoveryModePicker: View {
     }
 }
 
-struct DiscoveryNewsList<Item: DiscoveryItem>: View {
-    let items: [Item]
+struct DiscoveryCards: View {
+    let items: [DiscoveryItem]
+    let tutorViewModel: TutorViewModel
+    let studentRepository: StudentRepositoryProtocol
 
     var body: some View {
         CIScrollView {
-            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                NavigationLink {
-                    DiscoveryDetailView(item: item)
-                } label: {
-                    NewsCard(item: item)
+            CIDropDownCard(
+                title: "Looking for tutors?",
+                subtitle: "Instantly find tutors for any subject",
+                before: {},
+                expandedContent: {
+                    Tutors(viewModel: tutorViewModel, showsTitle: false).padding(ViewHelper.padding)
+                },
+                color : ViewHelper.accentBlue,
+                onOpen : {},
+                bigTitle : true
+            )
+            LazyVStack(spacing: 12) {
+                ForEach(0..<rows.count, id: \.self) { rowIndex in
+                    HStack(spacing: 12) {
+                        ForEach(rows[rowIndex], id: \.self) { item in
+                            NavigationLink {
+                                DiscoveryDetailView(item: item, studentRepository: studentRepository)
+                            } label: {
+                                Card(item: item)
+                            }
+                            .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity)
+                        }
+
+                        if rows[rowIndex].count == 1 {
+                            Spacer()
+                        }
+                    }
                 }
-                .buttonStyle(.plain)
             }
+        }
+    }
+
+    private var rows: [[DiscoveryItem]] {
+        stride(from: 0, to: items.count, by: 2).map {
+            Array(items[$0..<min($0 + 2, items.count)])
         }
     }
 }
 
-struct NewsCard<Item: DiscoveryItem>: View {
-    let item: Item
+struct Card: View {
+    let item: DiscoveryItem
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(item.subtitle)
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundColor(ViewHelper.accentBlue)
+                    .foregroundColor(.black)
 
                 Spacer()
-
-                Text(shortDate(item.metaInfoLn2))
-                    .font(.system(size: 11))
-                    .foregroundColor(ViewHelper.text)
             }
+            .padding(ViewHelper.padding)
+                .background(
+                    item.subtitle == "NEWS" ? ViewHelper.accentPurple :
+                    item.subtitle == "JOB" ? ViewHelper.accentOrange :
+                    ViewHelper.accentGreen
+                )
+                .cornerRadius(ViewHelper.componentRounding)
 
             Text(item.title)
                 .font(.system(size: 18, weight: .bold))
                 .foregroundColor(.white)
                 .lineLimit(2)
+
+            Text(item.metaInfoLn1)
+                .font(.system(size: 14))
+                .foregroundColor(ViewHelper.accentBlue)
+                .lineLimit(2)
+
+            Text(item.metaInfoLn2)
+                .font(.system(size: 14))
+                .foregroundColor(ViewHelper.text)
+                .lineLimit(1)
+
+            Text(item.metaInfoLn3)
+                .font(.system(size: 14))
+                .foregroundColor(ViewHelper.text)
+                .lineLimit(1)
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -130,9 +211,161 @@ struct NewsCard<Item: DiscoveryItem>: View {
     }
 }
 
-struct DiscoveryDetailView<Item: DiscoveryItem>: View {
-    let item: Item
+struct DiscoveryList: View {
+    let items: [DiscoveryItem]
+    let tutorViewModel: TutorViewModel
+    let studentRepository: StudentRepositoryProtocol
+    @State var search: String = ""
+    @State var showEvents: Bool = true
+    @State var showNews: Bool = true
+    @State var showJobs: Bool = true
+
+    var body: some View {
+        VStack {
+            CITextField(placeholder: "Search for events, news, or jobs", text: $search, lines: 1)
+            HStack {
+                Button(action: {
+                    showEvents.toggle()
+                }) {
+                    Circle()
+                        .fill((showEvents) ? ViewHelper.accentGreen : ViewHelper.text)
+                        .frame(maxWidth: 6)
+                    CIText("Events", color: (showEvents) ? ViewHelper.textImportant : ViewHelper.text)
+                }
+                .padding(ViewHelper.padding)
+                .background(ViewHelper.fieldBgColor)
+                .cornerRadius(ViewHelper.componentRounding)
+                Button(action: {
+                    showNews.toggle()
+                }) {
+                    Circle()
+                        .fill((showNews) ? ViewHelper.accentPurple : ViewHelper.text)
+                        .frame(maxWidth: 6)
+                    CIText("News", color: (showNews) ? ViewHelper.textImportant : ViewHelper.text)
+                }
+                .padding(ViewHelper.padding)
+                .background(ViewHelper.fieldBgColor)
+                .cornerRadius(ViewHelper.componentRounding)
+                Button(action: {
+                    showJobs.toggle()
+                }) {
+                    Circle()
+                        .fill((showJobs) ? ViewHelper.accentOrange : ViewHelper.text)
+                        .frame(maxWidth: 6)
+                    CIText("Jobs", color: (showJobs) ? ViewHelper.textImportant : ViewHelper.text)
+                }
+                .padding(ViewHelper.padding)
+                .background(ViewHelper.fieldBgColor)
+                .cornerRadius(ViewHelper.componentRounding)
+            }
+            CIScrollView {
+                LazyVStack {
+                    ForEach(Array(items.filter({
+                        if ($0.subtitle == "EVENT" && !showEvents) {return false}
+
+                        if ($0.subtitle == "NEWS" && !showNews) {return false}
+
+                        if ($0.subtitle == "JOB" && !showJobs) {return false}
+
+                        return search == "" || $0.title.lowercased().contains(search.lowercased()) || $0.metaInfoLn3.lowercased().contains(search.lowercased())
+                    }).enumerated()), id: \.offset) { _, item in
+                        NavigationLink {
+                            DiscoveryDetailView(item: item, studentRepository: studentRepository)
+                        } label: {
+                            ListCard(item: item)
+                        }
+                    }
+                    HStack{
+                        Spacer()
+                    }
+                }
+            }
+            .padding(ViewHelper.padding)
+            .background(ViewHelper.cardBgColor)
+            .cornerRadius(ViewHelper.componentRounding)
+        }
+    }
+
+    private var rows: [[DiscoveryItem]] {
+        stride(from: 0, to: items.count, by: 2).map {
+            Array(items[$0..<min($0 + 2, items.count)])
+        }
+    }
+}
+
+struct ListCard: View {
+    let item: DiscoveryItem
+
+    var body: some View {
+        HStack {
+            Rectangle().fill(
+                item.subtitle == "NEWS" ? ViewHelper.accentPurple :
+                item.subtitle == "JOB" ? ViewHelper.accentOrange :
+                ViewHelper.accentGreen
+            )
+                .frame(maxWidth: 6)
+
+                    .cornerRadius(ViewHelper.componentRounding)
+
+            .padding(ViewHelper.padding)
+
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(item.subtitle)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(
+                            item.subtitle == "NEWS" ? ViewHelper.accentPurple :
+                            item.subtitle == "JOB" ? ViewHelper.accentOrange :
+                            ViewHelper.accentGreen
+                        )
+
+                    Spacer()
+                }
+
+                Text(item.title)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+
+                Text(item.metaInfoLn1)
+                    .font(.system(size: 14))
+                    .foregroundColor(ViewHelper.accentBlue)
+                    .lineLimit(1)
+
+                Text(item.metaInfoLn2)
+                    .font(.system(size: 14))
+                    .foregroundColor(ViewHelper.text)
+                    .lineLimit(1)
+
+                Text(item.metaInfoLn3)
+                    .font(.system(size: 14))
+                    .foregroundColor(ViewHelper.text)
+                    .lineLimit(1)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ViewHelper.fieldBgColor)
+        .cornerRadius(ViewHelper.componentRounding)
+    }
+}
+
+struct DiscoveryDetailView: View {
+    let item: DiscoveryItem
     @Environment(\.dismiss) private var dismiss
+    let studentRepository: StudentRepositoryProtocol
+
+    @State private var hasEvent: Bool = false
+    var event : Event?
+
+    init(item: DiscoveryItem, studentRepository: StudentRepositoryProtocol) {
+        self.item = item
+        self.studentRepository = studentRepository
+
+        if (item.timeRange != nil) {
+            self.event = Event(name: item.title, description: item.metaInfoLn3.substringAfter("\n"), location: item.metaInfoLn3.substringBefore("\n"), timeRange: item.timeRange!)
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -149,15 +382,100 @@ struct DiscoveryDetailView<Item: DiscoveryItem>: View {
                         .foregroundColor(.white)
                         .fixedSize(horizontal: false, vertical: true)
 
-                    Text(shortDate(item.metaInfoLn2))
-                        .font(.system(size: ViewHelper.metaTextSize))
-                        .foregroundColor(ViewHelper.text)
+                    if (item.subtitle == "NEWS") {
+                        if let imgURL = item.imageURL {
+                            AsyncImage(url: URL(string: imgURL)) { image in
+                                        image
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(maxWidth: .infinity)
+                                    } placeholder: {
+                                        ProgressView()
+                                            .frame(maxWidth: .infinity)
+                                    }
+                        }
+                    }
 
                     Text(item.metaInfoLn1)
                         .font(.system(size: ViewHelper.textSize))
                         .foregroundColor(ViewHelper.textImportant)
                         .lineSpacing(4)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    Text(item.metaInfoLn2)
+                        .font(.system(size: ViewHelper.textSize))
+                        .foregroundColor(ViewHelper.textImportant)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Text(item.metaInfoLn3)
+                        .font(.system(size: ViewHelper.textSize))
+                        .foregroundColor(ViewHelper.textImportant)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    if (event != nil) {
+                        if (hasEvent) {
+                            Button {
+                                Task {
+                                    do {
+                                        try await studentRepository.deleteStudentEvent(event: event!)
+                                    } catch {
+
+                                    }
+                                }
+
+                                hasEvent = !hasEvent
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "trash").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                        .foregroundColor(ViewHelper.textImportant)
+                                    CIText("Remove event from calendar", fontWeight: .bold)
+                                    Spacer()
+                                }
+                            }
+                            .padding(ViewHelper.padding)
+                            .background(ViewHelper.accentRed)
+                            .cornerRadius(ViewHelper.componentRounding)
+                        } else {
+                            Button {
+                                Task {
+                                    do {
+                                        try await studentRepository.addStudentEvent(event: event!)
+                                    } catch {
+
+                                    }
+                                }
+
+                                hasEvent = !hasEvent
+                            } label: {
+                                HStack {
+                                    Spacer()
+                                    Image(systemName: "plus").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                        .foregroundColor(ViewHelper.textImportant)
+                                    CIText("Add event to calendar", fontWeight: .bold)
+                                    Spacer()
+                                }
+                            }
+                            .padding(ViewHelper.padding)
+                            .background(ViewHelper.accentBlue)
+                            .cornerRadius(ViewHelper.componentRounding)
+                        }
+                    }
+
+                    Link(destination: URL(string: item.link)!) {
+                        HStack {
+                            Spacer()
+                            Image(systemName: "link").font(.system(size: ViewHelper.textSize, weight: .bold))
+                                .foregroundColor(ViewHelper.textImportant)
+                            CIText("Learn More", fontWeight: .bold)
+                            Spacer()
+                        }
+                    }
+                    .padding(ViewHelper.padding)
+                    .background(ViewHelper.accentBlue)
+                    .cornerRadius(ViewHelper.componentRounding)
                 }
                 .padding()
             }
@@ -173,6 +491,15 @@ struct DiscoveryDetailView<Item: DiscoveryItem>: View {
                 }
             }
         }
+        .task {
+            do {
+                if (event != nil) {
+                    hasEvent = try await studentRepository.hasStudentEvent(event: event!)
+                }
+            } catch {
+
+            }
+        }
     }
 }
 
@@ -186,12 +513,4 @@ func shortDate(_ raw: String) -> String {
 
     formatter.dateFormat = "MMM d"
     return formatter.string(from: date)
-}
-
-#Preview {
-    DiscoveryView(
-        tutorViewModel: TutorViewModel(
-            tutorRepository: TutorRepository()
-        )
-    )
 }

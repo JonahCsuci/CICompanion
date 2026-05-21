@@ -21,9 +21,9 @@ struct CourseView: View {
         Text(courseViewModel.course.courseCode)
         Text(courseViewModel.course.instructor)
         Text(courseViewModel.course.location)
-        Text(courseViewModel.course.startTime + " to " + courseViewModel.course.endTime)
+        Text(courseViewModel.course.isAsynchronous ? "Arranged" : courseViewModel.course.scheduleSummary)
         Text(courseViewModel.getDatesDisplay(course: courseViewModel.course))
-        Text(courseViewModel.course.isAsynchronous ? "Asynchronous" : "Synchronous")
+        Text(courseViewModel.course.instructionMode)
         
         if (courseListViewModel.studentCourses.contains(where: { $0.id == courseViewModel.course.id })) {
             Button(role: .close) {

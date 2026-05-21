@@ -48,11 +48,18 @@ class DateHelper {
     public static func timeStringToMinutes(_ timeString: String) -> Int? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "h:mm a"
-        
-        guard let date = formatter.date(from: timeString) else {
-            return nil
+
+        let formats = ["h:mm a", "h:mma"]
+        var parsedDate: Date?
+        for format in formats {
+            formatter.dateFormat = format
+            if let date = formatter.date(from: timeString) {
+                parsedDate = date
+                break
+            }
         }
+
+        guard let date = parsedDate else { return nil }
         
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: date)

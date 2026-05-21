@@ -16,14 +16,34 @@ struct ScheduleGridView: View {
     /// Optional callback that returns the count of pending assignments for a given day.
     /// When provided, a red badge is rendered on the day header.
     var assignmentCountForDate: ((Date) -> Int)? = nil
+    @Binding var assignments: [String: [Assignment]]
+    var onAddAsyncAssignment: ((AsyncCourseItem) -> Void)? = nil
+
+    init(
+        viewModel: AcademicCalendarViewModel,
+        sessionManager: SessionManager,
+        weekAnchor: Date = Date(),
+        showsTitle: Bool = true,
+        assignmentCountForDate: ((Date) -> Int)? = nil,
+        assignments: Binding<[String: [Assignment]]> = .constant([:]),
+        onAddAsyncAssignment: ((AsyncCourseItem) -> Void)? = nil
+    ) {
+        _viewModel = StateObject(wrappedValue: viewModel)
+        self.sessionManager = sessionManager
+        self.weekAnchor = weekAnchor
+        self.showsTitle = showsTitle
+        self.assignmentCountForDate = assignmentCountForDate
+        self._assignments = assignments
+        self.onAddAsyncAssignment = onAddAsyncAssignment
+    }
 
     // MARK: - Layout
 
     /// Layout constants for the schedule grid. Kept as a nested enum so each magic
     /// number has a name and lives in a single spot.
     private enum Layout {
-        static let startHour = 9
-        static let endHour = 15
+        static let startHour = 7
+        static let endHour = 23
         static let hourHeight: CGFloat = 80
         static let timeColumnWidth: CGFloat = 40
         static let daysPerWeek = 7
@@ -95,9 +115,18 @@ struct ScheduleGridView: View {
                         .padding(.bottom, ViewHelper.tinyPadding)
                     
                     ScrollView(.vertical, showsIndicators: false) {
-                        gridContent()
-                            .padding(.horizontal, Layout.gridHorizontalPadding)
-                            .padding(.bottom, Layout.gridBottomPadding)
+                        VStack(spacing: ViewHelper.biggerSpacing) {
+                            gridContent()
+                                .padding(.horizontal, Layout.gridHorizontalPadding)
+
+                            AsyncCoursesSectionView(
+                                courses: viewModel.asyncCourses,
+                                assignments: $assignments,
+                                onAddAssignment: onAddAsyncAssignment
+                            )
+                                .padding(.horizontal, ViewHelper.biggerSpacing)
+                        }
+                        .padding(.bottom, Layout.gridBottomPadding)
                     }
                 }
             }
@@ -246,17 +275,23 @@ struct ScheduleGridView: View {
                     .sorted { $0.startMinutes < $1.startMinutes }
                 ForEach(orderedBlocks) { block in
                     if let col = dayIndex(for: block.day, in: weekDates) {
-                        let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
-                        let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
-                        let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
+                        let selectedDate = weekDates[col]
+                        let blockDate =  block.date ?? selectedDate
 
-                        if y >= 0 && y < gridHeight {
-                            courseBlock(
-                                block: block,
-                                width: colWidth - Layout.blockHorizontalInset * 2,
-                                height: max(h - Layout.blockVerticalInset, Layout.minBlockHeight)
-                            )
-                            .offset(x: x, y: y)
+                        if Calendar.current.isDate(blockDate, inSameDayAs: selectedDate) {
+
+                            let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
+                            let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
+                            let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
+
+                            if y >= 0 && y < gridHeight {
+                                courseBlock(
+                                    block: block,
+                                    width: colWidth - Layout.blockHorizontalInset * 2,
+                                    height: max(h - Layout.blockVerticalInset, Layout.minBlockHeight)
+                                )
+                                .offset(x: x, y: y)
+                            }
                         }
                     }
                 }

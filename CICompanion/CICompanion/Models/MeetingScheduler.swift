@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 struct MeetingScheduler: Identifiable, Codable {
     // stuff that needs to save and get loaded in database

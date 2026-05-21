@@ -12,22 +12,24 @@ import AWSCognitoAuthPlugin
 /// The root of the CICompanion application.
 @main
 struct CICompanionApp: App {
-    
+
     /// The dependency injection container for repositories & view models.
     let container = AppContainer()
-    
+
     @State private var appReady = false
-    
+
     init() {
         configureAmplify()
         setupTabBarAppearance()
     }
-    
+
+    @State private var discoveryItems : [DiscoveryItem] = []
+
     var body: some Scene {
         WindowGroup {
             Group {
                 if appReady {
-                    RootTabView(container: container)
+                    RootTabView(container: container, discoveryItems: discoveryItems)
                 } else {
                     LaunchLoadingView()
                 }
@@ -36,7 +38,7 @@ struct CICompanionApp: App {
             // On app launch, tries to load previous session from the user
             .task {
                 await container.sessionManager.loadCurrentUser()
-                
+
                 // If successfully loaded, checks to see if exist in DB
                 if container.sessionManager.isSignedIn {
                     do {
@@ -45,16 +47,26 @@ struct CICompanionApp: App {
                         print("Load student failed in main: ", error)
                     }
                 }
-                
+
                 // Slows down app launch by 1.5sec so we can see loading screen, teehee ;)
                 // Otherwise goes by too fast, can take out if want, dont care tbh
                 try? await Task.sleep(for: .seconds(1.5))
-                
+
+                do {
+                    async let eventsTask = fetchRSSFeedEvent(from: "https://25livepub.collegenet.com/calendars/csuci-calendar-of-events.rss")
+                    async let newsTask = fetchRSSFeedNews(from: "https://www.csuci.edu/news/rss.xml")
+                    async let jobsTask = fetchRSSFeedJobs(from: "https://app.joinhandshake.com/external_feeds/17849/public.rss?token=ss6SQ8oINSf-Aj-BCHpRYrd6LWYPw4Fz01B2FwGp6A0BH93Y6VWXAQ")
+
+                    discoveryItems = interweaveDiscoveryItems(events: try await eventsTask, news: try await newsTask, jobs: try await jobsTask)
+                } catch {
+                    print("Error loading events, news, or jobs")
+                }
+
                 appReady = true
             }
         }
     }
-    
+
     // Sets up user authentication
     private func configureAmplify() {
         do {
@@ -64,7 +76,7 @@ struct CICompanionApp: App {
             print("Failed to configure Amplify: \(error)")
         }
     }
-    
+
     /// Customizes the tab bar appearance for our dark theme.
     private func setupTabBarAppearance() {
         let appearance = UITabBarAppearance()
@@ -90,6 +102,36 @@ struct CICompanionApp: App {
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
+
+    func interweaveDiscoveryItems(events: [DiscoveryItem], news: [DiscoveryItem], jobs: [DiscoveryItem]) -> [DiscoveryItem] {
+        var result: [DiscoveryItem] = []
+        var eventIndex = 0
+        var newsIndex = 0
+        var jobsIndex = 0
+
+        while eventIndex < events.count || newsIndex < news.count || jobsIndex < jobs.count {
+            let option = Int.random(in: 0...2)
+
+            if option == 0, newsIndex < news.count {
+                result.append(news[newsIndex])
+                newsIndex += 1
+            } else if option == 1, eventIndex < events.count {
+                result.append(events[eventIndex])
+                eventIndex += 1
+            } else if jobsIndex < jobs.count {
+                result.append(jobs[jobsIndex])
+                jobsIndex += 1
+            } else if newsIndex < news.count {
+                result.append(news[newsIndex])
+                eventIndex += 1
+            } else if eventIndex < events.count {
+                result.append(events[eventIndex])
+                newsIndex += 1
+            }
+        }
+
+        return result
+    }
 }
 
 /// Hosts the main tab bar. Pulled into its own view so we can observe the shared
@@ -99,22 +141,25 @@ private struct RootTabView: View {
     @ObservedObject var conversationsViewModel: ConversationsViewModel
     @ObservedObject var sessionManager: SessionManager
 
+    @State var discoveryItems : [DiscoveryItem]
+
     // Matches the in-Messages-tab poll cadence so the badge feels equally responsive from any tab.
     private let badgePollIntervalSeconds: Int = 3
 
     // Tab tags. The Map tab is special: selecting it presents a fullscreen
     // map and immediately reverts the selection back to the previous tab so
     // the back button returns the user where they came from.
-    private enum Tab: Int { case today = 0, discover = 1, messages = 2, map = 3 }
+    private enum Tab: Int { case today = 0, discover = 1, myCourses = 2, messages = 3, map = 4 }
 
     @State private var selectedTab: Int = Tab.today.rawValue
     @State private var previousTab: Int = Tab.today.rawValue
     @State private var showMap: Bool = false
 
-    init(container: AppContainer) {
+    init(container: AppContainer, discoveryItems: [DiscoveryItem]) {
         self.container = container
         self.conversationsViewModel = container.conversationsViewModel
         self.sessionManager = container.sessionManager
+        self.discoveryItems = discoveryItems
     }
 
     var body: some View {
@@ -126,7 +171,7 @@ private struct RootTabView: View {
                 courseRepository: container.courseRepository,
                 sessionManager: container.sessionManager,
                 tutorViewModel: container.tutorViewModel
-                
+
             )
                 .tabItem {
                     Image(systemName: "calendar")
@@ -135,6 +180,10 @@ private struct RootTabView: View {
                 .tag(Tab.today.rawValue)
 
             DiscoveryView(
+                items: discoveryItems,
+                courseRepository: container.courseRepository,
+                studentRepository: container.studentRepository,
+                sessionManager: container.sessionManager,
                 tutorViewModel: container.tutorViewModel
             )
             .tabItem {
@@ -142,7 +191,20 @@ private struct RootTabView: View {
                 Text("Discover")
             }
             .tag(Tab.discover.rawValue)
-            
+
+            CoursesListView(
+                viewModel: container.coursesListViewModel,
+                courseRepository: container.courseRepository,
+                studentRepository: container.studentRepository,
+                sessionManager: container.sessionManager,
+                tutorViewModel: container.tutorViewModel
+            )
+            .tabItem {
+                Image(systemName: "list.bullet.rectangle.fill")
+                Text("Courses")
+            }
+            .tag(Tab.myCourses.rawValue)
+
             // Messages tab
             MessagesView(
                 viewModel: conversationsViewModel,

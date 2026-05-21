@@ -38,26 +38,26 @@ struct APITestView: View {
                     
                     
                     HStack(spacing: 10) {
-                        Button("Add Course 1") {
-                            viewModel.testAddCourse(courseId: 1)
+                        Button("Add AAS 100-01") {
+                            viewModel.testAddCourse(courseId: 1892)
                         }
                         .buttonStyle(.borderedProminent)
                         
-                        Button("Add Course 2") {
-                            viewModel.testAddCourse(courseId: 2)
+                        Button("Add ACCT 210-01") {
+                            viewModel.testAddCourse(courseId: 1081)
                         }
                         .buttonStyle(.borderedProminent)
                     }
                     
                     HStack(spacing: 10) {
                         
-                        Button("Delete Course 1") {
-                            viewModel.testDeleteCourse(courseId: 1)
+                        Button("Delete AAS 100-01") {
+                            viewModel.testDeleteCourse(courseId: 1892)
                         }
                         .buttonStyle(.borderedProminent)
                         
-                        Button("Delete Course 2") {
-                            viewModel.testDeleteCourse(courseId: 2)
+                        Button("Delete ACCT 210-01") {
+                            viewModel.testDeleteCourse(courseId: 1081)
                         }
                         .buttonStyle(.borderedProminent)
                     }

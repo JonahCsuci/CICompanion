@@ -40,9 +40,9 @@ class ProposeMeetingViewModel: ObservableObject {
         }
     }
     struct CoursesBeforeAfter {
-        let before: Course?
-        let after: Course?
-        let conflicts: [Course]
+        let before: CourseScheduleOccurrence?
+        let after: CourseScheduleOccurrence?
+        let conflicts: [CourseScheduleOccurrence]
         
         var hasConflict: Bool { !conflicts.isEmpty }
     }
@@ -58,23 +58,25 @@ class ProposeMeetingViewModel: ObservableObject {
         let meetingStart = prop.timeRange.startTime
         let meetingEnd = prop.timeRange.endTime
 
-        var before: [Course] = []
-        var after: [Course] = []
-        var conflicts: [Course] = []
+        var before: [CourseScheduleOccurrence] = []
+        var after: [CourseScheduleOccurrence] = []
+        var conflicts: [CourseScheduleOccurrence] = []
 
         for course in courses {
-            guard course.days.contains(dayOfTheWeek),
-                  let courseStart = DateHelper.timeStringToMinutes(course.startTime),
-                  let courseEnd = DateHelper.timeStringToMinutes(course.endTime)
-            else { continue }
+            for occurrence in course.scheduledOccurrences {
+                guard occurrence.days.contains(dayOfTheWeek),
+                      let courseStart = DateHelper.timeStringToMinutes(occurrence.startTime),
+                      let courseEnd = DateHelper.timeStringToMinutes(occurrence.endTime)
+                else { continue }
 
-            if courseStart < meetingStart {
-                before.append(course)
-            } else if courseStart >= meetingEnd {
-                after.append(course)
-            }
-            if courseStart < meetingEnd && courseEnd > meetingStart {
-                conflicts.append(course)
+                if courseStart < meetingStart {
+                    before.append(occurrence)
+                } else if courseStart >= meetingEnd {
+                    after.append(occurrence)
+                }
+                if courseStart < meetingEnd && courseEnd > meetingStart {
+                    conflicts.append(occurrence)
+                }
             }
         }
 

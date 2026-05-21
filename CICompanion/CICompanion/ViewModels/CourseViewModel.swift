@@ -19,16 +19,10 @@ class CourseViewModel: ObservableObject {
     }
     
     func getDatesDisplay(course: Course) -> String {
-        var str = ""
-        
-        for day in course.days {
-            str += day + ", "
+        if course.days.isEmpty {
+            return "Arranged"
         }
-        
-        // remove the last ", "
-        
-        str.removeLast(2)
-        
-        return str
+
+        return course.days.joined(separator: ", ")
     }
 }

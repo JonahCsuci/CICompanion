@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 internal import ClientRuntime
 
 struct ChatView: View {
@@ -31,6 +32,8 @@ struct ChatView: View {
     // Set when we want ChatView itself to pop AFTER GroupInfoView's sheet finishes its dismiss animation.
     // Prevents popping the navigation stack while a sheet is mid-animation (which can leave an orphan sheet).
     @State private var pendingDismiss = false
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var showPhotoPicker = false
 
     private let bgColor = Color(red: 0.08, green: 0.10, blue: 0.15)
     private let inputBgColor = Color(red: 0.12, green: 0.14, blue: 0.20)
@@ -98,6 +101,15 @@ struct ChatView: View {
         .onChange(of: viewModel.successfulSendCount) { _, newValue in
             guard newValue > 0 else { return }
             onConversationUpdated()
+        }
+        .onChange(of: selectedPhoto) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self) {
+                    viewModel.sendImage(conversationId: conversation.id, imageData: data)
+                }
+                selectedPhoto = nil
+            }
         }
         .alert("Conversation unavailable", isPresented: $viewModel.accessRevoked) {
             Button("OK") {
@@ -194,7 +206,7 @@ struct ChatView: View {
                 await viewModel.refreshMessages(conversationId: conversation.id)
                 _ = scrollToTargetIfNeeded(proxy: proxy)
             }
-            .onChange(of: viewModel.messages.count) { _ in
+            .onChange(of: viewModel.messages.last?.id) { _ in
                 if scrollToTargetIfNeeded(proxy: proxy) { return }
                 scrollToBottom(proxy: proxy)
             }
@@ -218,18 +230,7 @@ struct ChatView: View {
 
     @ViewBuilder
     private func messageRow(_ message: Message) -> some View {
-        if let prop = messagingRepository.getMeetingProposal(body: message.body) {
-            MeetingProposalBubbleView(
-                message: message,
-                isCurrentUser: message.senderId == viewModel.currentUserId,
-                proposal: prop,
-                sessionManager: sessionManager,
-                messagingRepository: messagingRepository,
-                courseRepository: courseRepository,
-                conversation: conversation,
-                studentRepository: studentRepository
-            )
-        } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+        if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
             MeetingBubbleView(
                 message: message,
                 isCurrentUser: message.senderId == viewModel.currentUserId,
@@ -237,7 +238,8 @@ struct ChatView: View {
                 sessionManager: sessionManager,
                 messagingRepository: messagingRepository,
                 courseRepository: courseRepository,
-                conversation: conversation, studentRepository: studentRepository
+                conversation: conversation,
+                studentRepository: studentRepository
             )
         } else {
             MessageBubbleView(
@@ -282,17 +284,39 @@ struct ChatView: View {
 
     private var inputBar: some View {
         HStack(spacing: 10) {
-            NavigationLink(destination: CreateMeetingView(
-                navigationActive: $navigationActive,
-                sessionManager: sessionManager,
-                conversationID: conversation.id,
-                messagingRepository: messagingRepository,
-                courseRepository: courseRepository
-            ), isActive: $navigationActive) {
+            Menu {
+                Button {
+                    navigationActive = true
+                } label: {
+                    Label("Schedule Meeting", systemImage: "calendar")
+                }
+
+                Button {
+                    showPhotoPicker = true
+                } label: {
+                    Label("Choose Photo", systemImage: "photo")
+                }
+                .disabled(viewModel.isSending)
+            } label: {
                 Image(systemName: "plus")
                     .font(.system(size: 32))
                     .foregroundColor(ViewHelper.textImportant)
             }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $selectedPhoto, matching: .images)
+            .background(
+                NavigationLink(
+                    destination: CreateMeetingView(
+                        navigationActive: $navigationActive,
+                        sessionManager: sessionManager,
+                        conversationID: conversation.id,
+                        messagingRepository: messagingRepository,
+                        courseRepository: courseRepository
+                    ),
+                    isActive: $navigationActive
+                ) {
+                    EmptyView()
+                }
+            )
             
             TextField("", text: $viewModel.messageText, prompt: Text("Message").foregroundColor(ViewHelper.text))
                 .foregroundColor(.white)

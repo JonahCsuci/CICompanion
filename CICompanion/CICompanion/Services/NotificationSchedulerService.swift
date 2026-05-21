@@ -45,69 +45,56 @@ class NotificationSchedulerService {
         course: Course,
         leadTimeMinutes: Int
     ) async {
-        guard !course.isAsynchronous else { return }
-        
-        guard let (hour, minute) = parseTime(course.startTime) else {
-            print("Could not parse start time '\(course.startTime)' for \(course.courseName)")
-            return
-        }
-        
-        // Subtract lead time (e.g. 9:00 AM class with 15 min lead -> notify at 8:45)
-        var totalMinutes = hour * 60 + minute - leadTimeMinutes
-        
-        // Wrap around midnight if needed
-        if totalMinutes < 0 {
-            totalMinutes += 24 * 60
-        }
-        
-        let notifyHour = totalMinutes / 60
-        let notifyMinute = totalMinutes % 60
-        
-        for day in course.days {
-            guard let weekday = weekdayNumber(from: day) else {
-                print("Unknown day '\(day)' for \(course.courseName)")
+        for occurrence in course.scheduledOccurrences {
+            guard let (hour, minute) = parseTime(occurrence.startTime) else {
+                print("Could not parse start time '\(occurrence.startTime)' for \(course.courseName)")
                 continue
             }
-            
-            // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
-            var dateComponents = DateComponents()
-            dateComponents.weekday = weekday
-            dateComponents.hour = notifyHour
-            dateComponents.minute = notifyMinute
-            
-            // Unique ID per course + day, e.g. "course-1-Monday"
-            let notificationId = "course-\(course.id)-\(day)"
-            
-            let body = "\(course.courseName) starts in \(leadTimeMinutes) minutes — \(course.location)"
-            
-            await notificationManager.scheduleNotification(
-                id: notificationId,
-                title: "Upcoming Class: \(course.courseCode)",
-                body: body,
-                dateComponents: dateComponents,
-                repeats: true
-            )
+
+            // Subtract lead time (e.g. 9:00 AM class with 15 min lead -> notify at 8:45)
+            var totalMinutes = hour * 60 + minute - leadTimeMinutes
+
+            // Wrap around midnight if needed
+            if totalMinutes < 0 {
+                totalMinutes += 24 * 60
+            }
+
+            let notifyHour = totalMinutes / 60
+            let notifyMinute = totalMinutes % 60
+
+            for day in occurrence.days {
+                guard let weekday = weekdayNumber(from: day) else {
+                    print("Unknown day '\(day)' for \(course.courseName)")
+                    continue
+                }
+
+                // weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+                var dateComponents = DateComponents()
+                dateComponents.weekday = weekday
+                dateComponents.hour = notifyHour
+                dateComponents.minute = notifyMinute
+
+                let notificationId = "course-\(occurrence.id)-\(day)"
+                let body = "\(course.courseName) starts in \(leadTimeMinutes) minutes — \(occurrence.location)"
+
+                await notificationManager.scheduleNotification(
+                    id: notificationId,
+                    title: "Upcoming Class: \(course.courseCode)",
+                    body: body,
+                    dateComponents: dateComponents,
+                    repeats: true
+                )
+            }
         }
     }
     
-    // Cached formatter — DateFormatter is expensive to create
-    private let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "h:mm a"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        return formatter
-    }()
-    
     // Parse "9:00 AM" -> (hour: 9, minute: 0) in 24-hour format
     private func parseTime(_ timeString: String) -> (hour: Int, minute: Int)? {
-        guard let date = timeFormatter.date(from: timeString) else {
+        guard let totalMinutes = DateHelper.timeStringToMinutes(timeString) else {
             return nil
         }
-        
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: date)
-        let minute = calendar.component(.minute, from: date)
-        return (hour, minute)
+
+        return (totalMinutes / 60, totalMinutes % 60)
     }
     
     // Convert day name to Calendar weekday number (1 = Sunday ... 7 = Saturday)

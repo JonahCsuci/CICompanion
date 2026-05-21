@@ -14,6 +14,9 @@ protocol MessagingRepositoryProtocol {
     func createGroupConversation(groupName: String, memberIds: [String], firstMessageBody: String) async throws -> Conversation
     func loadMessages(conversationId: Int) async throws -> ConversationDetail
     func sendMessage(conversationId: Int, body: String) async throws -> Message
+    func requestImageUpload(conversationId: Int) async throws -> ImageUpload
+    func uploadImage(_ data: Data, to uploadURL: String) async throws
+    func sendImageMessage(conversationId: Int, imageKey: String) async throws -> Message
     func addParticipant(conversationId: Int, memberId: String) async throws
     func removeParticipant(conversationId: Int, memberId: String) async throws
     func leaveGroup(conversationId: Int) async throws -> LeaveGroupResult
