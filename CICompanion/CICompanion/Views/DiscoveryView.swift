@@ -30,8 +30,8 @@ struct DiscoveryView: View {
                     HStack(spacing: ViewHelper.spacing) {
                         settingsButton
                         CIPageTitle("Discover")
-                        busScheduleButton
                         Spacer()
+                        busScheduleButton
                     }
 
                     DiscoveryModePicker(selectedMode: $selectedMode)
