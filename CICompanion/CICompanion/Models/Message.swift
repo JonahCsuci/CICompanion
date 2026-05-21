@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Combine
 
 // One reader entry under a group message — distinct from Participant (no email).
 struct MessageReader: Codable, Hashable, Identifiable {

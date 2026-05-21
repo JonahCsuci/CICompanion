@@ -377,7 +377,10 @@ struct TodayView: View {
                                    todayBlockIds: Set<String>) -> [OffDayAssignment] {
         let cal = Calendar.current
         var items: [OffDayAssignment] = []
-        let blocksById = Dictionary(uniqueKeysWithValues: viewModel.scheduleBlocks.map { ($0.id, $0) })
+        var blocksById = Dictionary(
+            viewModel.scheduleBlocks.map { ($0.id, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         
         for (blockId, courseAssignments) in assignments where !todayBlockIds.contains(blockId) {
             guard let block = blocksById[blockId] else { continue }

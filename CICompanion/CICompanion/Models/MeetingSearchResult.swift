@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Combine
 
 struct MeetingSearchResult: Codable, Identifiable, Hashable {
     let messageId: Int
