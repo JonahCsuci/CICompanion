@@ -22,8 +22,8 @@ struct ScheduleGridView: View {
     /// Layout constants for the schedule grid. Kept as a nested enum so each magic
     /// number has a name and lives in a single spot.
     private enum Layout {
-        static let startHour = 9
-        static let endHour = 15
+        static let startHour = 7
+        static let endHour = 23
         static let hourHeight: CGFloat = 80
         static let timeColumnWidth: CGFloat = 40
         static let daysPerWeek = 7
@@ -246,17 +246,23 @@ struct ScheduleGridView: View {
                     .sorted { $0.startMinutes < $1.startMinutes }
                 ForEach(orderedBlocks) { block in
                     if let col = dayIndex(for: block.day, in: weekDates) {
-                        let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
-                        let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
-                        let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
+                        let selectedDate = weekDates[col]
+                        let blockDate =  block.date ?? selectedDate
 
-                        if y >= 0 && y < gridHeight {
-                            courseBlock(
-                                block: block,
-                                width: colWidth - Layout.blockHorizontalInset * 2,
-                                height: max(h - Layout.blockVerticalInset, Layout.minBlockHeight)
-                            )
-                            .offset(x: x, y: y)
+                        if Calendar.current.isDate(blockDate, inSameDayAs: selectedDate) {
+
+                            let x = Layout.timeColumnWidth + CGFloat(col) * colWidth + Layout.blockHorizontalInset
+                            let y = CGFloat(block.startMinutes - Layout.startHour * 60) / 60.0 * Layout.hourHeight
+                            let h = CGFloat(block.endMinutes - block.startMinutes) / 60.0 * Layout.hourHeight
+
+                            if y >= 0 && y < gridHeight {
+                                courseBlock(
+                                    block: block,
+                                    width: colWidth - Layout.blockHorizontalInset * 2,
+                                    height: max(h - Layout.blockVerticalInset, Layout.minBlockHeight)
+                                )
+                                .offset(x: x, y: y)
+                            }
                         }
                     }
                 }

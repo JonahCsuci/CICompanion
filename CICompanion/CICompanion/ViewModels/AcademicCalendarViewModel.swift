@@ -16,6 +16,7 @@ struct CalendarScheduleBlock: Identifiable {
     let startTime: String
     let endTime: String
     let day: String
+    let date: Date?
     let startMinutes: Int
     let endMinutes: Int
     let colorIndex: Int
@@ -85,7 +86,7 @@ class AcademicCalendarViewModel: ObservableObject {
         }
     }
     
-    private func buildSchedule(courses: [Course], meetings: [MeetingProposal], events: [String]) {
+    private func buildSchedule(courses: [Course], meetings: [MeetingProposal], events: [Event]) {
         var nextBlocks: [CalendarScheduleBlock] = []
         var nextLegendItems: [CalendarLegendItem] = []
         var nextAsyncCourses: [AsyncCourseItem] = []
@@ -145,6 +146,7 @@ class AcademicCalendarViewModel: ObservableObject {
                         startTime: course.startTime,
                         endTime: course.endTime,
                         day: day,
+                        date: nil,
                         startMinutes: startMinutes,
                         endMinutes: endMinutes,
                         colorIndex: colorIndex,
@@ -168,6 +170,7 @@ class AcademicCalendarViewModel: ObservableObject {
                 startTime: DateHelper.minutesToTimeString(proposal.timeRange.startTime),
                 endTime: DateHelper.minutesToTimeString(proposal.timeRange.endTime),
                 day: dayName,
+                date: proposal.timeRange.day,
                 startMinutes: proposal.timeRange.startTime,
                 endMinutes: proposal.timeRange.endTime,
                 colorIndex: -1,
@@ -176,19 +179,20 @@ class AcademicCalendarViewModel: ObservableObject {
         }
 
         for (index, event) in events.enumerated() {
-            guard let parsed = parseDiscoveryEvent(event) else { continue }
+            let dayName = formatter.string(from: event.timeRange.day)
             nextBlocks.append(
                 CalendarScheduleBlock(
-                    id: "event-\(index)-\(parsed.day)-\(parsed.startMinutes)",
+                    id: "event-\(index)-\(event.timeRange.day)-\(event.timeRange.startTime)",
                     courseId: -2,
-                    courseName: parsed.title,
+                    courseName: event.name,
                     courseCode: "[EVENT]",
-                    location: parsed.location,
-                    startTime: parsed.startTime,
-                    endTime: parsed.endTime,
-                    day: parsed.day,
-                    startMinutes: parsed.startMinutes,
-                    endMinutes: parsed.endMinutes,
+                    location: event.location,
+                    startTime: DateHelper.minutesToTimeString(event.timeRange.startTime),
+                    endTime: DateHelper.minutesToTimeString(event.timeRange.endTime),
+                    day: dayName,
+                    date: event.timeRange.day,
+                    startMinutes: event.timeRange.startTime,
+                    endMinutes: event.timeRange.endTime,
                     colorIndex: 0,
                     isMeeting: false
                 )
@@ -216,34 +220,5 @@ class AcademicCalendarViewModel: ObservableObject {
         }
         
         return hour * 60 + minute
-    }
-
-    private func parseDiscoveryEvent(_ value: String) -> (title: String, day: String, startTime: String, endTime: String, startMinutes: Int, endMinutes: Int, location: String)? {
-        let parts = value.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
-        guard parts.count == 4 else { return nil }
-
-        let title = parts[0]
-        let dayAndTime = parts[1]
-        let location = parts[2]
-        let fallbackDuration = max(Int(parts[3]) ?? 60, 30)
-
-        let chunks = dayAndTime.components(separatedBy: "•").map { $0.trimmingCharacters(in: .whitespaces) }
-        guard chunks.count == 2 else { return nil }
-        let day = chunks[0]
-
-        let timeParts = chunks[1].components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
-        guard let start = timeParts.first, let startMinutes = timeStringToMinutes(start) else { return nil }
-        let endMinutes = timeParts.count > 1 ? (timeStringToMinutes(timeParts[1]) ?? (startMinutes + fallbackDuration)) : (startMinutes + fallbackDuration)
-        let endTime = DateHelper.minutesToTimeString(endMinutes)
-
-        return (
-            title: title,
-            day: day,
-            startTime: start,
-            endTime: endTime,
-            startMinutes: startMinutes,
-            endMinutes: endMinutes,
-            location: location
-        )
     }
 }

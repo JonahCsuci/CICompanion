@@ -17,103 +17,124 @@ struct MeetingProposalBubbleView: View {
     let conversation : Conversation
     let studentRepository: StudentRepositoryProtocol
     @State var responded = false
+    @State var meetingScheduler : MeetingScheduler
+    let messageID: Int
     
     @State var navigationActive = false
     
     @State private var coursesBeforeAfter: ProposeMeetingViewModel.CoursesBeforeAfter? = nil
     
     var body: some View {
-        HStack {
-            VStack {
-                CIText("[Proposed] · \(DateHelper.dateToDayString(proposal.timeRange.day))", color: ViewHelper.textImportant.opacity(0.75))
-                
-                CIText("\(proposal.title)", fontSize: 20, fontWeight: .bold)
-                
-                HStack(spacing: 0) {
-                    CIText("\(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
-                }
-                
+        VStack {
+            CIText("[Proposed] · \(DateHelper.dateToDayString(proposal.timeRange.day))", color: ViewHelper.textImportant.opacity(0.75))
+            
+            HStack(spacing: 0) {
+                CIText("\(DateHelper.minutesToTimeString(proposal.timeRange.startTime))-\(DateHelper.minutesToTimeString(proposal.timeRange.endTime))")
+            }
+            
+            HStack(spacing: ViewHelper.tinyPadding) {
                 HStack(spacing: ViewHelper.tinyPadding) {
-                    Image(systemName: "building.2.fill")
-                        .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text)
-                    CIText(proposal.studyRoomID != nil ? proposal.studyRoom() : "No room", color: (proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text), fontWeight: proposal.studyRoomID != nil ? .semibold : .regular)
+                    Image(systemName: "person.2.fill")
+                        .foregroundColor(ViewHelper.textImportant)
+                    CIText("\(proposal.respondees.count)/\(meetingScheduler.respondees.count) accepted", color: ViewHelper.textImportant)
                 }
                 
-                if coursesBeforeAfter != nil {
-                    if (coursesBeforeAfter!.hasConflict) {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill").padding(8).background(ViewHelper.accentRed).cornerRadius(64)
-                            
-                            VStack(alignment: .leading) {
-                                CIText("Conflicts with \(coursesBeforeAfter!.conflicts.count) \(coursesBeforeAfter!.conflicts.count == 1 ? "class" : "classes")", color: .white, fontWeight: .semibold)
-                            }
-                            Spacer()
-                        }
-                        .padding(ViewHelper.padding)
-                        .background(.white.opacity(ViewHelper.opacity))
-                        .cornerRadius(ViewHelper.componentRounding)
-                    }
-                    
-                    Divider()
-                        .background(ViewHelper.textImportant)
-                    
-                    CIText("Your day")
-                    
-                    Spacer()
-                    
-                    VStack {
-                        if (coursesBeforeAfter!.before != nil) {
-                            let course = coursesBeforeAfter!.before!
-                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
-                        } else {
-                            CIText("No events before...")
-                        }
+                Image(systemName: "building.2.fill")
+                    .foregroundColor(proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text)
+                CIText(proposal.studyRoomID != nil ? proposal.studyRoom() : "No room", color: (proposal.studyRoomID != nil ? ViewHelper.textImportant : ViewHelper.text), fontWeight: proposal.studyRoomID != nil ? .semibold : .regular)
+            }
+            
+            if coursesBeforeAfter != nil {
+                if (coursesBeforeAfter!.hasConflict) {
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill").padding(8).background(ViewHelper.accentRed).cornerRadius(64)
                         
-                        timeRangeCard(name: proposal.title, start: proposal.timeRange.startTime, end: proposal.timeRange.endTime, meeting: true)
-                        
-                        if (coursesBeforeAfter!.after != nil) {
-                            let course = coursesBeforeAfter!.after!
-                            timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
-                        } else {
-                            CIText("No events after...")
+                        VStack(alignment: .leading) {
+                            CIText("Conflicts with \(coursesBeforeAfter!.conflicts.count) \(coursesBeforeAfter!.conflicts.count == 1 ? "class" : "classes")", color: .white, fontWeight: .semibold)
                         }
+                        Spacer()
                     }
-                    
-                    Spacer()
-                
-                    Divider()
-                        .background(ViewHelper.textImportant)
+                    .padding(ViewHelper.padding)
+                    .background(.white.opacity(ViewHelper.opacity))
+                    .cornerRadius(ViewHelper.componentRounding)
                 }
                 
-                if responded {
-                    CIText("✓ Added to calendar", fontSize: ViewHelper.smallTextSize)
-                } else {
-                    HStack(spacing: 12) {
-                        Button {
-                            responded = true
-                            Task {
-                                do {
-                                    var meetings = try await studentRepository.loadStudent().meetings
+                Divider()
+                    .background(ViewHelper.textImportant)
+                
+                CIText("Your day")
+                
+                Spacer()
+                
+                VStack {
+                    if (coursesBeforeAfter!.before != nil) {
+                        let course = coursesBeforeAfter!.before!
+                        timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
+                    } else {
+                        CIText("No events before...")
+                    }
+                    
+                    timeRangeCard(name: proposal.title, start: proposal.timeRange.startTime, end: proposal.timeRange.endTime, meeting: true)
+                    
+                    if (coursesBeforeAfter!.after != nil) {
+                        let course = coursesBeforeAfter!.after!
+                        timeRangeCard(name: course.courseName, start: DateHelper.timeStringToMinutes(course.startTime) ?? 0, end: DateHelper.timeStringToMinutes(course.endTime) ?? 0, overlap: coursesBeforeAfter!.conflicts.contains(course))
+                    } else {
+                        CIText("No events after...")
+                    }
+                }
+                
+                Spacer()
+            
+                Divider()
+                    .background(ViewHelper.textImportant)
+            }
+            
+            if responded {
+                CIText("✓ Added to calendar", fontSize: ViewHelper.smallTextSize)
+            } else {
+                HStack(spacing: 12) {
+                    Button {
+                        responded = true
+                        Task {
+                            do {
+                                if var existing = meetingScheduler.proposals.first(where: { $0.hashValue == proposal.hashValue }) {
+                                    meetingScheduler.proposals.remove(existing)
                                     
-                                    if !meetings.contains(proposal) {
-                                        meetings.append(proposal)
-                                    }
+                                    existing.respondees.insert(sessionManager.userId!)
                                     
-                                    try await studentRepository.updateScheduleTimes(meetings: meetings)
-                                } catch {
-                                    print("There was an error adding the student meeting: \(error)")
+                                    meetingScheduler.proposals.insert(existing)
                                 }
+                                
+                                meetingScheduler.respondees.insert(sessionManager.userId!)
+                                
+                                let encoder = JSONEncoder()
+                                if let encoded = try? encoder.encode(meetingScheduler) {
+                                    try await messagingRepository.editMeetup(messageId: messageID, body: encoded.base64EncodedString())
+                                }
+                                
+                                var meetings = try await studentRepository.loadStudent().meetings
+                                
+                                if !meetings.contains(proposal) {
+                                    meetings.append(proposal)
+                                }
+                                
+                                try await studentRepository.updateScheduleTimes(meetings: meetings)
+                                
+                                
+                            } catch {
+                                print("There was an error adding the student meeting: \(error)")
                             }
-                        } label: {
-                            Spacer()
-                            Image(systemName: "calendar").font(.system(size: ViewHelper.textSize, weight: .semibold))
-                            CIText("Add to calendar", color: .black)
-                            Spacer()
                         }
-                        .padding(10).background(.white)
-                        .cornerRadius(16).foregroundColor(.black)
-                    }.padding(10)
-                }
+                    } label: {
+                        Spacer()
+                        Image(systemName: "calendar").font(.system(size: ViewHelper.textSize, weight: .semibold))
+                        CIText("Add to calendar", color: .black)
+                        Spacer()
+                    }
+                    .padding(10).background(.white)
+                    .cornerRadius(16).foregroundColor(.black)
+                }.padding(10)
             }
         }.task {
             do {

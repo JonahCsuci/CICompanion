@@ -119,7 +119,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
         }
     }
     
-    func updateStudentEvents(events: [String]) async throws {
+    func updateStudentEvents(events: [Event]) async throws {
             if student != nil {
                 student!.events = events
             }
@@ -138,7 +138,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
 
             struct RequestBody: Codable {
                 let studentId: String
-                let events: [String]
+                let events: [Event]
             }
 
             let body = RequestBody(
@@ -152,7 +152,7 @@ class APIStudentRepository: StudentRepositoryProtocol {
             try handleErrorResponse(data: data, response: response)
         }
         
-        func addStudentEvent(event: String) async throws {
+        func addStudentEvent(event: Event) async throws {
             var events = student?.events ?? []
 
             if !events.contains(event) {
@@ -161,8 +161,14 @@ class APIStudentRepository: StudentRepositoryProtocol {
 
             try await updateStudentEvents(events: events)
         }
+    
+        func hasStudentEvent(event: Event) async throws -> Bool {
+            var events = student?.events ?? []
+            
+            return events.contains(event);
+        }
         
-        func deleteStudentEvent(event: String) async throws {
+        func deleteStudentEvent(event: Event) async throws {
             var events = student?.events ?? []
 
             events.removeAll { $0 == event }

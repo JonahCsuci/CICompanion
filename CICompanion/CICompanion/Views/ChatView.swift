@@ -194,7 +194,7 @@ struct ChatView: View {
                 await viewModel.refreshMessages(conversationId: conversation.id)
                 _ = scrollToTargetIfNeeded(proxy: proxy)
             }
-            .onChange(of: viewModel.messages.count) { _ in
+            .onChange(of: viewModel.messages.last?.id) { _ in
                 if scrollToTargetIfNeeded(proxy: proxy) { return }
                 scrollToBottom(proxy: proxy)
             }
@@ -218,18 +218,7 @@ struct ChatView: View {
 
     @ViewBuilder
     private func messageRow(_ message: Message) -> some View {
-        if let prop = messagingRepository.getMeetingProposal(body: message.body) {
-            MeetingProposalBubbleView(
-                message: message,
-                isCurrentUser: message.senderId == viewModel.currentUserId,
-                proposal: prop,
-                sessionManager: sessionManager,
-                messagingRepository: messagingRepository,
-                courseRepository: courseRepository,
-                conversation: conversation,
-                studentRepository: studentRepository
-            )
-        } else if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
+        if let meetingScheduler = messagingRepository.getMeeting(body: message.body) {
             MeetingBubbleView(
                 message: message,
                 isCurrentUser: message.senderId == viewModel.currentUserId,
@@ -237,7 +226,8 @@ struct ChatView: View {
                 sessionManager: sessionManager,
                 messagingRepository: messagingRepository,
                 courseRepository: courseRepository,
-                conversation: conversation, studentRepository: studentRepository
+                conversation: conversation,
+                studentRepository: studentRepository
             )
         } else {
             MessageBubbleView(
