@@ -48,7 +48,7 @@ struct ConfirmSignUpView: View {
                                 dismiss()
                             }
                         } catch {
-                            message = error.localizedDescription
+                            message = AuthErrorMessage.text(for: error)
                             print("Confirm error: ", error)
                         }
                     }

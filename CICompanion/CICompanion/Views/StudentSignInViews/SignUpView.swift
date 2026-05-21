@@ -84,17 +84,13 @@ struct SignUpView: View {
                                 
                                 print("Sign up result: \(result.nextStep)")
                                 showConfirm = true
-                            } catch let error as AuthError {
-                                let description = error.errorDescription.lowercased()
-                                
-                                if description.contains("exists") || description.contains("already") {
+                            } catch {
+                                if AuthErrorMessage.isAccountAlreadyExists(error) {
                                     message = "Account already exists. Please verify your email."
                                     showConfirm = true
                                 } else {
-                                    message = error.errorDescription
+                                    message = AuthErrorMessage.text(for: error)
                                 }
-                            } catch {
-                                message = error.localizedDescription
                             }
                         }
                     } label: {
