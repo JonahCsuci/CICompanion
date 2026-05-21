@@ -250,10 +250,6 @@ private final class ContactRequestRepositoryStub: StudentRepositoryProtocol {
 
     func deleteStudentEvent(event: Event) async throws {}
 
-    func addStudentEvent(eventId: Int) async throws {}
-
-    func deleteStudentEvent(eventId: Int) async throws {}
-
     func addStudentContact(email: String) async throws {}
 
     func loadStudentContacts() async throws -> [ContactStudent] { [] }

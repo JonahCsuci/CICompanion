@@ -268,10 +268,6 @@ private final class ContactStudentRepositoryStub: StudentRepositoryProtocol {
 
     func deleteStudentEvent(event: Event) async throws {}
 
-    func addStudentEvent(eventId: Int) async throws {}
-
-    func deleteStudentEvent(eventId: Int) async throws {}
-
     func addStudentContact(email: String) async throws {
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 

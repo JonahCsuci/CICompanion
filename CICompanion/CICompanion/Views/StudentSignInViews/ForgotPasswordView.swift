@@ -10,9 +10,9 @@ import Amplify
 
 struct ForgotPasswordView: View {
     @Environment(\.dismiss) private var dismiss
-    
+
     let sessionManager: SessionManager
-    
+
     @State private var email = ""
     @State private var code = ""
     @State private var newPassword = ""
@@ -20,165 +20,167 @@ struct ForgotPasswordView: View {
     @State private var message = ""
     @State private var successMessage = ""
     @State private var confirmPassword = ""
-    
+    @State private var isSubmitting = false
+
+    private var isFormValid: Bool {
+        if sendEmail {
+            return !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+
+        return !code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && !newPassword.isEmpty
+            && !confirmPassword.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             CIView {
                 HStack {
-                    
                     Spacer()
-                    
+
                     VStack {
-                        
+                        Spacer()
+                            .frame(height: AuthLayout.topSpacing)
+
                         Image("TeamKNOWN")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: ViewHelper.logoSize, height: ViewHelper.logoSize)
+                            .frame(width: AuthLayout.logoSize, height: AuthLayout.logoSize)
                             .padding(.bottom, ViewHelper.smallPadding)
-                        
-                        CIPageTitle(sendEmail ? "Enter your email" : "Reset Password")
+
+                        CIPageTitle(sendEmail ? "Enter Your Email" : "Reset Password")
                             .padding(.bottom, ViewHelper.biggerSpacing)
-                        
-                        VStack(alignment: .leading) {
-                            
+
+                        if sendEmail {
+                            Text("We'll send a 6-digit code to your inbox to reset your password.")
+                                .font(.system(size: ViewHelper.textSize))
+                                .foregroundColor(ViewHelper.text)
+                                .multilineTextAlignment(.center)
+                                .frame(width: ViewHelper.buttonWidth)
+                                .padding(.bottom, ViewHelper.biggerSpacing)
+                        } else if !email.isEmpty {
+                            AuthCodeSentBanner(email: email)
+                                .padding(.bottom, ViewHelper.biggerSpacing)
+                        }
+
+                        VStack(spacing: AuthLayout.fieldSpacing) {
                             if sendEmail {
-                                
-                                CIText("Email", color: ViewHelper.text)
-                                    .foregroundColor(ViewHelper.textImportant)
-                                
-                                CIEmailTextField(
-                                    placeholder: "",
-                                    text: $email,
-                                    lines: 1
-                                )
-                                .autocorrectionDisabled(true)
-                                
+                                CIItem(name: "Email") {
+                                    AuthTextField(
+                                        kind: .email,
+                                        placeholder: "you@myci.csuci.edu",
+                                        text: $email
+                                    )
+                                }
                             } else {
-                                
-                                CIText("Code", color: ViewHelper.text)
-                                
-                                CITextField(
-                                    placeholder: "",
-                                    text: $code,
-                                    lines: 1
-                                )
-                                
-                                CIText("New Password", color: ViewHelper.text)
-                                    .padding(ViewHelper.smallPadding)
-                                
-                                CIPasswordTextField(
-                                    placeholder: "",
-                                    text: $newPassword,
-                                    lines: 1
-                                )
-                                
-                                CIText("Confirm New Password", color: ViewHelper.text)
-                                    .padding(ViewHelper.smallPadding)
-                                
-                                CIPasswordTextField(
-                                    placeholder: "",
-                                    text: $confirmPassword,
-                                    lines: 1)
+                                CIItem(name: "Code") {
+                                    AuthTextField(
+                                        kind: .code,
+                                        placeholder: "6-digit code",
+                                        text: $code
+                                    )
+                                }
+
+                                CIItem(name: "New Password") {
+                                    AuthSecureField(
+                                        placeholder: "New password",
+                                        text: $newPassword
+                                    )
+                                }
+
+                                CIItem(name: "Confirm New Password") {
+                                    AuthSecureField(
+                                        placeholder: "Re-enter new password",
+                                        text: $confirmPassword
+                                    )
+                                }
                             }
                         }
-                        
-                        if !email.isEmpty && !sendEmail {
-                            CIText("Code sent to \(email)", color: ViewHelper.textImportant)
-                        }
-                        
+                        .frame(width: ViewHelper.buttonWidth)
+
                         if !message.isEmpty {
                             CIErrorMessage(errorMessage: message)
                         }
-                        
+
                         if !successMessage.isEmpty {
                             CIText(successMessage, color: ViewHelper.accentGreen)
+                                .padding(.top, ViewHelper.smallPadding)
                         }
-                        
-                        Button {
+
+                        AuthPrimaryButton(
+                            title: sendEmail ? "Send Code" : "Reset Password",
+                            isLoading: isSubmitting,
+                            isEnabled: isFormValid
+                        ) {
                             Task {
+                                isSubmitting = true
+                                defer { isSubmitting = false }
+
                                 do {
-                                    
                                     if sendEmail {
-                                        
                                         if email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                             message = "Enter your email"
                                             return
                                         }
-                                        
+
                                         _ = try await Amplify.Auth.resetPassword(for: email)
-                                        
+
                                         sendEmail = false
                                         message = ""
-                                        
                                     } else {
-                                        
                                         if code.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                             newPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
                                             confirmPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                                             message = "Fill out all fields"
                                             return
                                         }
-                                        
+
                                         if newPassword != confirmPassword {
-                                            message = "Passwords do no match"
+                                            message = "Passwords do not match"
                                             return
                                         }
-                                        
+
                                         try await Amplify.Auth.confirmResetPassword(
                                             for: email,
                                             with: newPassword,
                                             confirmationCode: code
                                         )
-                                        
-                                        
+
                                         message = ""
                                         successMessage = "Password reset confirmed"
-                                        
+
                                         try await Task.sleep(for: .seconds(2))
-                                        
+
                                         dismiss()
                                     }
-                                    
                                 } catch {
                                     successMessage = ""
-                                    message = "Incorrect Code"
+                                    message = AuthErrorMessage.text(for: error)
                                 }
                             }
-                        } label: {
-                            Text(sendEmail ? "Send Code" : "Reset Password")
-                                .font(.system(size: ViewHelper.buttonTextSize, weight: .bold))
-                                .foregroundColor(ViewHelper.textImportant)
-                                .frame(width: ViewHelper.buttonWidth, height: ViewHelper.buttonHeight)
-                                .background(ViewHelper.accentBlue)
-                                .cornerRadius(ViewHelper.componentRounding)
                         }
-                        .padding(.top, ViewHelper.padding)
+                        .padding(.top, AuthLayout.buttonTopSpacing)
+
+                        Spacer()
+
+                        VStack(spacing: ViewHelper.smallPadding) {
+                            CIText("Remember Password?", color: ViewHelper.text)
+
+                            CITextButton(text: "Back to Sign In") {
+                                dismiss()
+                            }
+                        }
+                        .padding(.bottom, AuthLayout.topSpacing)
                     }
-                    
+
                     Spacer()
                 }
-                
-                Spacer()
-                
-                HStack {
-                    
-                    VStack(spacing: ViewHelper.smallPadding) {
-                        
-                        CIText("Remember Password?", color: ViewHelper.textImportant)
-                        
-                        CITextButton(text: "Back to Sign In") {
-                            dismiss()
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .navigationBarBackButtonHidden(true)
-                .toolbar(.hidden, for: .navigationBar)
-                
-                }
-                
+            }
+            .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
+
 }
 
 #Preview {
