@@ -31,6 +31,7 @@ struct DiscoveryView: View {
                         settingsButton
                         CIPageTitle("Discover")
                         Spacer()
+                        busScheduleButton
                     }
 
                     DiscoveryModePicker(selectedMode: $selectedMode)
@@ -76,6 +77,20 @@ struct DiscoveryView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Settings")
+    }
+
+    private var busScheduleButton: some View {
+        NavigationLink {
+            BusScheduleView()
+        } label: {
+            Image(systemName: "bus.fill")
+                .font(.system(size: ViewHelper.navIconSize, weight: .semibold))
+                .foregroundColor(ViewHelper.textImportant)
+                .frame(width: ViewHelper.navButtonSize, height: ViewHelper.navButtonSize)
+                .background(Circle().fill(ViewHelper.fieldBgColor))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Bus Schedule")
     }
 }
 
