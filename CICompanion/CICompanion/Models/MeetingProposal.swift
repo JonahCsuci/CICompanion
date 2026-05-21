@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 struct MeetingProposal: Codable, Hashable {
     // stuff that needs to save and get loaded in database

@@ -4,6 +4,7 @@
 //
 
 import Foundation
+import Combine
 
 enum RealtimeEvent {
     case newMessage(conversationId: Int, message: Message)

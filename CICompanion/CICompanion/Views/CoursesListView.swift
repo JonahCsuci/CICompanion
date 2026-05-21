@@ -324,27 +324,46 @@ struct CourseDetailsDropDown: View {
     let course: Course
 
     var body: some View {
-        VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
-            detailSection("Information") {
-                detailRow("Class Number", "\(course.springCourse.classNumber)")
-                detailRow("Subject", course.springCourse.subject)
-                detailRow("Course Number", course.springCourse.courseNumber)
-                detailRow("Section", course.springCourse.section)
-                detailRow("Component", course.springCourse.component)
-                detailRow("Title", course.springCourse.title)
-                detailRow("Units", course.springCourse.units)
-                detailRow("Description", course.springCourse.description)
-                detailRow("Enrollment Requirements", course.springCourse.enrollmentRequirements ?? "None listed")
-                detailRow("Class Notes", course.springCourse.classNotes ?? "None listed")
-            }
-
-            detailSection("Details") {
-                detailRow("Instructor", course.springCourse.instructor ?? "Instructor TBD")
-                detailRow("Meets", course.scheduleSummary)
-                detailRow("Instruction Mode", course.springCourse.instructionMode)
-                detailRow("Room", course.springCourse.room ?? "Arranged")
-                detailRow("Campus", course.springCourse.campus)
-                detailRow("Location", course.springCourse.location)
+        NavigationStack {
+            VStack(alignment: .leading, spacing: ViewHelper.biggerSpacing) {
+                detailSection("Information") {
+                    NavigationLink(destination: FindClassroomView(
+                        lat: 39.161111,
+                        long: -119.043333
+                    )) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "location.fill")
+                                .foregroundStyle(ViewHelper.accentBlue)
+                            
+                            Text(course.springCourse.room ?? "Arranged")
+                                .font(.system(size: ViewHelper.smallTextSize + 2))
+                                .foregroundColor(ViewHelper.accentBlue)
+                                .underline()
+                        }
+                        .padding(ViewHelper.smallPadding)
+                        .background(ViewHelper.cardBgColor)
+                        .cornerRadius(ViewHelper.componentRounding)
+                    }
+                    .buttonStyle(.plain)
+                    detailRow("Class Number", "\(course.springCourse.classNumber)")
+                    detailRow("Subject", course.springCourse.subject)
+                    detailRow("Course Number", course.springCourse.courseNumber)
+                    detailRow("Section", course.springCourse.section)
+                    detailRow("Component", course.springCourse.component)
+                    detailRow("Title", course.springCourse.title)
+                    detailRow("Units", course.springCourse.units)
+                    detailRow("Description", course.springCourse.description)
+                    detailRow("Enrollment Requirements", course.springCourse.enrollmentRequirements ?? "None listed")
+                    detailRow("Class Notes", course.springCourse.classNotes ?? "None listed")
+                }
+                
+                detailSection("Details") {
+                    detailRow("Instructor", course.springCourse.instructor ?? "Instructor TBD")
+                    detailRow("Meets", course.scheduleSummary)
+                    detailRow("Instruction Mode", course.springCourse.instructionMode)
+                    detailRow("Campus", course.springCourse.campus)
+                    detailRow("Location", course.springCourse.location)
+                }
             }
         }
     }
